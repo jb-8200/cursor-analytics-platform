@@ -1,0 +1,391 @@
+# Cursor Analytics GraphQL Schema
+
+scalar DateTime
+
+# =============================================================================
+# Core Types
+# =============================================================================
+
+"""
+Represents a software developer in the organization whose Cursor usage is tracked.
+"""
+type Developer {
+    "Unique identifier for the developer (internal UUID)"
+    id: ID!
+    
+    "External identifier from the data source (simulator or Cursor API)"
+    externalId: String!
+    
+    "Developer's full name"
+    name: String!
+    
+    "Developer's email address"
+    email: String!
+    
+    "Team the developer belongs to"
+    team: String!
+    
+    "Experience level: junior, mid, or senior"
+    seniority: String
+    
+    "When the developer profile was created"
+    createdAt: DateTime!
+    
+    """
+    Aggregated usage statistics for this developer.
+    Optionally filtered by date range.
+    """
+    stats(range: DateRangeInput): UsageStats
+    
+    """
+    Daily statistics breakdown for this developer.
+    Returns one entry per day within the specified range.
+    """
+    dailyStats(range: DateRangeInput): [DailyStats!]!
+}
+
+"""
+Aggregated usage statistics for a developer, team, or organization.
+All counts are for the specified time range (or all time if no range given).
+"""
+type UsageStats {
+    "Total number of AI suggestions shown to the user"
+    totalSuggestions: Int!
+    
+    "Number of AI suggestions accepted by the user"
+    acceptedSuggestions: Int!
+    
+    """
+    Percentage of suggestions accepted (0-100).
+    Null if no suggestions were shown.
+    Formula: (acceptedSuggestions / totalSuggestions) * 100
+    """
+    acceptanceRate: Float
+    
+    "Number of chat/conversation interactions"
+    chatInteractions: Int!
+    
+    "Number of Cmd+K inline edit usages"
+    cmdKUsages: Int!
+    
+    "Total lines of code added"
+    totalLinesAdded: Int!
+    
+    "Total lines of code deleted"
+    totalLinesDeleted: Int!
+    
+    "Lines of code added via accepted AI suggestions"
+    aiLinesAdded: Int!
+    
+    """
+    Percentage of code that came from AI suggestions (0-100).
+    Null if no lines were added.
+    Formula: (aiLinesAdded / totalLinesAdded) * 100
+    """
+    aiVelocity: Float
+}
+
+"""
+Statistics for a single day, used for trend visualization.
+"""
+type DailyStats {
+    "The date these statistics represent"
+    date: DateTime!
+    
+    "AI suggestions shown on this day"
+    suggestionsShown: Int!
+    
+    "AI suggestions accepted on this day"
+    suggestionsAccepted: Int!
+    
+    """
+    Acceptance rate for this day.
+    Null if no suggestions were shown.
+    """
+    acceptanceRate: Float
+    
+    "Chat interactions on this day"
+    chatInteractions: Int!
+    
+    "Cmd+K usages on this day"
+    cmdKUsages: Int!
+    
+    "Lines added on this day"
+    linesAdded: Int!
+    
+    "Lines deleted on this day"
+    linesDeleted: Int!
+    
+    "AI-generated lines added on this day"
+    aiLinesAdded: Int!
+}
+
+"""
+Aggregated statistics for a team.
+"""
+type TeamStats {
+    "Name of the team"
+    teamName: String!
+    
+    "Total number of developers on the team"
+    memberCount: Int!
+    
+    "Number of developers with activity in the period"
+    activeMemberCount: Int!
+    
+    """
+    Team's average acceptance rate, weighted by activity.
+    Uses weighted average to prevent low-activity members from skewing results.
+    """
+    averageAcceptanceRate: Float
+    
+    "Total suggestions shown to all team members"
+    totalSuggestions: Int!
+    
+    "Total suggestions accepted by all team members"
+    totalAccepted: Int!
+    
+    "Total chat interactions by all team members"
+    chatInteractions: Int!
+    
+    "Team's AI velocity percentage"
+    aiVelocity: Float
+    
+    "Developer with the highest acceptance rate on the team"
+    topPerformer: Developer
+}
+
+"""
+Key Performance Indicators for the dashboard overview.
+Optimized query that returns all data needed for the main dashboard view.
+"""
+type DashboardKPI {
+    "Total number of developers in the organization"
+    totalDevelopers: Int!
+    
+    "Developers with at least one event in the last 7 days"
+    activeDevelopers: Int!
+    
+    "Organization-wide acceptance rate"
+    overallAcceptanceRate: Float
+    
+    "Suggestions shown today (current UTC day)"
+    totalSuggestionsToday: Int!
+    
+    "Suggestions accepted today"
+    totalAcceptedToday: Int!
+    
+    "AI velocity percentage for today"
+    aiVelocityToday: Float
+    
+    "Comparison data for all teams"
+    teamComparison: [TeamStats!]!
+    
+    "Daily statistics for trend visualization"
+    dailyTrend: [DailyStats!]!
+}
+
+# =============================================================================
+# Pagination Types
+# =============================================================================
+
+"""
+Paginated list of developers with metadata.
+"""
+type DeveloperConnection {
+    "List of developers for the current page"
+    nodes: [Developer!]!
+    
+    "Total count of developers matching the query (before pagination)"
+    totalCount: Int!
+    
+    "Pagination metadata"
+    pageInfo: PageInfo!
+}
+
+"""
+Pagination metadata for cursor-based or offset pagination.
+"""
+type PageInfo {
+    "Whether more results exist after this page"
+    hasNextPage: Boolean!
+    
+    "Whether results exist before this page"
+    hasPreviousPage: Boolean!
+    
+    "Cursor for the first item (for cursor-based pagination)"
+    startCursor: String
+    
+    "Cursor for the last item (for cursor-based pagination)"
+    endCursor: String
+}
+
+# =============================================================================
+# Health & System Types
+# =============================================================================
+
+"""
+Service health status information.
+"""
+type HealthStatus {
+    "Overall status: healthy, degraded, or unhealthy"
+    status: String!
+    
+    "Database connection status"
+    database: String!
+    
+    "Simulator/data source connection status"
+    simulator: String!
+    
+    "Timestamp of last successful data ingestion"
+    lastIngestion: DateTime
+    
+    "Service version string"
+    version: String!
+}
+
+# =============================================================================
+# Input Types
+# =============================================================================
+
+"""
+Date range for filtering statistics queries.
+Both from and to are inclusive.
+"""
+input DateRangeInput {
+    "Start of the date range (inclusive)"
+    from: DateTime!
+    
+    "End of the date range (inclusive)"
+    to: DateTime!
+}
+
+"""
+Preset date ranges for common queries.
+Server expands these to actual date ranges.
+"""
+enum DateRangePreset {
+    "Current UTC day"
+    TODAY
+    
+    "Monday through today"
+    THIS_WEEK
+    
+    "First of month through today"
+    THIS_MONTH
+    
+    "Past 7 days including today"
+    LAST_7_DAYS
+    
+    "Past 30 days including today"
+    LAST_30_DAYS
+    
+    "Past 90 days including today"
+    LAST_90_DAYS
+}
+
+"""
+Sort direction for list queries.
+"""
+enum SortOrder {
+    ASC
+    DESC
+}
+
+# =============================================================================
+# Queries
+# =============================================================================
+
+type Query {
+    """
+    Fetch a single developer by their internal ID.
+    Returns null if developer not found.
+    """
+    developer(id: ID!): Developer
+    
+    """
+    Fetch a list of developers with optional filtering and pagination.
+    Results are paginated with a default limit of 50.
+    """
+    developers(
+        "Filter by team name (exact match)"
+        team: String
+        
+        "Filter by seniority level"
+        seniority: String
+        
+        "Search by name or email (partial match)"
+        search: String
+        
+        "Maximum results to return (1-100, default 50)"
+        limit: Int = 50
+        
+        "Number of results to skip for pagination"
+        offset: Int = 0
+        
+        "Field to sort by: name, team, acceptanceRate, totalSuggestions"
+        sortBy: String = "name"
+        
+        "Sort direction"
+        sortOrder: SortOrder = ASC
+    ): DeveloperConnection!
+    
+    """
+    Fetch statistics for a specific team.
+    Returns null if team not found.
+    """
+    teamStats(
+        "Team name (exact match)"
+        teamName: String!
+        
+        "Optional date range for statistics"
+        range: DateRangeInput
+    ): TeamStats
+    
+    """
+    Fetch statistics for all teams.
+    Useful for team comparison views.
+    """
+    teams(
+        "Optional date range for statistics"
+        range: DateRangeInput
+    ): [TeamStats!]!
+    
+    """
+    Fetch the dashboard summary with all KPIs.
+    This is the primary query for the main dashboard view.
+    Optimized to return all necessary data in a single request.
+    """
+    dashboardSummary(
+        "Explicit date range for statistics"
+        range: DateRangeInput
+        
+        "Preset date range (ignored if range is provided)"
+        preset: DateRangePreset
+    ): DashboardKPI!
+    
+    """
+    Check service health status.
+    Useful for monitoring and debugging.
+    """
+    health: HealthStatus!
+}
+
+# =============================================================================
+# Future: Mutations (Reserved)
+# =============================================================================
+
+# Mutations may be added in future versions for:
+# - Manual data refresh triggers
+# - Team configuration
+# - Alert threshold settings
+# - User preferences
+
+# =============================================================================
+# Future: Subscriptions (Reserved)
+# =============================================================================
+
+# Subscriptions may be added in future versions for:
+# - Real-time dashboard updates
+# - Alert notifications
+# - Ingestion status updates

@@ -1,0 +1,171 @@
+# Docker Compose Configuration for Cursor Analytics Platform
+# 
+# This file orchestrates all three services plus their dependencies for local
+# development. Services are configured with health checks to ensure proper
+# startup order, and volumes are used for data persistence across restarts.
+#
+# Usage:
+#   docker-compose up -d          # Start all services in background
+#   docker-compose logs -f        # Follow all logs
+#   docker-compose down           # Stop all services
+#   docker-compose down -v        # Stop and remove volumes (reset data)
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # Service A: Cursor API Simulator
+  # ===========================================================================
+  # Generates synthetic usage data mimicking real Cursor telemetry.
+  # This service starts first and provides data to the aggregator.
+  
+  cursor-sim:
+    build:
+      context: ./services/cursor-sim
+      dockerfile: Dockerfile
+    container_name: cursor-sim
+    ports:
+      - "8080:8080"
+    environment:
+      # Server configuration
+      - CURSOR_SIM_PORT=8080
+      # Simulation parameters
+      - CURSOR_SIM_DEVELOPERS=${CURSOR_SIM_DEVELOPERS:-50}
+      - CURSOR_SIM_VELOCITY=${CURSOR_SIM_VELOCITY:-high}
+      - CURSOR_SIM_FLUCTUATION=${CURSOR_SIM_FLUCTUATION:-0.2}
+      - CURSOR_SIM_TEAMS=${CURSOR_SIM_TEAMS:-5}
+      # Use fixed seed for reproducible demos (remove for random data)
+      - CURSOR_SIM_SEED=${CURSOR_SIM_SEED:-12345}
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - cursor-net
+
+  # ===========================================================================
+  # PostgreSQL Database
+  # ===========================================================================
+  # Persistent storage for the aggregator service.
+  # Data is preserved in a named volume across container restarts.
+  
+  postgres:
+    image: postgres:15-alpine
+    container_name: cursor-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-cursor}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cursor_dev}
+      - POSTGRES_DB=${POSTGRES_DB:-cursor_analytics}
+    volumes:
+      # Persist database data
+      - postgres_data:/var/lib/postgresql/data
+      # Initialize database with schema (optional)
+      - ./services/cursor-analytics-core/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cursor} -d ${POSTGRES_DB:-cursor_analytics}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - cursor-net
+
+  # ===========================================================================
+  # Service B: Analytics Core (Aggregator)
+  # ===========================================================================
+  # Ingests data from the simulator, calculates metrics, and serves GraphQL API.
+  # Waits for both PostgreSQL and simulator to be healthy before starting.
+  
+  cursor-analytics-core:
+    build:
+      context: ./services/cursor-analytics-core
+      dockerfile: Dockerfile
+    container_name: cursor-analytics-core
+    ports:
+      - "4000:4000"
+    environment:
+      # Database connection
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-cursor}:${POSTGRES_PASSWORD:-cursor_dev}@postgres:5432/${POSTGRES_DB:-cursor_analytics}
+      # Simulator connection
+      - SIMULATOR_URL=http://cursor-sim:8080
+      # Polling configuration
+      - POLL_INTERVAL_MS=${POLL_INTERVAL_MS:-60000}
+      # Server configuration
+      - PORT=4000
+      - NODE_ENV=${NODE_ENV:-development}
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cursor-sim:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - cursor-net
+
+  # ===========================================================================
+  # Service C: Frontend Dashboard
+  # ===========================================================================
+  # React SPA that visualizes the analytics data.
+  # In development mode, uses Vite's dev server with hot reload.
+  
+  cursor-viz-spa:
+    build:
+      context: ./services/cursor-viz-spa
+      dockerfile: Dockerfile
+      target: ${BUILD_TARGET:-development}
+    container_name: cursor-viz-spa
+    ports:
+      - "3000:3000"
+    environment:
+      # GraphQL endpoint (from browser perspective, use localhost)
+      - VITE_GRAPHQL_URL=http://localhost:4000/graphql
+      - VITE_APP_TITLE=${VITE_APP_TITLE:-Cursor Analytics Dashboard}
+    depends_on:
+      cursor-analytics-core:
+        condition: service_healthy
+    # For development: mount source for hot reload
+    volumes:
+      - ./services/cursor-viz-spa/src:/app/src:ro
+      - ./services/cursor-viz-spa/public:/app/public:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cursor-net
+
+# =============================================================================
+# Volumes
+# =============================================================================
+# Named volumes persist data across container restarts.
+
+volumes:
+  postgres_data:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+# Custom bridge network allows services to communicate using container names.
+
+networks:
+  cursor-net:
+    driver: bridge
+    name: cursor-net
