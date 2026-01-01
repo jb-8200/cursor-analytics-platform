@@ -1,6 +1,0 @@
-# Ignore active work item symlink (each developer has their own)
-active
-
-# Keep everything else (like README.md)
-!.gitignore
-!README.md

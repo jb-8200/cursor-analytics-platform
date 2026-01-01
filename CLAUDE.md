@@ -100,27 +100,28 @@ make test-coverage
 
 ### Claude Code Integration
 
-This project uses Claude Code's native features for enhanced development workflow:
+This project uses Claude Code's Skills feature for enhanced development workflow.
 
 #### Available Skills
-Skills provide specialized knowledge for specific technical domains. Use these when working on related code:
+Skills provide specialized knowledge. Reference them explicitly in your requests:
 
-- **cursor-api-patterns** - Comprehensive guide for implementing Cursor Business API-compatible endpoints (response formats, auth, pagination, rate limiting, CSV exports)
-- **go-best-practices** - Go coding standards for cursor-sim (project structure, error handling, concurrency, testing, HTTP handlers)
+- **cursor-api-patterns** - Cursor Business API implementation guide (response formats, auth, pagination, rate limiting, CSV exports)
+- **go-best-practices** - Go coding standards (project structure, error handling, concurrency, testing, HTTP handlers)
+- **model-selection-guide** - Task-to-model mapping for cost optimization (Haiku vs Sonnet vs Opus)
 
-To use a skill, simply reference it in conversation (Claude loads skills automatically).
-
-#### Available Slash Commands
-Commands automate common development workflows:
-
-- `/spec [service-name]` - Display service specification (cursor-sim, cursor-analytics-core, cursor-viz-spa)
-- `/start-feature [name]` - Create SDD work item structure (.work-items/{nn}-{name}/ with user-story.md, design.md, task.md, test-plan.md)
-- `/verify [service-name]` - Check spec-test-code alignment, run coverage, find gaps
-- `/next-task [service-name]` - Show next actionable task from implementation plan
+**Usage:** Reference skills directly:
+```
+"Following cursor-api-patterns.md, implement the health check endpoint"
+"Using go-best-practices.md, create the Developer struct"
+"Based on model-selection-guide.md, use Haiku for TASK-SIM-003"
+```
 
 #### Session Context
-- `.claude/DEVELOPMENT.md` - Current development status, recent work, active focus, next steps, open questions
-- Read this file at session start to understand project state
+- `.claude/DEVELOPMENT.md` - Current development status, recent work, active focus, next steps
+- `.claude/MODEL_SELECTION_SUMMARY.md` - Cost optimization guide
+- Read these files at session start to understand project state
+
+See `.claude/README.md` for complete usage guide.
 
 ## Key Documentation Files
 
@@ -148,12 +149,13 @@ Commands automate common development workflows:
 ### Claude Code Integration
 | File | Purpose |
 |------|---------|
+| `.claude/README.md` | Claude Code integration guide |
+| `.claude/DEVELOPMENT.md` | Session context (read first!) |
+| `.claude/MODEL_SELECTION_SUMMARY.md` | Model optimization strategies |
 | `.claude/skills/cursor-api-patterns.md` | Cursor API implementation guide |
 | `.claude/skills/go-best-practices.md` | Go coding standards |
-| `.claude/commands/spec.md` | `/spec` command definition |
-| `.claude/commands/start-feature.md` | `/start-feature` command definition |
-| `.claude/commands/verify.md` | `/verify` command definition |
-| `.claude/commands/next-task.md` | `/next-task` command definition |
+| `.claude/skills/model-selection-guide.md` | Task-to-model mapping |
+| `.claude/skills/spec-driven-development.md` | SDD methodology |
 
 ## Code Style Guidelines
 
