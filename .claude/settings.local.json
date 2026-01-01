@@ -3,7 +3,10 @@
     "allow": [
       "Bash(find:*)",
       "Bash(git pull:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nchore: merge remote repository and resolve conflicts\n\nMerged remote ''Initial commit'' containing LICENSE and .gitignore template.\nResolved .gitignore conflict by combining both versions.\n\nChanges:\n- Added LICENSE from remote\n- Merged .gitignore (combined Go template + project-specific ignores)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(go mod init:*)"
     ],
     "deny": [],
     "ask": []

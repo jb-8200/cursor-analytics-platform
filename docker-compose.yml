@@ -37,7 +37,7 @@ services:
       # Use fixed seed for reproducible demos (remove for random data)
       - CURSOR_SIM_SEED=${CURSOR_SIM_SEED:-12345}
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -107,7 +107,7 @@ services:
       cursor-sim:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4000/health"]
+      test: ["CMD", "wget", "-q", "-O-", "--post-data='{\"query\":\"{health{status}}\"}'", "--header=Content-Type:application/json", "http://localhost:4000/graphql"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -126,7 +126,6 @@ services:
     build:
       context: ./services/cursor-viz-spa
       dockerfile: Dockerfile
-      target: ${BUILD_TARGET:-development}
     container_name: cursor-viz-spa
     ports:
       - "3000:3000"
@@ -137,10 +136,6 @@ services:
     depends_on:
       cursor-analytics-core:
         condition: service_healthy
-    # For development: mount source for hot reload
-    volumes:
-      - ./services/cursor-viz-spa/src:/app/src:ro
-      - ./services/cursor-viz-spa/public:/app/public:ro
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
       interval: 10s
