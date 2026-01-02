@@ -1,0 +1,7 @@
+{
+  "Port": 8080,
+  "Developers": 100,
+  "Velocity": "high",
+  "Fluctuation": 0.3,
+  "Seed": 42
+}

@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
-)
 
-const (
-	defaultPort = "8080"
+	"github.com/jb-8200/cursor-analytics-platform/services/cursor-sim/internal/config"
 )
 
 // HealthResponse represents health check response
@@ -33,10 +30,19 @@ type ErrorDetail struct {
 }
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
+	// Parse configuration from flags
+	cfg, err := config.ParseFlags()
+	if err != nil {
+		log.Fatalf("Configuration error: %v", err)
 	}
+
+	// Log configuration
+	log.Printf("cursor-sim starting with configuration:")
+	log.Printf("  Port: %d", cfg.Port)
+	log.Printf("  Developers: %d", cfg.Developers)
+	log.Printf("  Velocity: %s", cfg.Velocity)
+	log.Printf("  Fluctuation: %.2f", cfg.Fluctuation)
+	log.Printf("  Seed: %d", cfg.Seed)
 
 	mux := http.NewServeMux()
 
@@ -52,10 +58,10 @@ func main() {
 	mux.HandleFunc("/v1/analytics/team/models", handleNotImplemented)
 	mux.HandleFunc("/v1/teams/members", handleNotImplemented)
 
-	addr := ":" + port
-	log.Printf("cursor-sim starting on %s", addr)
-	log.Printf("Health check: http://localhost:%s/v1/health", port)
-	log.Printf("Status: P0 scaffolding - endpoints not yet implemented")
+	addr := fmt.Sprintf(":%d", cfg.Port)
+	log.Printf("cursor-sim listening on %s", addr)
+	log.Printf("Health check: http://localhost:%d/v1/health", cfg.Port)
+	log.Printf("Status: TASK-SIM-002 complete - CLI flag parsing implemented")
 
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
