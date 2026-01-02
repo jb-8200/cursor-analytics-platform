@@ -5,7 +5,7 @@
 **Feature**: cursor-sim v2 Phase 3
 **Total Estimated Hours**: 35-45
 **Number of Steps**: 18
-**Current Step**: A05 - Research API Handlers
+**Current Step**: A06 - Replay Mode Infrastructure
 
 This phase completes cursor-sim with:
 - **Part A**: Research Framework (SIM-R013 → SIM-R015)
@@ -25,7 +25,7 @@ This phase completes cursor-sim with:
 | A02 | Research Dataset Generator | 3.0 | DONE | 0.25 |
 | A03 | Parquet/CSV Export | 2.5 | DONE | 0.25 |
 | A04 | Research Metrics Service | 3.0 | DONE | 0.25 |
-| A05 | Research API Handlers | 2.5 | NOT_STARTED | - |
+| A05 | Research API Handlers | 2.5 | DONE | 0.25 |
 | A06 | Replay Mode Infrastructure | 3.0 | NOT_STARTED | - |
 | A07 | Part A Integration Tests | 2.0 | NOT_STARTED | - |
 
