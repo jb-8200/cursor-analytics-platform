@@ -1,129 +1,211 @@
 # Claude Code Integration
 
-This directory contains Claude Code-specific configuration and guidance.
+This directory contains Claude Code configuration for the Cursor Analytics Platform.
 
-## What Actually Works in Claude Code
+---
 
-### ✅ Skills (Knowledge Guides)
-Skills are loaded automatically when relevant topics are discussed. They provide specialized knowledge:
+## Quick Start
 
-- **`skills/cursor-api-patterns.md`** - Cursor Business API implementation patterns
-- **`skills/go-best-practices.md`** - Go coding standards for this project
-- **`skills/model-selection-guide.md`** - Which model to use for each task
+1. **Read session context**: `DEVELOPMENT.md` (current state, active work)
+2. **Check active work**: `ls -la plans/active`
+3. **Reference skills** when needed (see below)
+4. **Follow SDD workflow**: Spec → Tests → Code → Commit
 
-**How to use:** Just reference them in conversation:
-```
-"Following cursor-api-patterns.md, implement the /v1/analytics/ai-code/commits endpoint"
-"Using go-best-practices.md patterns, create the Developer struct"
-"Based on model-selection-guide.md, which model should I use for TASK-SIM-004?"
-```
-
-### ✅ DEVELOPMENT.md (Session Context)
-Read `DEVELOPMENT.md` at the start of each session to understand:
-- Current project status
-- Recent work completed
-- Active focus area
-- Next steps
-
-### ✅ Model Selection
-Use the model-selection-guide.md to optimize cost/performance:
-
-```
-"Use Haiku to implement TASK-SIM-003 (well-specified struct)"
-"Use Sonnet to implement TASK-SIM-004 (complex Poisson logic)"
-```
-
-## What Doesn't Work
-
-### ❌ Custom Slash Commands
-Claude Code doesn't support custom slash commands via `.md` files. Instead:
-- Use direct requests: "Implement TASK-SIM-001"
-- Reference the skills: "Following model-selection-guide.md..."
-
-### ❌ Automated Workflows
-There's no automatic `/implement` or `/start-feature` command. Instead:
-- Ask Claude directly to implement tasks
-- Reference the patterns in skills/
-
-## Recommended Workflow
-
-### Starting a New Task
-
-```
-"I want to implement TASK-SIM-003: Developer Profile Generator
-
-1. Read services/cursor-sim/SPEC.md lines 145-250
-2. Follow go-best-practices.md for struct patterns
-3. Use Haiku since it's well-specified
-4. Write tests first (TDD)"
-```
-
-### Getting Model Recommendations
-
-```
-"What model should I use for TASK-SIM-004 according to model-selection-guide.md?"
-```
-
-### Following Best Practices
-
-```
-"Implement the health check endpoint following cursor-api-patterns.md response format"
-```
+---
 
 ## Directory Structure
 
 ```
 .claude/
-├── README.md                          # This file
-├── DEVELOPMENT.md                     # Session context (read first!)
-├── MODEL_SELECTION_SUMMARY.md         # Model optimization guide
-├── settings.local.json                # Claude Code settings
-├── skills/                            # Knowledge guides
-│   ├── cursor-api-patterns.md         # API implementation patterns
-│   ├── go-best-practices.md           # Go coding standards
-│   ├── model-selection-guide.md       # Task-to-model mapping
-│   └── spec-driven-development.md     # SDD methodology
-└── hooks/                             # Hook descriptions (documentation only)
-    └── README.md
+├── DEVELOPMENT.md              # Session context (READ FIRST)
+├── README.md                   # This file
+├── MODEL_SELECTION_SUMMARY.md  # Model cost optimization
+├── settings.local.json         # Claude Code settings
+│
+├── skills/                     # Knowledge guides (categorized)
+│   ├── process/                # Workflow stages
+│   │   ├── spec-process-core.md    # Core SDD principles
+│   │   └── spec-process-dev.md     # TDD development workflow
+│   │
+│   ├── standards/              # Artifact templates
+│   │   ├── spec-user-story.md      # User story format
+│   │   ├── spec-design.md          # Design doc format
+│   │   └── spec-tasks.md           # Task breakdown format
+│   │
+│   ├── guidelines/             # Technology-specific
+│   │   ├── go-best-practices.md    # Go patterns (cursor-sim)
+│   │   └── cursor-api-patterns.md  # Cursor API implementation
+│   │
+│   └── operational/            # Day-to-day enforcement
+│       ├── sdd-checklist.md        # Post-task commit enforcement
+│       ├── sdd-workflow.md         # Full workflow reference
+│       ├── model-selection-guide.md # Model optimization
+│       └── spec-driven-development.md # SDD methodology
+│
+├── commands/                   # Custom slash commands
+│   ├── start-feature.md        # Initialize feature context
+│   ├── complete-feature.md     # Verify and close feature
+│   ├── implement.md            # TDD implementation workflow
+│   ├── status.md               # Current project state
+│   ├── next-task.md            # Find next work item
+│   └── spec.md                 # Display service specification
+│
+├── hooks/                      # Documentation only (NOT EXECUTED)
+│   ├── README.md               # Explains limitations + alternatives
+│   ├── pre_prompt.py           # Context injection (doc only)
+│   ├── pre_commit.py           # Test enforcement (doc only)
+│   └── pre_patch.py            # Lint enforcement (doc only)
+│
+└── plans/
+    ├── README.md               # Symlink mechanism docs
+    └── active -> ...           # Symlink to current work item
 ```
+
+---
+
+## Skills (Knowledge Guides)
+
+Skills provide specialized knowledge. They activate based on semantic match or explicit reference.
+
+### Process Skills
+
+For workflow guidance:
+
+| Skill | Use When |
+|-------|----------|
+| `spec-process-core` | Starting work, understanding workflow |
+| `spec-process-dev` | Implementing with TDD |
+
+### Standards Skills
+
+For creating artifacts:
+
+| Skill | Use When |
+|-------|----------|
+| `spec-user-story` | Creating user stories, PRDs |
+| `spec-design` | Creating design docs, ADRs |
+| `spec-tasks` | Creating task breakdowns |
+
+### Guidelines Skills
+
+For technology-specific patterns:
+
+| Skill | Use When |
+|-------|----------|
+| `go-best-practices` | Writing Go code |
+| `cursor-api-patterns` | Implementing API endpoints |
+
+### Operational Skills
+
+For day-to-day workflow:
+
+| Skill | Use When |
+|-------|----------|
+| `sdd-checklist` | After completing any task (CRITICAL) |
+| `model-selection-guide` | Choosing which model to use |
+
+### Triggering Skills
+
+Reference explicitly for reliable activation:
+
+```
+"Following spec-process-core, let's plan this feature"
+"Using spec-user-story, create a user story for login"
+"Apply go-best-practices to implement the handler"
+"Following sdd-checklist, commit the changes"
+```
+
+---
+
+## Commands (Slash Commands)
+
+Custom slash commands for workflow automation:
+
+| Command | Purpose |
+|---------|---------|
+| `/start-feature {name}` | Initialize feature, create symlink, load context |
+| `/complete-feature {name}` | Verify completion, remove symlink |
+| `/implement {task-id}` | TDD implementation workflow |
+| `/status` | Show current project state |
+| `/next-task` | Find next work item |
+| `/spec {service}` | Display service specification |
+
+---
+
+## Hooks (Not Executed)
+
+**IMPORTANT**: The Python hooks in `hooks/` are documentation-only. Claude Code does not execute them.
+
+See `hooks/README.md` for:
+- What hooks were designed to do
+- Alternative implementations
+- How to enforce workflow manually
+
+**Alternative**: Use `sdd-checklist` skill + TodoWrite for enforcement.
+
+---
+
+## SDD Workflow Quick Reference
+
+### Session Start
+
+1. Read `DEVELOPMENT.md`
+2. Check `plans/active` symlink
+3. Review current task status
+4. Continue with TDD
+
+### Feature Lifecycle
+
+```
+/start-feature {name}
+    ↓
+Read user-story.md + design.md + task.md
+    ↓
+For each task:
+    RED → GREEN → REFACTOR → COMMIT
+    ↓
+/complete-feature {name}
+```
+
+### Task Completion (CRITICAL)
+
+After every task, follow `sdd-checklist`:
+
+1. Tests pass
+2. Git commit
+3. Update task.md
+4. Update DEVELOPMENT.md
+5. Next task
+
+---
+
+## Integration with Project
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Always-included project context |
+| `docs/spec-driven-design.md` | Full SDD methodology |
+| `services/{service}/SPEC.md` | Technical specifications |
+| `.work-items/{feature}/` | Active work tracking |
+
+---
+
+## Model Selection
+
+| Task Type | Model | Why |
+|-----------|-------|-----|
+| Spec writing, architecture | **Opus** | Complex reasoning |
+| Well-specified implementation | **Haiku** | Cost-effective |
+| Complex implementation | **Sonnet** | Balanced capability |
+
+See `skills/operational/model-selection-guide.md` for details.
+
+---
 
 ## Best Practices
 
 1. **Read DEVELOPMENT.md first** each session
-2. **Reference skills explicitly** in your requests
-3. **Specify model preference** when you know what you want
-4. **Use TodoWrite** to track multi-step work
-5. **Commit frequently** as you complete tasks
-
-## Example Session
-
-```
-# Session start
-User: "Read DEVELOPMENT.md and tell me what to work on next"
-
-Claude: [Reads DEVELOPMENT.md] "You should implement TASK-SIM-001 next..."
-
-User: "Use Sonnet to implement TASK-SIM-001 following the SPEC.md"
-
-Claude: [Implements with Sonnet following specs and best practices]
-
-User: "Now use Haiku to implement TASK-SIM-003"
-
-Claude: [Implements with Haiku since it's well-specified]
-```
-
-## Integration with Project Docs
-
-This `.claude/` folder works together with:
-- `CLAUDE.md` - Project instructions (root level)
-- `services/*/SPEC.md` - Service specifications
-- `docs/TASKS.md` - Implementation task list
-- `docs/USER_STORIES.md` - Acceptance criteria
-
-## Summary
-
-**Keep it simple:**
-- Skills = Knowledge that Claude loads automatically
-- DEVELOPMENT.md = Current state
-- Direct requests = How you interact with Claude
-- No magic commands needed!
+2. **Reference skills explicitly** in requests
+3. **Use TodoWrite** for multi-step work
+4. **Commit after every task** (sdd-checklist)
+5. **Keep CLAUDE.md minimal** - heavy content goes in skills
