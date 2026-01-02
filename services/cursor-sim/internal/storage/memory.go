@@ -29,6 +29,13 @@ type MemoryStore struct {
 	commitsByUser map[string][]*models.Commit // user index
 	commitsByRepo map[string][]*models.Commit // repo index
 	needsSort     bool                        // flag to track if commits need sorting
+
+	// PR data with indexes
+	prsByRepo   map[string]map[int]*models.PullRequest // repo -> number -> PR
+	prsByAuthor map[string][]*models.PullRequest       // author index
+
+	// ReviewComment data
+	reviewComments map[string]map[int][]*models.ReviewComment // repo -> pr_number -> comments
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -40,6 +47,9 @@ func NewMemoryStore() *MemoryStore {
 		commitsByHash:   make(map[string]*models.Commit),
 		commitsByUser:   make(map[string][]*models.Commit),
 		commitsByRepo:   make(map[string][]*models.Commit),
+		prsByRepo:       make(map[string]map[int]*models.PullRequest),
+		prsByAuthor:     make(map[string][]*models.PullRequest),
+		reviewComments:  make(map[string]map[int][]*models.ReviewComment),
 	}
 }
 
@@ -210,4 +220,199 @@ func (m *MemoryStore) sortCommits() {
 		return m.commits[i].CommitTs.Before(m.commits[j].CommitTs)
 	})
 	m.needsSort = false
+}
+
+// PR Storage Methods
+
+// AddPR adds a pull request to the store.
+func (m *MemoryStore) AddPR(pr models.PullRequest) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	prPtr := &pr
+
+	// Ensure repo map exists
+	if m.prsByRepo[pr.RepoName] == nil {
+		m.prsByRepo[pr.RepoName] = make(map[int]*models.PullRequest)
+	}
+
+	// Add to repo index
+	m.prsByRepo[pr.RepoName][pr.Number] = prPtr
+
+	// Add to author index
+	m.prsByAuthor[pr.AuthorID] = append(m.prsByAuthor[pr.AuthorID], prPtr)
+
+	return nil
+}
+
+// UpdatePR updates an existing pull request.
+func (m *MemoryStore) UpdatePR(pr models.PullRequest) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if m.prsByRepo[pr.RepoName] == nil {
+		return fmt.Errorf("PR not found: %s#%d", pr.RepoName, pr.Number)
+	}
+
+	existing, ok := m.prsByRepo[pr.RepoName][pr.Number]
+	if !ok {
+		return fmt.Errorf("PR not found: %s#%d", pr.RepoName, pr.Number)
+	}
+
+	// Update in place
+	*existing = pr
+	return nil
+}
+
+// GetPR retrieves a pull request by repo and number.
+func (m *MemoryStore) GetPR(repoName string, number int) (*models.PullRequest, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok {
+		return nil, fmt.Errorf("PR not found: %s#%d", repoName, number)
+	}
+
+	pr, ok := repoPRs[number]
+	if !ok {
+		return nil, fmt.Errorf("PR not found: %s#%d", repoName, number)
+	}
+
+	return pr, nil
+}
+
+// GetPRsByRepo returns all PRs for a repository.
+func (m *MemoryStore) GetPRsByRepo(repoName string) []models.PullRequest {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok {
+		return []models.PullRequest{}
+	}
+
+	result := make([]models.PullRequest, 0, len(repoPRs))
+	for _, pr := range repoPRs {
+		result = append(result, *pr)
+	}
+
+	return result
+}
+
+// GetPRsByRepoAndState returns PRs for a repository filtered by state.
+func (m *MemoryStore) GetPRsByRepoAndState(repoName string, state models.PRState) []models.PullRequest {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok {
+		return []models.PullRequest{}
+	}
+
+	result := make([]models.PullRequest, 0)
+	for _, pr := range repoPRs {
+		if pr.State == state {
+			result = append(result, *pr)
+		}
+	}
+
+	return result
+}
+
+// GetPRsByAuthor returns all PRs by a specific author.
+func (m *MemoryStore) GetPRsByAuthor(authorID string) []models.PullRequest {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	authorPRs, ok := m.prsByAuthor[authorID]
+	if !ok {
+		return []models.PullRequest{}
+	}
+
+	result := make([]models.PullRequest, 0, len(authorPRs))
+	for _, pr := range authorPRs {
+		result = append(result, *pr)
+	}
+
+	return result
+}
+
+// GetNextPRNumber returns the next available PR number for a repository.
+func (m *MemoryStore) GetNextPRNumber(repoName string) int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok || len(repoPRs) == 0 {
+		return 1
+	}
+
+	maxNum := 0
+	for num := range repoPRs {
+		if num > maxNum {
+			maxNum = num
+		}
+	}
+
+	return maxNum + 1
+}
+
+// ListRepositories returns all repository names that have PRs.
+func (m *MemoryStore) ListRepositories() []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repos := make([]string, 0, len(m.prsByRepo))
+	for repo := range m.prsByRepo {
+		repos = append(repos, repo)
+	}
+
+	return repos
+}
+
+// ReviewComment Storage Methods
+
+// AddReviewComment adds a review comment to the store.
+func (m *MemoryStore) AddReviewComment(comment models.ReviewComment) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	commentPtr := &comment
+
+	// Ensure repo map exists
+	if m.reviewComments[comment.RepoName] == nil {
+		m.reviewComments[comment.RepoName] = make(map[int][]*models.ReviewComment)
+	}
+
+	// Add to PR's comments
+	m.reviewComments[comment.RepoName][comment.PRNumber] = append(
+		m.reviewComments[comment.RepoName][comment.PRNumber],
+		commentPtr,
+	)
+
+	return nil
+}
+
+// GetReviewComments returns all comments for a PR.
+func (m *MemoryStore) GetReviewComments(repoName string, prNumber int) []models.ReviewComment {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoComments, ok := m.reviewComments[repoName]
+	if !ok {
+		return []models.ReviewComment{}
+	}
+
+	prComments, ok := repoComments[prNumber]
+	if !ok {
+		return []models.ReviewComment{}
+	}
+
+	result := make([]models.ReviewComment, 0, len(prComments))
+	for _, c := range prComments {
+		result = append(result, *c)
+	}
+
+	return result
 }
