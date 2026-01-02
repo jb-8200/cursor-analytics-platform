@@ -39,6 +39,9 @@ type MemoryStore struct {
 
 	// Model usage data
 	modelUsage []*models.ModelUsageEvent // time-sorted for range queries
+
+	// Client version data
+	clientVersions []*models.ClientVersionEvent // time-sorted for range queries
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -54,6 +57,7 @@ func NewMemoryStore() *MemoryStore {
 		prsByAuthor:     make(map[string][]*models.PullRequest),
 		reviewComments:  make(map[string]map[int][]*models.ReviewComment),
 		modelUsage:      make([]*models.ModelUsageEvent, 0, 1000),
+		clientVersions:  make([]*models.ClientVersionEvent, 0, 1000),
 	}
 }
 
@@ -445,6 +449,36 @@ func (m *MemoryStore) GetModelUsageByTimeRange(from, to time.Time) []models.Mode
 	for _, usage := range m.modelUsage {
 		if !usage.Timestamp.Before(from) && usage.Timestamp.Before(to) {
 			result = append(result, *usage)
+		}
+	}
+
+	// Sort by timestamp
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+
+	return result
+}
+
+// AddClientVersion stores a client version event.
+func (m *MemoryStore) AddClientVersion(event models.ClientVersionEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.clientVersions = append(m.clientVersions, &event)
+	return nil
+}
+
+// GetClientVersionsByTimeRange retrieves all client version events within a time range.
+// Returns events sorted by timestamp.
+func (m *MemoryStore) GetClientVersionsByTimeRange(from, to time.Time) []models.ClientVersionEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	result := make([]models.ClientVersionEvent, 0)
+	for _, event := range m.clientVersions {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
 		}
 	}
 

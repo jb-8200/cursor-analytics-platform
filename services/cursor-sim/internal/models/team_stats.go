@@ -179,6 +179,15 @@ type ModelUsageEvent struct {
 	EventDate string    `json:"event_date"` // YYYY-MM-DD format
 }
 
+// ClientVersionEvent represents a client version usage event.
+type ClientVersionEvent struct {
+	UserID        string    `json:"user_id"`
+	UserEmail     string    `json:"user_email"`
+	ClientVersion string    `json:"client_version"` // Semver format (e.g., "0.42.3")
+	Timestamp     time.Time `json:"timestamp"`
+	EventDate     string    `json:"event_date"` // YYYY-MM-DD format
+}
+
 // ===========================================================================
 // Legacy Type Aliases (for backwards compatibility during migration)
 // ===========================================================================

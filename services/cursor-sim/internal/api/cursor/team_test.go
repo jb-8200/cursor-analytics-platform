@@ -204,8 +204,40 @@ func TestTeamModels(t *testing.T) {
 	}
 }
 
-func TestTeamClientVersions_Stub(t *testing.T) {
+func TestTeamClientVersions(t *testing.T) {
 	store := storage.NewMemoryStore()
+
+	// Add client version events
+	now := time.Now()
+	events := []models.ClientVersionEvent{
+		{
+			UserID:        "user_001",
+			UserEmail:     "alice@example.com",
+			ClientVersion: "0.42.3",
+			Timestamp:     now.Add(-48 * time.Hour),
+			EventDate:     now.Add(-48 * time.Hour).Format("2006-01-02"),
+		},
+		{
+			UserID:        "user_002",
+			UserEmail:     "bob@example.com",
+			ClientVersion: "0.42.3",
+			Timestamp:     now.Add(-48 * time.Hour),
+			EventDate:     now.Add(-48 * time.Hour).Format("2006-01-02"),
+		},
+		{
+			UserID:        "user_003",
+			UserEmail:     "carol@example.com",
+			ClientVersion: "0.43.1",
+			Timestamp:     now.Add(-48 * time.Hour),
+			EventDate:     now.Add(-48 * time.Hour).Format("2006-01-02"),
+		},
+	}
+
+	for _, event := range events {
+		err := store.AddClientVersion(event)
+		require.NoError(t, err)
+	}
+
 	handler := TeamClientVersions(store)
 
 	req := httptest.NewRequest("GET", "/analytics/team/client-versions", nil)
@@ -214,6 +246,23 @@ func TestTeamClientVersions_Stub(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
+
+	// Parse response
+	var response struct {
+		Data []models.ClientVersionDay `json:"data"`
+	}
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should have client version data
+	assert.NotNil(t, response.Data)
+	// Should have at least one version entry
+	if len(response.Data) > 0 {
+		assert.NotEmpty(t, response.Data[0].ClientVersion)
+		assert.Greater(t, response.Data[0].UserCount, 0)
+		assert.GreaterOrEqual(t, response.Data[0].Percentage, 0.0)
+		assert.LessOrEqual(t, response.Data[0].Percentage, 1.0)
+	}
 }
 
 func TestTeamTopFileExtensions_Stub(t *testing.T) {

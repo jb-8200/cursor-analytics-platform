@@ -40,4 +40,8 @@ type Store interface {
 	// Model usage operations
 	AddModelUsage(usage models.ModelUsageEvent) error
 	GetModelUsageByTimeRange(from, to time.Time) []models.ModelUsageEvent
+
+	// Client version operations
+	AddClientVersion(event models.ClientVersionEvent) error
+	GetClientVersionsByTimeRange(from, to time.Time) []models.ClientVersionEvent
 }

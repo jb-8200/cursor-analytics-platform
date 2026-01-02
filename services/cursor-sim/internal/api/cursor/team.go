@@ -169,11 +169,76 @@ func TeamModels(store storage.Store) http.Handler {
 	})
 }
 
-// Stub endpoints - return empty data for metrics we don't track yet
-
+// TeamClientVersions returns handler for GET /analytics/team/client-versions.
+// Aggregates client version distribution by day.
 func TeamClientVersions(store storage.Store) http.Handler {
-	return stubHandler("client-versions")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Parse query parameters
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Parse date range
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		// Get client version events in range
+		events := store.GetClientVersionsByTimeRange(from, to)
+
+		// Aggregate by date and version
+		// Map: date -> version -> set of user IDs
+		dayVersionUsers := make(map[string]map[string]map[string]bool)
+
+		for _, event := range events {
+			date := event.EventDate
+			if _, exists := dayVersionUsers[date]; !exists {
+				dayVersionUsers[date] = make(map[string]map[string]bool)
+			}
+			if _, exists := dayVersionUsers[date][event.ClientVersion]; !exists {
+				dayVersionUsers[date][event.ClientVersion] = make(map[string]bool)
+			}
+			dayVersionUsers[date][event.ClientVersion][event.UserID] = true
+		}
+
+		// Build response data
+		result := make([]models.ClientVersionDay, 0)
+		for date, versionUsers := range dayVersionUsers {
+			// Calculate total users for this date
+			totalUsers := make(map[string]bool)
+			for _, users := range versionUsers {
+				for userID := range users {
+					totalUsers[userID] = true
+				}
+			}
+			totalCount := len(totalUsers)
+
+			// Create entries for each version
+			for version, users := range versionUsers {
+				userCount := len(users)
+				percentage := 0.0
+				if totalCount > 0 {
+					percentage = float64(userCount) / float64(totalCount)
+				}
+
+				result = append(result, models.ClientVersionDay{
+					EventDate:     date,
+					ClientVersion: version,
+					UserCount:     userCount,
+					Percentage:    percentage,
+				})
+			}
+		}
+
+		// Build response using Analytics API format
+		response := api.BuildAnalyticsTeamResponse(result, "client-versions", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
+
+// Stub endpoints - return empty data for metrics we don't track yet
 
 func TeamTopFileExtensions(store storage.Store) http.Handler {
 	return stubHandler("top-file-extensions")
