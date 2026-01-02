@@ -273,3 +273,76 @@ func TestAICodeCommits_CommitFields(t *testing.T) {
 		assert.False(t, commit.CommitTs.IsZero())
 	}
 }
+
+func TestAICodeCommitsCSV_Success(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommitsCSV(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+	assert.Equal(t, "text/csv", rec.Header().Get("Content-Type"))
+	assert.Contains(t, rec.Header().Get("Content-Disposition"), "attachment")
+
+	csv := rec.Body.String()
+	assert.Contains(t, csv, "commitHash")
+	assert.Contains(t, csv, "userId")
+	assert.Contains(t, csv, "userEmail")
+	assert.Contains(t, csv, "totalLinesAdded")
+}
+
+func TestAICodeCommitsCSV_WithFilters(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommitsCSV(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?userId=user_001", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	csv := rec.Body.String()
+	// Should contain commits from user_001
+	assert.Contains(t, csv, "user_001")
+	assert.Contains(t, csv, "alice@example.com")
+}
+
+func TestAICodeCommitsCSV_EmptyStore(t *testing.T) {
+	store := storage.NewMemoryStore()
+	handler := AICodeCommitsCSV(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	csv := rec.Body.String()
+	// Should have header only
+	assert.Contains(t, csv, "commitHash")
+	lines := 0
+	for _, c := range csv {
+		if c == '\n' {
+			lines++
+		}
+	}
+	assert.Equal(t, 1, lines, "should have only header row")
+}
+
+func TestAICodeCommitsCSV_InvalidParams(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommitsCSV(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?from=invalid", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	// Should return error
+	assert.Equal(t, 400, rec.Code)
+}
