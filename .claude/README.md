@@ -8,7 +8,7 @@ This directory contains Claude Code configuration for the Cursor Analytics Platf
 
 1. **Read session context**: `DEVELOPMENT.md` (current state, active work)
 2. **Check active work**: `ls -la plans/active`
-3. **Reference skills** when needed (see below)
+3. **Skills activate automatically** based on your request
 4. **Follow SDD workflow**: Spec → Tests → Code → Commit
 
 ---
@@ -22,25 +22,29 @@ This directory contains Claude Code configuration for the Cursor Analytics Platf
 ├── MODEL_SELECTION_SUMMARY.md  # Model cost optimization
 ├── settings.local.json         # Claude Code settings
 │
-├── skills/                     # Knowledge guides (categorized)
-│   ├── process/                # Workflow stages
-│   │   ├── spec-process-core.md    # Core SDD principles
-│   │   └── spec-process-dev.md     # TDD development workflow
-│   │
-│   ├── standards/              # Artifact templates
-│   │   ├── spec-user-story.md      # User story format
-│   │   ├── spec-design.md          # Design doc format
-│   │   └── spec-tasks.md           # Task breakdown format
-│   │
-│   ├── guidelines/             # Technology-specific
-│   │   ├── go-best-practices.md    # Go patterns (cursor-sim)
-│   │   └── cursor-api-patterns.md  # Cursor API implementation
-│   │
-│   └── operational/            # Day-to-day enforcement
-│       ├── sdd-checklist.md        # Post-task commit enforcement
-│       ├── sdd-workflow.md         # Full workflow reference
-│       ├── model-selection-guide.md # Model optimization
-│       └── spec-driven-development.md # SDD methodology
+├── skills/                     # Knowledge guides (auto-discovered)
+│   ├── go-best-practices/      # Go patterns (cursor-sim)
+│   │   └── SKILL.md
+│   ├── cursor-api-patterns/    # Cursor API implementation
+│   │   └── SKILL.md
+│   ├── sdd-checklist/          # Post-task commit enforcement
+│   │   └── SKILL.md
+│   ├── model-selection-guide/  # Model cost optimization
+│   │   └── SKILL.md
+│   ├── spec-process-core/      # Core SDD principles
+│   │   └── SKILL.md
+│   ├── spec-process-dev/       # TDD development workflow
+│   │   └── SKILL.md
+│   ├── spec-user-story/        # User story format
+│   │   └── SKILL.md
+│   ├── spec-design/            # Design doc format
+│   │   └── SKILL.md
+│   ├── spec-tasks/             # Task breakdown format
+│   │   └── SKILL.md
+│   ├── sdd-workflow/           # Full workflow reference
+│   │   └── SKILL.md
+│   └── spec-driven-development/ # SDD methodology
+│       └── SKILL.md
 │
 ├── commands/                   # Custom slash commands
 │   ├── start-feature.md        # Initialize feature context
@@ -50,11 +54,11 @@ This directory contains Claude Code configuration for the Cursor Analytics Platf
 │   ├── next-task.md            # Find next work item
 │   └── spec.md                 # Display service specification
 │
-├── hooks/                      # Documentation only (NOT EXECUTED)
-│   ├── README.md               # Explains limitations + alternatives
-│   ├── pre_prompt.py           # Context injection (doc only)
-│   ├── pre_commit.py           # Test enforcement (doc only)
-│   └── pre_patch.py            # Lint enforcement (doc only)
+├── hooks/                      # Claude Code hooks
+│   ├── README.md               # Hook setup instructions
+│   ├── pre_commit.py           # SDD checklist on commit
+│   ├── markdown_formatter.py   # Auto-format markdown
+│   └── sdd_reminder.py         # Post-task reminder
 │
 └── plans/
     ├── README.md               # Symlink mechanism docs
@@ -63,56 +67,45 @@ This directory contains Claude Code configuration for the Cursor Analytics Platf
 
 ---
 
-## Skills (Knowledge Guides)
+## Skills (Auto-Discovered)
 
-Skills provide specialized knowledge. They activate based on semantic match or explicit reference.
+Skills provide specialized knowledge. Claude automatically discovers and activates them based on your request.
 
-### Process Skills
+### How Skills Work
 
-For workflow guidance:
+1. At startup, Claude loads skill names and descriptions
+2. When your request matches a skill's description, Claude asks to use it
+3. You approve, and Claude loads the full skill content
 
-| Skill | Use When |
-|-------|----------|
-| `spec-process-core` | Starting work, understanding workflow |
-| `spec-process-dev` | Implementing with TDD |
+### Available Skills
 
-### Standards Skills
-
-For creating artifacts:
-
-| Skill | Use When |
-|-------|----------|
-| `spec-user-story` | Creating user stories, PRDs |
-| `spec-design` | Creating design docs, ADRs |
-| `spec-tasks` | Creating task breakdowns |
-
-### Guidelines Skills
-
-For technology-specific patterns:
-
-| Skill | Use When |
-|-------|----------|
-| `go-best-practices` | Writing Go code |
-| `cursor-api-patterns` | Implementing API endpoints |
-
-### Operational Skills
-
-For day-to-day workflow:
-
-| Skill | Use When |
-|-------|----------|
-| `sdd-checklist` | After completing any task (CRITICAL) |
-| `model-selection-guide` | Choosing which model to use |
+| Skill | Description |
+|-------|-------------|
+| `go-best-practices` | Go coding standards, error handling, testing |
+| `cursor-api-patterns` | Cursor API response formats, auth, pagination |
+| `sdd-checklist` | Post-task commit enforcement (CRITICAL) |
+| `model-selection-guide` | Choose Haiku vs Sonnet vs Opus |
+| `spec-process-core` | Core SDD workflow principles |
+| `spec-process-dev` | TDD RED-GREEN-REFACTOR cycle |
+| `spec-user-story` | Create user stories with EARS format |
+| `spec-design` | Create design docs with ADRs |
+| `spec-tasks` | Create task breakdowns |
+| `sdd-workflow` | Feature lifecycle and phase gates |
+| `spec-driven-development` | Full SDD methodology reference |
 
 ### Triggering Skills
 
-Reference explicitly for reliable activation:
+Skills activate automatically, but you can also reference explicitly:
 
 ```
-"Following spec-process-core, let's plan this feature"
-"Using spec-user-story, create a user story for login"
-"Apply go-best-practices to implement the handler"
-"Following sdd-checklist, commit the changes"
+"Help me implement a Go HTTP handler"
+  → go-best-practices activates
+
+"Create a user story for the export feature"
+  → spec-user-story activates
+
+"What should I do after completing this task?"
+  → sdd-checklist activates
 ```
 
 ---
@@ -132,16 +125,23 @@ Custom slash commands for workflow automation:
 
 ---
 
-## Hooks (Not Executed)
+## Hooks
 
-**IMPORTANT**: The Python hooks in `hooks/` are documentation-only. Claude Code does not execute them.
+Claude Code hooks run shell commands at specific lifecycle events.
 
-See `hooks/README.md` for:
-- What hooks were designed to do
-- Alternative implementations
-- How to enforce workflow manually
+### Available Hooks
 
-**Alternative**: Use `sdd-checklist` skill + TodoWrite for enforcement.
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `pre_commit.py` | PreToolUse (Bash) | SDD reminder on git commit |
+| `markdown_formatter.py` | PostToolUse (Edit\|Write) | Auto-format markdown |
+| `sdd_reminder.py` | Stop | Post-task workflow reminder |
+
+### Setup
+
+Run `/hooks` to configure, or add to `.claude/settings.local.json`.
+
+See `hooks/README.md` for detailed setup instructions.
 
 ---
 
@@ -198,14 +198,14 @@ After every task, follow `sdd-checklist`:
 | Well-specified implementation | **Haiku** | Cost-effective |
 | Complex implementation | **Sonnet** | Balanced capability |
 
-See `skills/operational/model-selection-guide.md` for details.
+See `model-selection-guide` skill for details.
 
 ---
 
 ## Best Practices
 
 1. **Read DEVELOPMENT.md first** each session
-2. **Reference skills explicitly** in requests
+2. **Let skills activate naturally** based on your requests
 3. **Use TodoWrite** for multi-step work
 4. **Commit after every task** (sdd-checklist)
 5. **Keep CLAUDE.md minimal** - heavy content goes in skills

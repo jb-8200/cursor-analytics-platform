@@ -40,17 +40,21 @@ Content loaded in **every** Claude Code conversation via `CLAUDE.md`:
 
 Loaded **when relevant** based on semantic match to your request:
 
-| Category | Location | Trigger Examples |
-|----------|----------|------------------|
-| **Process** | `.claude/skills/process/` | "start feature", "complete task", "implement" |
-| **Standards** | `.claude/skills/standards/` | "write user story", "create design doc" |
-| **Guidelines** | `.claude/skills/guidelines/` | Language/tech-specific coding |
+| Category | Skills | Trigger Examples |
+|----------|--------|------------------|
+| **Process** | spec-process-core, spec-process-dev | "start feature", "implement", "TDD" |
+| **Standards** | spec-user-story, spec-design, spec-tasks | "write user story", "create design doc" |
+| **Guidelines** | go-best-practices, cursor-api-patterns | Language/tech-specific coding |
+| **Operational** | sdd-checklist, model-selection-guide | "commit", "which model" |
 
-Skills activate when your request matches their description. Reference explicitly for reliability:
+Skills activate automatically when your request matches their description. You can also reference explicitly:
 
 ```
-"Following spec-user-story, create a user story for the login feature"
-"Using go-best-practices, implement the HTTP handler"
+"Help me create a user story for the login feature"
+  → spec-user-story activates automatically
+
+"Implement the HTTP handler"
+  → go-best-practices activates automatically
 ```
 
 ### 3. Manual Standards (Artifact Templates)
@@ -70,59 +74,73 @@ Invoked explicitly when creating specific artifacts:
 
 ### Directory Structure
 
+Each skill has its own directory with a `SKILL.md` file containing YAML frontmatter:
+
 ```
 .claude/skills/
-├── process/                       # Workflow stage guidance
-│   ├── spec-process-core.md       # Core SDD principles (always applicable)
-│   ├── spec-process-dev.md        # Development workflow (TDD)
-│   └── spec-process-commit.md     # Commit discipline
-│
-├── standards/                     # Artifact templates
-│   ├── spec-user-story.md         # User story format (EARS)
-│   ├── spec-design.md             # Design doc format (ADRs)
-│   ├── spec-tasks.md              # Task breakdown format
-│   └── spec-adr.md                # Architecture Decision Record
-│
-├── guidelines/                    # Technology-specific
-│   ├── go-best-practices.md       # Go patterns (cursor-sim)
-│   ├── cursor-api-patterns.md     # Cursor API implementation
-│   ├── typescript-patterns.md     # TypeScript patterns (future)
-│   └── graphql-patterns.md        # GraphQL patterns (future)
-│
-└── operational/                   # Day-to-day enforcement
-    ├── sdd-checklist.md           # Post-task commit enforcement
-    ├── sdd-workflow.md            # Full workflow reference
-    ├── model-selection-guide.md   # Model optimization
-    └── spec-driven-development.md # SDD methodology details
+├── go-best-practices/          # Go patterns (cursor-sim)
+│   └── SKILL.md
+├── cursor-api-patterns/        # Cursor API implementation
+│   └── SKILL.md
+├── sdd-checklist/              # Post-task commit enforcement
+│   └── SKILL.md
+├── model-selection-guide/      # Model optimization
+│   └── SKILL.md
+├── spec-process-core/          # Core SDD principles
+│   └── SKILL.md
+├── spec-process-dev/           # TDD development workflow
+│   └── SKILL.md
+├── spec-user-story/            # User story format (EARS)
+│   └── SKILL.md
+├── spec-design/                # Design doc format (ADRs)
+│   └── SKILL.md
+├── spec-tasks/                 # Task breakdown format
+│   └── SKILL.md
+├── sdd-workflow/               # Full workflow reference
+│   └── SKILL.md
+└── spec-driven-development/    # SDD methodology details
+    └── SKILL.md
 ```
 
-### Skill Wrapper Pattern
+### SKILL.md Format
 
-Skills reference canonical content without duplication:
+Each skill requires YAML frontmatter with `name` and `description`:
 
 ```markdown
 ---
 name: spec-user-story
-description: Create or revise user stories. Use for PRDs, feature narratives,
-             acceptance criteria, and UX-oriented specifications.
+description: Create or revise user stories following EARS format. Use when
+             writing PRDs, feature narratives, acceptance criteria, or
+             product requirements. Produces user-story.md files.
 ---
 
 # User Story Standard
 
 ## Process
-1. Read the canonical template below
-2. Ask for missing inputs (actor, goal, context)
-3. Produce artifact following the template exactly
-4. Keep value-focused (no technical implementation details)
+1. Gather requirements from stakeholder
+2. Draft story using template
+3. Review acceptance criteria
+4. Create file in .work-items/{feature}/user-story.md
 
 ## Template
 
-[Include template content here]
-
-## Examples
-
-[Include examples here]
+[Template content here]
 ```
+
+### How Skills Are Discovered
+
+1. **At startup**: Claude loads skill names and descriptions
+2. **On request**: Claude matches your request against descriptions
+3. **Activation**: You approve, Claude loads full skill content
+
+### Skill Categories
+
+| Category | Skills | Purpose |
+|----------|--------|---------|
+| **Process** | spec-process-core, spec-process-dev | Workflow guidance |
+| **Standards** | spec-user-story, spec-design, spec-tasks | Artifact templates |
+| **Guidelines** | go-best-practices, cursor-api-patterns | Tech-specific patterns |
+| **Operational** | sdd-checklist, model-selection-guide | Day-to-day workflow |
 
 ---
 

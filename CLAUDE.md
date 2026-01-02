@@ -43,26 +43,23 @@
 
 ---
 
-## Skills (Reference Explicitly)
+## Skills (Auto-Discovered)
 
-### Process Skills
-- `spec-process-core` - Core SDD principles
-- `spec-process-dev` - TDD workflow
+Skills activate automatically based on your request. Available skills:
 
-### Standards Skills
-- `spec-user-story` - User story format
-- `spec-design` - Design doc format
-- `spec-tasks` - Task breakdown format
+| Skill | Purpose |
+|-------|---------|
+| `spec-process-core` | Core SDD principles |
+| `spec-process-dev` | TDD workflow |
+| `spec-user-story` | User story format |
+| `spec-design` | Design doc format |
+| `spec-tasks` | Task breakdown format |
+| `go-best-practices` | Go patterns |
+| `cursor-api-patterns` | API implementation |
+| `sdd-checklist` | **CRITICAL**: Post-task commit |
+| `model-selection-guide` | Model optimization |
 
-### Guidelines Skills
-- `go-best-practices` - Go patterns
-- `cursor-api-patterns` - API implementation
-
-### Operational Skills
-- `sdd-checklist` - **CRITICAL**: Post-task commit enforcement
-- `model-selection-guide` - Model optimization
-
-**Usage**: `"Following spec-process-core, implement the handler"`
+Skills trigger when your request matches their description.
 
 ---
 

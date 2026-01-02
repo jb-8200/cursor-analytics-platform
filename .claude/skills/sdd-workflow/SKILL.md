@@ -1,6 +1,11 @@
+---
+name: sdd-workflow
+description: SDD workflow for feature development in Cursor Analytics Platform. Use when starting features, understanding work item structure, or following phase gates. Covers active work tracking and TDD cycle.
+---
+
 # Spec-Driven Development Workflow
 
-This skill defines the SDD workflow for this project using Claude Code.
+This skill defines the SDD workflow for this project.
 
 ## Work Item Structure
 
@@ -11,7 +16,7 @@ Features are tracked in `.work-items/{feature-name}/`:
 ├── user-story.md    # EARS-format requirements
 ├── design.md        # Technical design with decision log
 ├── task.md          # Step breakdown with progress
-└── {NN}_step.md     # Detailed implementation steps
+└── {NN}_step.md     # Detailed implementation steps (optional)
 ```
 
 ## Active Work Tracking
@@ -76,7 +81,8 @@ Time Tracking:
 - Actual: {A} hours
 - Delta: {D} hours
 
-Generated with Claude Code
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
@@ -86,6 +92,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - `/complete-feature {name}` - Verify and close feature
 - `/implement {task-id}` - Implement specific task with TDD
 - `/next-task` - Show next task to work on
+- `/status` - Show current project status
 
 ## Coverage Targets
 

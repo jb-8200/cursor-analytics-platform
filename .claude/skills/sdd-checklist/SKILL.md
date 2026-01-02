@@ -1,24 +1,34 @@
-# Spec-Driven Development (SDD) Checklist
+---
+name: sdd-checklist
+description: Post-task completion checklist for Spec-Driven Development. Use after completing any implementation task to ensure proper commit hygiene. Triggers on "task complete", "step done", "ready to commit", or moving to next task.
+---
 
-**Purpose**: Enforce SDD methodology since automated hooks don't exist in Claude Code.
+# SDD Checklist
+
+**Purpose**: Enforce SDD methodology after every completed task.
 
 ## CRITICAL: After Every Task Completion
 
 When you complete a task and all tests pass, **you MUST**:
 
-### 1. ✅ Verify Tests Pass
+### 1. Verify Tests Pass
+
 ```bash
 go test ./...  # or appropriate test command
 ```
+
 **Status**: All packages ok
 
-### 2. 📝 Stage Changes
+### 2. Stage Changes
+
 ```bash
 git add <files-related-to-task>
 ```
+
 **Only stage files for THIS task** - don't include unrelated changes
 
-### 3. 💾 Commit with Descriptive Message
+### 3. Commit with Descriptive Message
+
 ```bash
 git commit -m "$(cat <<'EOF'
 feat(service): complete Step XNN - Task Name
@@ -28,23 +38,21 @@ Brief description of what was accomplished.
 ## Changes
 - List key changes
 - With bullet points
-- For clarity
 
 Files changed: N files
 Test status: All passing
 
-Reference: path/to/spec or issue
-
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
-Co-Authored-By: Claude <model-name> <noreply@anthropic.com>
+Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
 
-### 4. 📊 Update Progress Tracking
+### 4. Update Progress Tracking
 
 **a) Update task.md progress tracker:**
+
 ```markdown
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
@@ -56,9 +64,9 @@ EOF
 - Recently completed work
 - Next steps
 
-### 5. 🔄 Only Then Proceed to Next Task
+### 5. Only Then Proceed to Next Task
 
-❌ **NEVER** move to the next task before:
+**NEVER** move to the next task before:
 1. Tests passing
 2. Code committed
 3. Progress documented
@@ -73,6 +81,7 @@ EOF
 - Hard to debug issues
 
 **SDD Flow:**
+
 ```
 Spec → Tests → Implementation → Tests Pass → COMMIT → Next Task
                                               ^^^^^^
@@ -82,43 +91,27 @@ Spec → Tests → Implementation → Tests Pass → COMMIT → Next Task
 ## Red Flags
 
 If you catch yourself saying any of these **WITHOUT committing first**:
-- ❌ "Now let's move to Step B02..."
-- ❌ "Ready for the next step?"
-- ❌ "Step B01 complete! Would you like to continue..."
+- "Now let's move to Step B02..."
+- "Ready for the next step?"
+- "Step B01 complete! Would you like to continue..."
 
 **STOP** and commit first!
 
 ## Correct Pattern
 
-✅ "Step B01 complete. Let me commit these changes..."
-✅ [Stages files, commits, updates docs]
-✅ "Commit complete. Ready to start Step B02?"
-
-## Exception: Documentation-Only Changes
-
-You MAY skip commits for:
-- README updates
-- Comment additions
-- Documentation clarifications
-
-But **when in doubt, commit**.
-
-## Hook Implementation Status
-
-| Hook | Status | Alternative |
-|------|--------|-------------|
-| pre_prompt.py | ❌ Not implemented | Read DEVELOPMENT.md manually |
-| pre_commit.py | ❌ Not implemented | Run tests before commit |
-| post_test.py | ❌ Not implemented | **THIS CHECKLIST** |
+1. "Step B01 complete. Let me commit these changes..."
+2. [Stages files, commits, updates docs]
+3. "Commit complete. Ready to start Step B02?"
 
 ## Integration with TodoWrite
 
 Use TodoWrite to track:
+
 ```javascript
 [
   {"content": "Complete Step B01", "status": "completed"},
-  {"content": "Commit B01 changes", "status": "completed"},  // <-- ADD THIS
-  {"content": "Update progress docs", "status": "completed"}, // <-- AND THIS
+  {"content": "Commit B01 changes", "status": "completed"},
+  {"content": "Update progress docs", "status": "completed"},
   {"content": "Start Step B02", "status": "in_progress"}
 ]
 ```

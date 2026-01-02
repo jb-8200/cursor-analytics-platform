@@ -1,12 +1,13 @@
-# Core SDD Process
-
-**Trigger**: Starting any development work, planning features, or when asked about workflow
-
+---
+name: spec-process-core
+description: Core SDD (Spec-Driven Development) process. Use when starting development work, planning features, or asking about workflow. Covers the fundamental sequence of Spec, Test, Code, Refactor, Commit.
 ---
 
-## The Fundamental Sequence
+# Core SDD Process
 
 Every piece of work follows this sequence. No exceptions.
+
+## The Fundamental Sequence
 
 ```
 1. SPEC    → Define what we're building (user story, design)
@@ -16,8 +17,6 @@ Every piece of work follows this sequence. No exceptions.
 5. COMMIT  → Checkpoint with descriptive message
 6. REPEAT  → Next task in the breakdown
 ```
-
----
 
 ## Core Principles
 
@@ -73,8 +72,6 @@ When implementation reveals:
 - Design changes → Update design.md
 - New requirements → Update user-story.md
 
----
-
 ## When to Apply This Process
 
 ### Full Process (New Features)
@@ -100,8 +97,6 @@ When implementation reveals:
 2. Commit
 3. No TDD required for pure docs
 
----
-
 ## Red Flags
 
 Stop immediately if you notice:
@@ -113,12 +108,9 @@ Stop immediately if you notice:
 | Moving to next task without commit | STOP. Commit first. |
 | Changing behavior without updating spec | STOP. Update spec. |
 
----
-
 ## Related Skills
 
 - `spec-process-dev` - Detailed development workflow
-- `spec-process-commit` - Commit discipline
 - `sdd-checklist` - Post-task enforcement
 - `spec-user-story` - User story format
 - `spec-design` - Design document format

@@ -11,6 +11,6 @@ Show me:
 1. The next task/step ID and name
 2. Brief description
 3. Which service it belongs to
-4. Recommended model (from `.claude/skills/operational/model-selection-guide.md`)
+4. Recommended model (the `model-selection-guide` skill will help)
 5. Key files to read (SPEC.md sections)
 6. Estimated hours

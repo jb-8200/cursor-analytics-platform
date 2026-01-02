@@ -1,8 +1,9 @@
-# Development Process (TDD Workflow)
-
-**Trigger**: Implementing features, writing code, fixing bugs
-
 ---
+name: spec-process-dev
+description: TDD (Test-Driven Development) workflow for implementation. Use when writing code, implementing features, or fixing bugs. Covers RED-GREEN-REFACTOR cycle, test patterns, and coverage requirements.
+---
+
+# Development Process (TDD Workflow)
 
 ## The TDD Cycle
 
@@ -70,8 +71,6 @@ DO NOT:
 - Change behavior
 - Skip running tests
 
----
-
 ## Test Patterns by Type
 
 ### Unit Tests
@@ -133,26 +132,6 @@ func TestHandler_ReturnsCorrectFormat(t *testing.T) {
 }
 ```
 
-### E2E Tests
-
-Test full user flows:
-
-```go
-func TestE2E_CommitWorkflow(t *testing.T) {
-    // Start server
-    srv := startTestServer(t)
-    defer srv.Close()
-
-    // Make request
-    resp, _ := http.Get(srv.URL + "/commits")
-
-    // Verify response
-    assert.Equal(t, 200, resp.StatusCode)
-}
-```
-
----
-
 ## Running Tests
 
 ### Go (cursor-sim)
@@ -174,37 +153,6 @@ go test ./... -cover
 go test ./... -v
 ```
 
-### TypeScript (future services)
-
-```bash
-# All tests
-npm test
-
-# Watch mode
-npm test -- --watch
-
-# With coverage
-npm test -- --coverage
-```
-
----
-
-## When Tests Fail
-
-1. **Read the error message carefully**
-2. **Understand expected vs actual**
-3. **Fix the issue** (code or test?)
-4. **Run tests again**
-5. **Don't proceed until green**
-
-Common issues:
-- Test has wrong expectation → Fix test
-- Implementation has bug → Fix code
-- Missing setup/teardown → Add fixtures
-- Flaky test → Add synchronization
-
----
-
 ## Coverage Requirements
 
 | Category | Minimum | Target |
@@ -220,16 +168,28 @@ go test ./... -coverprofile=coverage.out
 go tool cover -html=coverage.out
 ```
 
----
+## When Tests Fail
+
+1. **Read the error message carefully**
+2. **Understand expected vs actual**
+3. **Fix the issue** (code or test?)
+4. **Run tests again**
+5. **Don't proceed until green**
+
+Common issues:
+- Test has wrong expectation → Fix test
+- Implementation has bug → Fix code
+- Missing setup/teardown → Add fixtures
+- Flaky test → Add synchronization
 
 ## After TDD Cycle
 
 **Every completed task requires:**
 
-1. ✅ All tests pass
-2. ✅ Coverage meets threshold
-3. ✅ Git commit
-4. ✅ task.md updated
-5. ✅ DEVELOPMENT.md updated
+1. All tests pass
+2. Coverage meets threshold
+3. Git commit
+4. task.md updated
+5. DEVELOPMENT.md updated
 
 See `sdd-checklist` skill for enforcement.
