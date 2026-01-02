@@ -5,10 +5,10 @@
 **Feature**: cursor-sim v2 Phase 3
 **Total Estimated Hours**: 35-45
 **Number of Steps**: 18
-**Current Step**: A07 - Part A Integration Tests
+**Current Step**: B02 - Model Usage Generator & Handler
 
 This phase completes cursor-sim with:
-- **Part A**: Research Framework (SIM-R013 → SIM-R015)
+- **Part A**: Research Framework (SIM-R013 → SIM-R015) - COMPLETE
 - **Part B**: Stub Endpoint Completion (17 endpoints)
 - **Part C**: Enhanced Code Quality Analysis
 - **Part D**: GitHub Router Wiring (OPTIONAL - documented only)
@@ -17,7 +17,7 @@ This phase completes cursor-sim with:
 
 ## Progress Tracker
 
-### Part A: Research Framework (15-20h)
+### Part A: Research Framework (15-20h) - COMPLETE
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
@@ -29,17 +29,19 @@ This phase completes cursor-sim with:
 | A06 | Replay Mode Infrastructure | 3.0 | DONE | 0.25 |
 | A07 | Part A Integration Tests | 2.0 | DONE | 0.25 |
 
-### Part B: Stub Completion (8-12h)
+### Part B: Stub Completion (10-14h) - REVISED
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
-| B01 | Model Usage Generator | 1.5 | NOT_STARTED | - |
-| B02 | Client Version Generator | 1.0 | NOT_STARTED | - |
-| B03 | File Extension Analytics | 1.5 | NOT_STARTED | - |
-| B04 | MCP/Commands/Plans Generators | 2.0 | NOT_STARTED | - |
-| B05 | Ask Mode & Leaderboard | 1.5 | NOT_STARTED | - |
-| B06 | By-User Endpoint Handlers | 2.5 | NOT_STARTED | - |
-| B07 | Part B Integration Tests | 1.5 | NOT_STARTED | - |
+| B00 | Fix Analytics Response Format | 2.0 | DONE | 1.5 |
+| B01 | Update Analytics Data Models | 1.5 | DONE | 1.0 |
+| B02 | Model Usage Generator & Handler | 1.5 | IN_PROGRESS | - |
+| B03 | Client Version Generator & Handler | 1.0 | NOT_STARTED | - |
+| B04 | File Extension Analytics Handler | 1.5 | NOT_STARTED | - |
+| B05 | MCP/Commands/Plans/Ask-Mode Handlers | 2.0 | NOT_STARTED | - |
+| B06 | Leaderboard Handler | 1.5 | NOT_STARTED | - |
+| B07 | By-User Endpoint Handlers | 2.5 | NOT_STARTED | - |
+| B08 | Part B Integration Tests | 2.0 | NOT_STARTED | - |
 
 ### Part C: Code Quality Analysis (10-15h)
 
@@ -60,412 +62,503 @@ This phase completes cursor-sim with:
 
 ---
 
-## Dependency Graph
+## Documentation Reference
 
-```
-PART A: Research Framework
-A01 (Models)
- │
- ├── A02 (Dataset Generator)
- │    │
- │    └── A03 (Export) ──► A05 (API Handlers)
- │
- ├── A04 (Metrics Service) ──► A05 (API Handlers)
- │
- └── A06 (Replay Mode)
-      │
-      └── A07 (Integration Tests)
+**IMPORTANT**: All Part B implementations MUST match the Cursor API documentation:
 
-PART B: Stub Completion
-B01 ─┬─► B06 (By-User Handlers)
-B02 ─┤        │
-B03 ─┤        └── B07 (Tests)
-B04 ─┤
-B05 ─┘
+| API | Documentation | Response Format |
+|-----|---------------|-----------------|
+| Analytics Team-Level | `docs/api-reference/cursor_analytics.md` | `{ data: [...], params: {...} }` |
+| Analytics By-User | `docs/api-reference/cursor_analytics.md` | `{ data: { email: [...] }, pagination: {...}, params: {...} }` |
+| Admin API | `docs/api-reference/cursor_admin.md` | Varies by endpoint |
 
-PART C: Code Quality
-C01 (Models)
- │
- ├── C02 (Survival Calculator)
- │
- ├── C03 (Revert Analysis)
- │
- └── C04 (Hotfix Tracking)
-      │
-      └── C05 (Tests)
-```
+**Skill Reference**: `.claude/skills/cursor-api-patterns.md`
 
 ---
 
-## Part A: Research Framework Details
+## Part B: Stub Completion Details (REVISED)
 
-### Step A01: Research Data Models
+### Step B00: Fix Analytics Response Format
 
-**File**: `internal/models/research.go`
+**Priority**: HIGH - Must be done first
+
+**Problem**: Current team-level handlers use `BuildPaginatedResponse` which wraps data in:
+```json
+{ "data": [...], "pagination": {...}, "params": {...} }
+```
+
+But the actual Cursor Analytics API team-level endpoints use:
+```json
+{ "data": [...], "params": {...} }
+```
+
+**Files**:
+- `internal/api/response.go` - Add `BuildAnalyticsTeamResponse` function
+- `internal/api/cursor/team.go` - Update handlers to use new function
 
 **Tasks**:
-- [ ] Define ResearchDataPoint struct (pre-joined row)
-- [ ] Define VelocityMetrics struct
-- [ ] Define ReviewCostMetrics struct
-- [ ] Define QualityMetrics struct
-- [ ] Define CodeSurvivalRecord struct
-- [ ] Add JSON/Parquet tags
+- [ ] Create `AnalyticsTeamResponse` struct in `models/response.go`
+- [ ] Add `BuildAnalyticsTeamResponse(data, params)` in `api/response.go`
+- [ ] Update `teamMetricHandler` to use new function
+- [ ] Update tests in `api/response_test.go`
 
-**Fields for ResearchDataPoint**:
-```go
-type ResearchDataPoint struct {
-    // Identifiers
-    CommitHash    string
-    PRNumber      int
-    AuthorID      string
-    RepoName      string
+**Cursor API Reference**: `docs/api-reference/cursor_analytics.md` (Team-Level Endpoints section)
 
-    // AI Metrics (Independent Variables)
-    AIRatio       float64
-    TabLines      int
-    ComposerLines int
-
-    // PR Metrics
-    Additions     int
-    Deletions     int
-    FilesChanged  int
-
-    // Cycle Times (Dependent Variables)
-    CodingLeadTimeHours  float64
-    ReviewLeadTimeHours  float64
-    MergeLeadTimeHours   float64
-
-    // Quality Outcomes (Dependent Variables)
-    WasReverted   bool
-    RequiredHotfix bool
-    ReviewIterations int
-
-    // Controls
-    AuthorSeniority string
-    RepoMaturity    string
-    IsGreenfield    bool
-
-    Timestamp     time.Time
+**Expected Response Format**:
+```json
+{
+  "data": [...],
+  "params": {
+    "metric": "agent-edits",
+    "teamId": 12345,
+    "startDate": "2025-01-01",
+    "endDate": "2025-01-31"
+  }
 }
 ```
 
-**Acceptance Criteria**:
-- All research variables from DESIGN.md represented
-- Proper JSON serialization
-- Unit tests for model validation
-
 ---
 
-### Step A02: Research Dataset Generator
+### Step B01: Update Analytics Data Models
 
-**File**: `internal/generator/research_generator.go`
+**File**: `internal/models/team_stats.go`
+
+**Problem**: Current models don't match Cursor API field names and structures.
 
 **Tasks**:
-- [ ] Implement JoinCommitPRData() - correlate commits with PRs
-- [ ] Calculate cycle times from timestamps
-- [ ] Determine greenfield vs legacy code
-- [ ] Apply control variables from seed
-- [ ] Unit tests with deterministic seed
+- [ ] Update `AgentEditsDay` to match cursor_analytics.md schema
+- [ ] Update `TabCompletionDay` to match cursor_analytics.md schema
+- [ ] Update `DAUDay` to match cursor_analytics.md schema (field: `date` not `event_date`)
+- [ ] Add `ModelUsageDay` struct with nested `model_breakdown`
+- [ ] Add `ClientVersionDay` struct
+- [ ] Add `FileExtensionDay` struct
+- [ ] Add `MCPUsageDay` struct
+- [ ] Add `CommandUsageDay` struct
+- [ ] Add `PlanUsageDay` struct
+- [ ] Add `AskModeDay` struct
+- [ ] Add `LeaderboardResponse` struct (two leaderboards)
+- [ ] Update existing handler tests
 
-**Acceptance Criteria**:
-- Dataset rows properly join commit + PR + review data
-- Cycle times calculated correctly
-- Control variables populated from seed
+**Cursor API Reference**: `docs/api-reference/cursor_analytics.md`
+
+**Required Model Schemas** (from cursor_analytics.md):
+
+```go
+// AgentEditsDay matches Cursor Analytics API /analytics/team/agent-edits
+type AgentEditsDay struct {
+    EventDate               string `json:"event_date"`
+    TotalSuggestedDiffs     int    `json:"total_suggested_diffs"`
+    TotalAcceptedDiffs      int    `json:"total_accepted_diffs"`
+    TotalRejectedDiffs      int    `json:"total_rejected_diffs"`
+    TotalGreenLinesAccepted int    `json:"total_green_lines_accepted"`
+    TotalRedLinesAccepted   int    `json:"total_red_lines_accepted"`
+    TotalGreenLinesRejected int    `json:"total_green_lines_rejected"`
+    TotalRedLinesRejected   int    `json:"total_red_lines_rejected"`
+    TotalGreenLinesSuggested int   `json:"total_green_lines_suggested"`
+    TotalRedLinesSuggested  int    `json:"total_red_lines_suggested"`
+    TotalLinesSuggested     int    `json:"total_lines_suggested"`
+    TotalLinesAccepted      int    `json:"total_lines_accepted"`
+}
+
+// TabUsageDay matches Cursor Analytics API /analytics/team/tabs
+type TabUsageDay struct {
+    EventDate               string `json:"event_date"`
+    TotalSuggestions        int    `json:"total_suggestions"`
+    TotalAccepts            int    `json:"total_accepts"`
+    TotalRejects            int    `json:"total_rejects"`
+    TotalGreenLinesAccepted int    `json:"total_green_lines_accepted"`
+    TotalRedLinesAccepted   int    `json:"total_red_lines_accepted"`
+    TotalGreenLinesRejected int    `json:"total_green_lines_rejected"`
+    TotalRedLinesRejected   int    `json:"total_red_lines_rejected"`
+    TotalGreenLinesSuggested int   `json:"total_green_lines_suggested"`
+    TotalRedLinesSuggested  int    `json:"total_red_lines_suggested"`
+    TotalLinesSuggested     int    `json:"total_lines_suggested"`
+    TotalLinesAccepted      int    `json:"total_lines_accepted"`
+}
+
+// DAUDay matches Cursor Analytics API /analytics/team/dau
+type DAUDay struct {
+    Date          string `json:"date"`  // NOT event_date!
+    DAU           int    `json:"dau"`
+    CLIDAU        int    `json:"cli_dau"`
+    CloudAgentDAU int    `json:"cloud_agent_dau"`
+    BugbotDAU     int    `json:"bugbot_dau"`
+}
+
+// ModelUsageDay matches Cursor Analytics API /analytics/team/models
+type ModelUsageDay struct {
+    Date           string                       `json:"date"`
+    ModelBreakdown map[string]ModelBreakdownItem `json:"model_breakdown"`
+}
+
+type ModelBreakdownItem struct {
+    Messages int `json:"messages"`
+    Users    int `json:"users"`
+}
+
+// ClientVersionDay matches Cursor Analytics API /analytics/team/client-versions
+type ClientVersionDay struct {
+    EventDate     string  `json:"event_date"`
+    ClientVersion string  `json:"client_version"`
+    UserCount     int     `json:"user_count"`
+    Percentage    float64 `json:"percentage"`
+}
+
+// FileExtensionDay matches Cursor Analytics API /analytics/team/top-file-extensions
+type FileExtensionDay struct {
+    EventDate           string `json:"event_date"`
+    FileExtension       string `json:"file_extension"`
+    TotalFiles          int    `json:"total_files"`
+    TotalAccepts        int    `json:"total_accepts"`
+    TotalRejects        int    `json:"total_rejects"`
+    TotalLinesSuggested int    `json:"total_lines_suggested"`
+    TotalLinesAccepted  int    `json:"total_lines_accepted"`
+    TotalLinesRejected  int    `json:"total_lines_rejected"`
+}
+
+// MCPUsageDay matches Cursor Analytics API /analytics/team/mcp
+type MCPUsageDay struct {
+    EventDate     string `json:"event_date"`
+    ToolName      string `json:"tool_name"`
+    MCPServerName string `json:"mcp_server_name"`
+    Usage         int    `json:"usage"`
+}
+
+// CommandUsageDay matches Cursor Analytics API /analytics/team/commands
+type CommandUsageDay struct {
+    EventDate   string `json:"event_date"`
+    CommandName string `json:"command_name"`
+    Usage       int    `json:"usage"`
+}
+
+// PlanUsageDay matches Cursor Analytics API /analytics/team/plans
+type PlanUsageDay struct {
+    EventDate string `json:"event_date"`
+    Model     string `json:"model"`
+    Usage     int    `json:"usage"`
+}
+
+// AskModeDay matches Cursor Analytics API /analytics/team/ask-mode
+type AskModeDay struct {
+    EventDate string `json:"event_date"`
+    Model     string `json:"model"`
+    Usage     int    `json:"usage"`
+}
+
+// LeaderboardResponse matches Cursor Analytics API /analytics/team/leaderboard
+type LeaderboardResponse struct {
+    TabLeaderboard   LeaderboardSection `json:"tab_leaderboard"`
+    AgentLeaderboard LeaderboardSection `json:"agent_leaderboard"`
+}
+
+type LeaderboardSection struct {
+    Data       []LeaderboardEntry `json:"data"`
+    TotalUsers int                `json:"total_users"`
+}
+
+type LeaderboardEntry struct {
+    Email               string  `json:"email"`
+    UserID              string  `json:"user_id"`
+    TotalAccepts        int     `json:"total_accepts"`
+    TotalLinesAccepted  int     `json:"total_lines_accepted"`
+    TotalLinesSuggested int     `json:"total_lines_suggested"`
+    LineAcceptanceRatio float64 `json:"line_acceptance_ratio"`
+    AcceptRatio         float64 `json:"accept_ratio,omitempty"`
+    FavoriteModel       string  `json:"favorite_model,omitempty"`
+    Rank                int     `json:"rank"`
+}
+```
 
 ---
 
-### Step A03: Parquet/CSV Export
+### Step B02: Model Usage Generator & Handler
 
 **Files**:
-- `internal/export/csv.go`
-- `internal/export/parquet.go`
+- `internal/generator/model_generator.go` (exists, may need updates)
+- `internal/api/cursor/team.go`
+- `internal/storage/memory.go`
 
 **Tasks**:
-- [ ] Implement CSV export with proper headers
-- [ ] Implement Parquet export using parquet-go
-- [ ] Add streaming for large datasets
-- [ ] Support filtering by date range
+- [ ] Verify `ModelUsageEvent` struct matches needs
+- [ ] Update generator to produce realistic model distribution
+- [ ] Add `GetModelUsageByTimeRange` to storage interface
+- [ ] Implement `TeamModels` handler with correct response format
 - [ ] Unit tests
 
-**Dependencies**: `github.com/xitongsys/parquet-go`
+**Models to Generate**: claude-sonnet-4.5, gpt-4o, claude-opus-4, o3, claude-4-sonnet-thinking
 
-**Acceptance Criteria**:
-- CSV exports load correctly in pandas/R
-- Parquet files readable by pyarrow
-- 50MB/s export throughput
-
----
-
-### Step A04: Research Metrics Service
-
-**File**: `internal/services/research_metrics.go`
-
-**Tasks**:
-- [ ] CalculateVelocityMetrics(from, to time.Time)
-- [ ] CalculateReviewCostMetrics(from, to time.Time)
-- [ ] CalculateQualityMetrics(from, to time.Time)
-- [ ] Group by AI ratio bands (low/medium/high)
-- [ ] Statistical aggregations (mean, median, std)
-- [ ] Unit tests
-
-**Acceptance Criteria**:
-- Metrics grouped correctly by AI ratio
-- Statistical calculations verified
-- Edge cases handled (empty data)
+**Response Format** (from cursor_analytics.md):
+```json
+{
+  "data": [
+    {
+      "date": "2025-01-15",
+      "model_breakdown": {
+        "claude-sonnet-4.5": { "messages": 1250, "users": 28 },
+        "gpt-4o": { "messages": 450, "users": 15 }
+      }
+    }
+  ],
+  "params": {...}
+}
+```
 
 ---
 
-### Step A05: Research API Handlers
-
-**File**: `internal/api/research/handlers.go`
-
-**Tasks**:
-- [ ] GET /research/dataset - Export endpoint
-- [ ] GET /research/metrics/velocity
-- [ ] GET /research/metrics/review-costs
-- [ ] GET /research/metrics/quality
-- [ ] Support format query param (csv, parquet, json)
-- [ ] Register routes in router
-- [ ] Handler tests
-
-**Acceptance Criteria**:
-- All endpoints return correct schema
-- Format parameter works
-- Auth required on all endpoints
-
----
-
-### Step A06: Replay Mode Infrastructure
+### Step B03: Client Version Generator & Handler
 
 **Files**:
-- `internal/replay/loader.go`
-- `internal/replay/server.go`
+- `internal/generator/version_generator.go` (new)
+- `internal/models/team_stats.go`
+- `internal/api/cursor/team.go`
+- `internal/storage/memory.go`
 
 **Tasks**:
-- [ ] Load events from Parquet corpus file
-- [ ] Index events by time for range queries
-- [ ] Implement replay HTTP handlers
-- [ ] Support --mode=replay --corpus=path CLI
+- [ ] Create `ClientVersionEvent` model
+- [ ] Create version generator (realistic semver: 0.42.x, 0.43.x)
+- [ ] Add `GetClientVersionsByTimeRange` to storage
+- [ ] Implement `TeamClientVersions` handler
 - [ ] Unit tests
 
-**Acceptance Criteria**:
-- Replay mode serves pre-generated data
-- Same API responses as runtime mode
-- Corpus file format documented
+**Response Format** (from cursor_analytics.md):
+```json
+{
+  "data": [
+    {
+      "event_date": "2025-01-01",
+      "client_version": "0.42.3",
+      "user_count": 35,
+      "percentage": 0.833
+    }
+  ],
+  "params": {...}
+}
+```
 
 ---
 
-### Step A07: Part A Integration Tests
+### Step B04: File Extension Analytics Handler
 
-**File**: `test/e2e/research_test.go`
-
-**Tasks**:
-- [ ] E2E: Generate data → Export → Verify format
-- [ ] E2E: Research metrics endpoints
-- [ ] E2E: Replay mode serves correct data
-- [ ] Verify Parquet readable by pyarrow
-- [ ] Performance test: 10k rows export
-
-**Acceptance Criteria**:
-- All E2E tests pass
-- Export files valid
-- Performance meets target
-
----
-
-## Part B: Stub Completion Details
-
-### Step B01: Model Usage Generator
-
-**File**: `internal/generator/model_generator.go`
+**Files**:
+- `internal/api/cursor/team.go`
 
 **Tasks**:
-- [ ] Define ModelUsage struct
-- [ ] Generate model usage events from seed preferences
-- [ ] Track model distribution per developer
-- [ ] Store in memory
-- [ ] Update /analytics/team/models endpoint
+- [ ] Extract file extension from commits (use existing commit data)
+- [ ] Aggregate by extension and date
+- [ ] Calculate top 5 extensions per day by suggestion volume
+- [ ] Implement `TeamTopFileExtensions` handler
 - [ ] Unit tests
 
-**Models to Support**: gpt-4, gpt-3.5-turbo, claude-3-opus, claude-3-sonnet
+**Note**: Can derive from existing commit data - check if `RepoName` contains file info or need to generate synthetic extension data.
+
+**Response Format** (from cursor_analytics.md):
+```json
+{
+  "data": [
+    {
+      "event_date": "2025-01-15",
+      "file_extension": "tsx",
+      "total_files": 156,
+      "total_accepts": 98,
+      "total_rejects": 45,
+      "total_lines_suggested": 3230,
+      "total_lines_accepted": 2340,
+      "total_lines_rejected": 890
+    }
+  ],
+  "params": {...}
+}
+```
 
 ---
 
-### Step B02: Client Version Generator
+### Step B05: MCP/Commands/Plans/Ask-Mode Handlers
 
-**File**: `internal/generator/version_generator.go`
+**Files**:
+- `internal/generator/feature_generators.go` (new)
+- `internal/models/team_stats.go`
+- `internal/api/cursor/team.go`
+- `internal/storage/memory.go`
 
 **Tasks**:
-- [ ] Define ClientVersion struct
-- [ ] Generate version distribution (realistic semver)
-- [ ] Track version adoption over time
-- [ ] Update /analytics/team/client-versions endpoint
+- [ ] Create event models for each feature type
+- [ ] Create generators for each feature (based on developer seed preferences)
+- [ ] Add storage methods for each
+- [ ] Implement 4 handlers: `TeamMCP`, `TeamCommands`, `TeamPlans`, `TeamAskMode`
+- [ ] Unit tests for each
+
+**MCP Tools to Generate**: read_file, search_web, execute_command, etc.
+**Commands to Generate**: explain, refactor, fix, test, etc.
+**Plans/AskMode**: Use model preferences from seed
+
+---
+
+### Step B06: Leaderboard Handler
+
+**File**: `internal/api/cursor/team.go`
+
+**Tasks**:
+- [ ] Calculate tab leaderboard from commits (TabLinesAdded, acceptance rates)
+- [ ] Calculate agent leaderboard from commits (ComposerLinesAdded, acceptance rates)
+- [ ] Support pagination (`page`, `pageSize` params)
+- [ ] Support user filtering (`users` param)
+- [ ] Implement ranking logic
+- [ ] Implement `TeamLeaderboard` handler
 - [ ] Unit tests
 
----
-
-### Step B03: File Extension Analytics
-
-**File**: `internal/generator/extension_generator.go`
-
-**Tasks**:
-- [ ] Track file extensions from commits
-- [ ] Aggregate by extension type
-- [ ] Calculate AI ratio per extension
-- [ ] Update /analytics/team/top-file-extensions
-- [ ] Unit tests
-
----
-
-### Step B04: MCP/Commands/Plans Generators
-
-**File**: `internal/generator/feature_generators.go`
-
-**Tasks**:
-- [ ] Generate MCP (Model Context Protocol) usage
-- [ ] Generate command usage patterns
-- [ ] Generate plan mode usage
-- [ ] Update respective endpoints
-- [ ] Unit tests
-
----
-
-### Step B05: Ask Mode & Leaderboard
-
-**File**: `internal/generator/engagement_generator.go`
-
-**Tasks**:
-- [ ] Generate ask-mode interactions
-- [ ] Calculate leaderboard rankings
-- [ ] Rank by: lines accepted, commits, AI ratio
-- [ ] Update endpoints
-- [ ] Unit tests
+**Response Format** (from cursor_analytics.md):
+```json
+{
+  "data": {
+    "tab_leaderboard": {
+      "data": [
+        {
+          "email": "alice@example.com",
+          "user_id": "user_abc123",
+          "total_accepts": 1334,
+          "total_lines_accepted": 3455,
+          "total_lines_suggested": 15307,
+          "line_acceptance_ratio": 0.226,
+          "accept_ratio": 0.233,
+          "rank": 1
+        }
+      ],
+      "total_users": 142
+    },
+    "agent_leaderboard": {
+      "data": [...],
+      "total_users": 142
+    }
+  },
+  "pagination": {
+    "page": 1,
+    "pageSize": 10,
+    "totalUsers": 142,
+    "totalPages": 15,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "params": {...}
+}
+```
 
 ---
 
-### Step B06: By-User Endpoint Handlers
+### Step B07: By-User Endpoint Handlers
 
-**File**: `internal/api/cursor/byuser_full.go`
+**File**: `internal/api/cursor/byuser.go`
 
 **Tasks**:
-- [ ] Implement all 9 by-user endpoints with real data
-- [ ] Filter by userId parameter
-- [ ] Apply pagination
-- [ ] Unit tests for each endpoint
+- [ ] Create `BuildAnalyticsByUserResponse` helper function
+- [ ] Implement all 9 by-user handlers with real data
+- [ ] Group data by user email
+- [ ] Support pagination on users (not on data)
+- [ ] Support `users` filter parameter (comma-separated)
+- [ ] Include `userMappings` in params
+- [ ] Unit tests for each
 
 **Endpoints**:
-- /analytics/by-user/agent-edits
-- /analytics/by-user/tabs
-- /analytics/by-user/models
-- /analytics/by-user/client-versions
-- /analytics/by-user/top-file-extensions
-- /analytics/by-user/mcp
-- /analytics/by-user/commands
-- /analytics/by-user/plans
-- /analytics/by-user/ask-mode
+1. `/analytics/by-user/agent-edits`
+2. `/analytics/by-user/tabs`
+3. `/analytics/by-user/models`
+4. `/analytics/by-user/client-versions`
+5. `/analytics/by-user/top-file-extensions`
+6. `/analytics/by-user/mcp`
+7. `/analytics/by-user/commands`
+8. `/analytics/by-user/plans`
+9. `/analytics/by-user/ask-mode`
+
+**Response Format** (from cursor_analytics.md):
+```json
+{
+  "data": {
+    "alice@example.com": [
+      { "event_date": "2025-01-15", "suggested_lines": 125 }
+    ],
+    "bob@example.com": [
+      { "event_date": "2025-01-15", "suggested_lines": 95 }
+    ]
+  },
+  "pagination": {
+    "page": 1,
+    "pageSize": 100,
+    "totalUsers": 250,
+    "totalPages": 3,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  },
+  "params": {
+    "metric": "agent-edits",
+    "teamId": 12345,
+    "startDate": "2025-01-01",
+    "endDate": "2025-01-31",
+    "userMappings": [
+      { "id": "user_abc123", "email": "alice@example.com" }
+    ]
+  }
+}
+```
 
 ---
 
-### Step B07: Part B Integration Tests
+### Step B08: Part B Integration Tests
 
 **File**: `test/e2e/analytics_complete_test.go`
 
 **Tasks**:
-- [ ] E2E: All team analytics return data
-- [ ] E2E: All by-user analytics return data
-- [ ] Verify response schemas match Cursor API
-- [ ] No more stub responses
+- [ ] E2E: All team analytics endpoints return correct schema
+- [ ] E2E: All by-user analytics endpoints return correct schema
+- [ ] E2E: Leaderboard pagination works
+- [ ] E2E: User filtering works on by-user endpoints
+- [ ] E2E: Date filtering works
+- [ ] Verify response schemas match `docs/api-reference/cursor_analytics.md`
+- [ ] No more stub responses (all return real data)
+
+---
+
+## Dependency Graph (Updated)
+
+```
+PART B: Stub Completion (REVISED)
+
+B00 (Fix Response Format)
+ │
+ └── B01 (Update Models)
+      │
+      ├── B02 (Model Usage) ───┐
+      ├── B03 (Client Version) │
+      ├── B04 (File Extension) ├──► B07 (By-User Handlers)
+      ├── B05 (MCP/Cmd/Plans)  │         │
+      └── B06 (Leaderboard) ───┘         │
+                                         └── B08 (Tests)
+```
 
 ---
 
 ## Part C: Code Quality Analysis Details
 
+(Unchanged from original - see below)
+
 ### Step C01: Code Survival Tracking Models
-
-**File**: `internal/models/survival.go`
-
-**Tasks**:
-- [ ] Define CodeBlock struct (file, start_line, end_line, hash)
-- [ ] Define SurvivalRecord struct
-- [ ] Define SurvivalWindow enum (30d, 60d, 90d)
-- [ ] Unit tests
-
----
+...
 
 ### Step C02: Survival Rate Calculator
-
-**File**: `internal/generator/survival_calculator.go`
-
-**Tasks**:
-- [ ] Track code blocks through time
-- [ ] Calculate survival at 30/60/90 day windows
-- [ ] Correlate survival with AI ratio
-- [ ] Store results in memory
-- [ ] Unit tests with time mocking
-
----
+...
 
 ### Step C03: Revert Chain Analysis
-
-**File**: `internal/generator/revert_analyzer.go`
-
-**Tasks**:
-- [ ] Identify revert commits (message patterns)
-- [ ] Link reverts to original commits
-- [ ] Calculate revert chains (revert of revert)
-- [ ] Track AI ratio correlation
-- [ ] Unit tests
-
----
+...
 
 ### Step C04: Hotfix Tracking
-
-**File**: `internal/generator/hotfix_tracker.go`
-
-**Tasks**:
-- [ ] Identify hotfix PRs (branch patterns, labels)
-- [ ] Link hotfixes to original PRs
-- [ ] Calculate hotfix rate by AI ratio
-- [ ] Time-to-hotfix metrics
-- [ ] Unit tests
-
----
+...
 
 ### Step C05: Part C Integration Tests
-
-**File**: `test/e2e/quality_analysis_test.go`
-
-**Tasks**:
-- [ ] E2E: Survival rates calculated correctly
-- [ ] E2E: Revert chains identified
-- [ ] E2E: Hotfix correlations
-- [ ] Verify statistical validity
+...
 
 ---
 
 ## Part D: GitHub Router (OPTIONAL)
 
-> **Note**: This section is documented for future implementation but marked OPTIONAL.
-> The GitHub API handlers exist in `internal/api/github/` but are not wired to the router.
-
-### Step D01: Wire GitHub Handlers to Router (OPTIONAL)
-
-**File**: `internal/server/router.go`
-
-**Tasks**:
-- [ ] Register /repos routes
-- [ ] Register /repos/{owner}/{repo}/pulls routes
-- [ ] Add authentication middleware
-- [ ] Update SPEC.md with new endpoints
-
-### Step D02: GitHub API E2E Tests (OPTIONAL)
-
-**File**: `test/e2e/github_api_test.go`
-
-**Tasks**:
-- [ ] E2E: List repos
-- [ ] E2E: Get PRs with pagination
-- [ ] E2E: Get PR reviews
+(Unchanged - OPTIONAL)
 
 ---
 
@@ -473,11 +566,12 @@ type ResearchDataPoint struct {
 
 | Step | Model | Rationale |
 |------|-------|-----------|
-| A01, A05, B06 | Haiku | Well-specified, standard patterns |
-| A02, A03, A04 | Sonnet | Data processing complexity |
-| A06, A07 | Sonnet | Replay mode, integration |
-| B01-B05 | Haiku | Simple generators |
-| B07, C05 | Sonnet | Integration testing |
+| B00, B01 | Haiku | Schema alignment, straightforward |
+| B02, B03 | Haiku | Simple generators |
+| B04, B05 | Haiku | Data extraction from commits |
+| B06 | Sonnet | Complex ranking algorithm |
+| B07 | Sonnet | Multiple similar handlers |
+| B08 | Sonnet | Integration testing |
 | C01-C04 | Sonnet | Algorithm complexity |
 
 ---
@@ -485,6 +579,7 @@ type ResearchDataPoint struct {
 ## TDD Checklist (Per Step)
 
 - [ ] Read step details and acceptance criteria
+- [ ] Read relevant section in `docs/api-reference/cursor_analytics.md`
 - [ ] Write failing test(s) for the step
 - [ ] Run tests, confirm RED
 - [ ] Implement minimal code to pass
@@ -499,8 +594,7 @@ type ResearchDataPoint struct {
 ## Execution Order
 
 ```
-1. A01 → A02 → A03 → A04 → A05 → A06 → A07 (commit: "feat: Phase 3 Part A")
-2. B01 → B02 → B03 → B04 → B05 → B06 → B07 (commit: "feat: Phase 3 Part B")
-3. C01 → C02 → C03 → C04 → C05 (commit: "feat: Phase 3 Part C")
-4. D01 → D02 (OPTIONAL - separate commit if done)
+1. B00 → B01 → B02 → B03 → B04 → B05 → B06 → B07 → B08 (commit: "feat: Phase 3 Part B")
+2. C01 → C02 → C03 → C04 → C05 (commit: "feat: Phase 3 Part C")
+3. D01 → D02 (OPTIONAL - separate commit if done)
 ```

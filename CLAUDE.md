@@ -141,6 +141,7 @@ Skills provide specialized knowledge. Reference them explicitly in your requests
 - **cursor-api-patterns** - Cursor Business API implementation guide (response formats, auth, pagination, rate limiting, CSV exports)
 - **go-best-practices** - Go coding standards (project structure, error handling, concurrency, testing, HTTP handlers)
 - **model-selection-guide** - Task-to-model mapping for cost optimization (Haiku vs Sonnet vs Opus)
+- **sdd-checklist** - **CRITICAL**: Spec-Driven Development enforcement checklist (commit after tests pass, update progress docs)
 
 **Usage:** Reference skills directly:
 ```
@@ -183,6 +184,17 @@ See `.claude/README.md` for complete usage guide.
 | `docs/USER_STORIES.md` | User stories reference |
 | `docs/TASKS.md` | Task overview reference |
 | `docs/TESTING_STRATEGY.md` | TDD approach and testing guidelines |
+
+### Cursor API Reference (Design & Testing Source of Truth)
+| File | Purpose |
+|------|---------|
+| `docs/api-reference/cursor_overview.md` | Authentication, rate limits, caching, best practices |
+| `docs/api-reference/cursor_admin.md` | Admin API - Team management, usage data, spending |
+| `docs/api-reference/cursor_analytics.md` | Analytics API - Team metrics, DAU, model usage |
+| `docs/api-reference/cursor_codetrack.md` | AI Code Tracking API - Per-commit metrics (Enterprise) |
+| `docs/api-reference/cursor_agents.md` | Cloud Agents API - Programmatic agent management |
+| `docs/api-reference/REST_API.md` | Simulator implementation reference |
+| `specs/openapi/cursor-api.yaml` | OpenAPI 3.1 specification for code generation |
 
 ### Claude Code Integration
 | File | Purpose |
