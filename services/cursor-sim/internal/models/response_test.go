@@ -19,8 +19,8 @@ func TestPaginatedResponse_JSON(t *testing.T) {
 			HasPreviousPage: false,
 		},
 		Params: Params{
-			StartDate: "2026-01-01",
-			EndDate:   "2026-01-15",
+			From: "2026-01-01",
+			To:   "2026-01-15",
 		},
 	}
 
@@ -63,10 +63,12 @@ func TestPagination_FieldNames(t *testing.T) {
 
 func TestParams_FieldNames(t *testing.T) {
 	p := Params{
-		StartDate: "2026-01-01",
-		EndDate:   "2026-01-31",
-		TeamID:    12345,
-		Metric:    "agent-edits",
+		From:     "2026-01-01",
+		To:       "2026-01-31",
+		Page:     1,
+		PageSize: 100,
+		UserID:   "user_001",
+		RepoName: "acme/platform",
 	}
 
 	data, err := json.Marshal(p)
@@ -76,9 +78,11 @@ func TestParams_FieldNames(t *testing.T) {
 	err = json.Unmarshal(data, &raw)
 	require.NoError(t, err)
 
-	// Verify snake_case for params (matching Cursor API)
-	assert.Contains(t, raw, "start_date")
-	assert.Contains(t, raw, "end_date")
-	assert.Contains(t, raw, "team_id")
-	assert.Contains(t, raw, "metric")
+	// Verify camelCase for params (matching Cursor API)
+	assert.Contains(t, raw, "from")
+	assert.Contains(t, raw, "to")
+	assert.Contains(t, raw, "page")
+	assert.Contains(t, raw, "pageSize")
+	assert.Contains(t, raw, "userId")
+	assert.Contains(t, raw, "repoName")
 }

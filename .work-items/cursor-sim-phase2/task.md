@@ -11,7 +11,7 @@
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
-| 01 | PR and Review Models | 2.0 | NOT_STARTED | - |
+| 01 | PR and Review Models | 2.0 | DONE | 0.25 |
 | 02 | Seed Schema Extensions | 2.0 | NOT_STARTED | - |
 | 03 | PR Storage Methods | 2.5 | NOT_STARTED | - |
 | 04 | PR Generator | 4.0 | NOT_STARTED | - |
