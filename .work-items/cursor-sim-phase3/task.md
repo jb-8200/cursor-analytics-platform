@@ -5,7 +5,7 @@
 **Feature**: cursor-sim v2 Phase 3
 **Total Estimated Hours**: 35-45
 **Number of Steps**: 18
-**Current Step**: A02 - Research Dataset Generator
+**Current Step**: A03 - Parquet/CSV Export
 
 This phase completes cursor-sim with:
 - **Part A**: Research Framework (SIM-R013 → SIM-R015)
@@ -22,7 +22,7 @@ This phase completes cursor-sim with:
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
 | A01 | Research Data Models | 2.0 | DONE | 0.25 |
-| A02 | Research Dataset Generator | 3.0 | NOT_STARTED | - |
+| A02 | Research Dataset Generator | 3.0 | DONE | 0.25 |
 | A03 | Parquet/CSV Export | 2.5 | NOT_STARTED | - |
 | A04 | Research Metrics Service | 3.0 | NOT_STARTED | - |
 | A05 | Research API Handlers | 2.5 | NOT_STARTED | - |

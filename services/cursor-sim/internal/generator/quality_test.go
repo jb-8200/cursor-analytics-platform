@@ -98,9 +98,9 @@ func TestQualityGenerator_CalculateRevertProbability(t *testing.T) {
 					Base: 0.05, // 5% base revert rate
 					Modifiers: seed.OutcomeModifiers{
 						ByAIRatio: map[string]float64{
-							"low":    0.8,  // Lower revert rate
-							"medium": 1.0,  // Normal
-							"high":   1.5,  // Higher revert rate
+							"low":    0.8, // Lower revert rate
+							"medium": 1.0, // Normal
+							"high":   1.5, // Higher revert rate
 						},
 					},
 				},
@@ -189,9 +189,9 @@ func TestQualityGenerator_IsBugFix(t *testing.T) {
 	gen := NewQualityGeneratorWithSeed(nil, store, 42)
 
 	tests := []struct {
-		title       string
-		labels      []string
-		expected    bool
+		title    string
+		labels   []string
+		expected bool
 	}{
 		{"fix: resolve login issue", []string{}, true},
 		{"fix(auth): password reset", []string{}, true},
