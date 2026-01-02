@@ -18,7 +18,7 @@
 | cursor-sim v2 Phase 3 Part C | NOT_STARTED | Code Quality Analysis |
 | cursor-analytics-core | NOT_STARTED | GraphQL aggregator |
 | cursor-viz-spa | NOT_STARTED | React dashboard |
-| SDD Enforcement | **FIXED** ✅ | Created sdd-checklist.md for manual enforcement |
+| **SDD Infrastructure** | **ENHANCED** ✅ | genai-specs model adopted for Claude Code |
 
 ### cursor-sim v2 Phase 1 Completion Summary
 
@@ -39,17 +39,20 @@
 
 ### Recently Completed (January 2, 2026)
 
+**SDD Infrastructure Enhancement** (Commit: 446fdad)
+- ✅ Adopted genai-specs model for Claude Code
+- ✅ Created `docs/spec-driven-design.md` - master methodology doc
+- ✅ Reorganized skills into 4 categories: process/standards/guidelines/operational
+- ✅ Created new skills: spec-process-core, spec-process-dev, spec-user-story, spec-design, spec-tasks
+- ✅ Slimmed CLAUDE.md from ~320 to ~140 lines (minimal spine)
+- ✅ Updated hooks README clarifying they don't execute in Claude Code
+- 📝 Approach: Specs + Skills + Discipline (not automated hooks)
+
 **Phase 3 Part B: Steps B00-B01** (Commit: dadc124)
 - ✅ B00: Fixed Analytics Response Format (team vs by-user)
 - ✅ B01: Updated 14 data models to match Cursor API exactly
 - ✅ All tests passing (15/15 packages)
 - ⏱️ Actual: 2.5h / Estimated: 3.5h (29% under budget)
-
-**SDD Enforcement Fix** (This commit)
-- 🔍 Root cause: Hooks are documentation-only, not implemented
-- ✅ Created `.claude/skills/sdd-checklist.md` for manual enforcement
-- ✅ Updated CLAUDE.md and DEVELOPMENT.md
-- 📝 Process: Must commit after each task completion
 
 ### Current Focus: Part B Step B02
 
@@ -220,10 +223,19 @@ go build -o bin/cursor-sim ./cmd/simulator
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` | Project instructions |
+| `CLAUDE.md` | Minimal operational spine (~140 lines) |
 | `.claude/DEVELOPMENT.md` | This file - session context |
-| `.claude/skills/` | Skill definitions |
-| `.claude/commands/` | Command definitions |
+| `.claude/README.md` | Claude Code integration guide |
+| `docs/spec-driven-design.md` | Full SDD methodology |
+
+### Skills (Categorized)
+
+| Directory | Purpose |
+|-----------|---------|
+| `.claude/skills/process/` | Workflow stages (spec-process-core, spec-process-dev) |
+| `.claude/skills/standards/` | Artifact templates (spec-user-story, spec-design, spec-tasks) |
+| `.claude/skills/guidelines/` | Tech-specific (go-best-practices, cursor-api-patterns) |
+| `.claude/skills/operational/` | Day-to-day (sdd-checklist, model-selection-guide) |
 
 ---
 
