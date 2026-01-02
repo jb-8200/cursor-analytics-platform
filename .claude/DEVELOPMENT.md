@@ -9,57 +9,70 @@
 ## Current Status
 
 ### Project State
-- **Implementation**: 25% (TASK-SIM-001 ✓, TASK-SIM-002 ✓)
+- **Implementation**: 57% (TASK-SIM-001 ✓, TASK-SIM-002 ✓, TASK-SIM-003 ✓, TASK-SIM-004 ✓)
 - **Specifications**: 100% complete
-- **Testing**: 80.4% coverage (config package)
+- **Testing**: 91.8% average coverage (config: 80.4%, generator: 93.3%)
 - **Infrastructure**: Docker Compose ready, multi-stage Dockerfiles complete
 
 ### Recent Work
 
 #### Completed (January 2, 2026)
 
-1. **TASK-SIM-001: Initialize Go Project Structure** ✓
-   - Created standard Go project layout (cmd/, internal/)
-   - Implemented configuration package with validation
-   - Added basic domain models (Developer, errors)
-   - Created Makefile with build automation
-   - Added .golangci.yml linter configuration
-   - Multi-stage Dockerfile for optimized builds
-   - Comprehensive README documentation
-   - Test coverage: 93.3% (initial) → 80.4% (with flag parsing)
+1. **TASK-SIM-004: Implement Event Generation Engine** ✓
+   - Poisson distribution event timing (mathematically correct exponential distribution)
+   - EventGenerator with goroutine-per-developer architecture
+   - Commit and Change models matching SPEC
+   - Thread-safe concurrent event generation
+   - Immediate first event + Poisson-timed subsequent events
+   - TAB vs COMPOSER ratio (70/30)
+   - Graceful shutdown with separate WaitGroups
+   - 28 comprehensive tests (93.3% coverage)
 
-2. **TASK-SIM-002: Implement CLI Flag Parsing** ✓
+2. **TASK-SIM-003: Implement Developer Profile Generator** ✓
+   - DeveloperGenerator with organizational hierarchy
+   - Seniority distribution (20% junior, 50% mid, 30% senior)
+   - Acceptance rate correlation with seniority
+   - Deterministic name generation (120 first + 120 last names)
+   - 19 comprehensive tests (91.7% coverage)
+
+3. **TASK-SIM-002: Implement CLI Flag Parsing** ✓
    - ParseFlags() using standard flag package
    - JSON configuration file support
    - Comprehensive validation with helpful error messages
    - Custom --help output with examples
-   - Integrated with main.go
-   - Created config.example.json template
-   - All tests passing (80.4% coverage)
+   - Test coverage: 80.4%
 
-3. **Previous Milestones**
+4. **TASK-SIM-001: Initialize Go Project Structure** ✓
+   - Created standard Go project layout (cmd/, internal/)
+   - Implemented configuration package with validation
+   - Added basic domain models
+   - Created Makefile with build automation
+   - Multi-stage Dockerfile for optimized builds
+
+5. **Previous Milestones**
    - Comprehensive Specifications (SPEC.md v2.0.0)
    - Claude Code SDD Structure (skills, commands)
    - Project Review (gap analysis complete)
 
 #### In Progress
-- None (ready for TASK-SIM-003)
+- None (ready for TASK-SIM-005)
 
 ---
 
 ## Active Work Item
 
-**Next**: TASK-SIM-003 - Implement Developer Profile Generator
+**Next**: TASK-SIM-005 - Implement In-Memory Storage
 
-**Recommended Model**: Haiku ⚡ (well-specified struct from SPEC.md:145-250)
-**Estimated Time**: 4 hours
-**Dependencies**: TASK-SIM-001 ✓, TASK-SIM-002 ✓
+**Recommended Model**: Sonnet (thread-safety and concurrency require careful implementation)
+**Estimated Time**: 3 hours
+**Dependencies**: TASK-SIM-003 ✓, TASK-SIM-004 ✓
 
-**Objective**: Implement realistic developer profile generation with:
-- Organizational hierarchy (Region → Division → Group → Team)
-- Seniority distribution (20% junior, 50% mid, 30% senior)
-- Acceptance rate correlation with seniority
-- Deterministic name generation using seed
+**Objective**: Implement thread-safe in-memory storage for developers and events:
+- Store interface with CRUD operations
+- MemoryStore using sync.Map or mutex-protected maps
+- Time-range queries for events
+- Support for 1000 developers and 100,000+ events
+- Concurrent access safety
 
 ---
 
@@ -158,13 +171,13 @@ From docs/TASKS.md:
 
 - ✅ TASK-SIM-001: Initialize Go Project Structure
 - ✅ TASK-SIM-002: Implement CLI Flag Parsing
-- **→ TASK-SIM-003: Implement Developer Profile Generator** (Next)
-- TASK-SIM-004: Implement Event Generation Engine
-- TASK-SIM-005: Implement In-Memory Storage
+- ✅ TASK-SIM-003: Implement Developer Profile Generator
+- ✅ TASK-SIM-004: Implement Event Generation Engine
+- **→ TASK-SIM-005: Implement In-Memory Storage** (Next)
 - TASK-SIM-006: Implement REST API Handlers
 - TASK-SIM-007: Wire Up Main Application
 
-**Progress**: 2/7 tasks complete (29%)
+**Progress**: 4/7 tasks complete (57%)
 
 ### P0: Make Runnable (Partial)
 Basic scaffolding complete:
@@ -298,29 +311,32 @@ make logs           # Tail all logs
 
 ### Recent Clarifications
 
-1. **TDD Workflow Established** (January 2, 2026)
-   - Successfully followed Red-Green-Refactor cycle
-   - Wrote tests first, implemented to pass
-   - Achieved 80.4% test coverage on config package
-   - All validation scenarios covered
+1. **Event Generation Architecture** (January 2, 2026)
+   - Goroutine-per-developer design for independent event streams
+   - Immediate first event prevents long test wait times
+   - Separate WaitGroups (generators vs collectors) prevents deadlock
+   - Unique RNG seeds per developer (baseSeed + devIndex*1000)
+   - Channel-based event collection (buffered: 100 commits, 1000 changes)
+   - Poisson timing uses exponential distribution: -ln(U)/λ
 
-2. **Go Best Practices Applied**
+2. **Concurrency Patterns Established**
+   - Context-based cancellation for goroutine coordination
+   - Mutex-protected shared state
+   - Stopped flag prevents double-close panic
+   - Clean shutdown: cancel → wait generators → close channels → wait collectors
+
+3. **TDD Workflow Refined**
+   - Consistently achieving 90%+ test coverage
+   - RED-GREEN-REFACTOR cycle strictly followed
+   - Statistical tests for Poisson distribution validation
+   - Comprehensive edge case coverage
+
+4. **Go Best Practices Applied**
    - Standard project layout (cmd/, internal/)
    - Table-driven tests with testify
    - Error wrapping with context
    - Proper package organization
-
-3. **Configuration System Complete**
-   - CLI flags using standard library
-   - JSON file support implemented
-   - Validation with helpful error messages
-   - --help output with examples
-
-4. **Build Infrastructure Ready**
-   - Makefile with all necessary targets
-   - golangci-lint configuration
-   - Multi-stage Docker builds
-   - Comprehensive README
+   - Thread-safe concurrent access patterns
 
 ### Earlier Clarifications
 
