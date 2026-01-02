@@ -48,18 +48,19 @@
 - ✅ Updated hooks README clarifying they don't execute in Claude Code
 - 📝 Approach: Specs + Skills + Discipline (not automated hooks)
 
-**Phase 3 Part B: Steps B00-B01** (Commit: dadc124)
+**Phase 3 Part B: Steps B00-B02** (Commits: dadc124, 33842cf)
 - ✅ B00: Fixed Analytics Response Format (team vs by-user)
 - ✅ B01: Updated 14 data models to match Cursor API exactly
+- ✅ B02: Model Usage Generator & Handler
 - ✅ All tests passing (15/15 packages)
-- ⏱️ Actual: 2.5h / Estimated: 3.5h (29% under budget)
+- ⏱️ Actual: 4.0h / Estimated: 5.0h (20% under budget)
 
-### Current Focus: Part B Step B02
+### Current Focus: Part B Step B03
 
-**Next Task**: Model Usage Generator & Handler
-- Estimated: 1.5h
+**Next Task**: Client Version Generator & Handler
+- Estimated: 1.0h
 - Status: Ready to start
-- Files: `internal/generator/model_generator.go`, `internal/api/cursor/team.go`
+- Files: `internal/generator/version_generator.go`, `internal/api/cursor/team.go`
 
 ### Active Symlink
 

@@ -35,7 +35,7 @@ This phase completes cursor-sim with:
 |------|------|-------|--------|--------|
 | B00 | Fix Analytics Response Format | 2.0 | DONE | 1.5 |
 | B01 | Update Analytics Data Models | 1.5 | DONE | 1.0 |
-| B02 | Model Usage Generator & Handler | 1.5 | IN_PROGRESS | - |
+| B02 | Model Usage Generator & Handler | 1.5 | DONE | 1.5 |
 | B03 | Client Version Generator & Handler | 1.0 | NOT_STARTED | - |
 | B04 | File Extension Analytics Handler | 1.5 | NOT_STARTED | - |
 | B05 | MCP/Commands/Plans/Ask-Mode Handlers | 2.0 | NOT_STARTED | - |
