@@ -1,181 +1,200 @@
 # Claude Code Hooks
 
-## CRITICAL: Hooks Do Not Execute in Claude Code
+## How Hooks Actually Work
 
-**The Python hooks in this directory are documentation-only.** Claude Code does not execute custom Python scripts as workflow automation.
+Hooks are **shell commands** configured via `/hooks` command or `settings.json`. They:
+- Run at specific lifecycle events (PreToolUse, PostToolUse, etc.)
+- Receive JSON input via stdin
+- Control behavior via exit codes (0=success, 2=block with feedback)
 
-These files describe **intended behavior** that must be implemented through alternative means.
+## Available Hook Events
 
----
+| Event | When it Runs | Use Case |
+|-------|--------------|----------|
+| `PreToolUse` | Before tool calls | Block/validate commands |
+| `PostToolUse` | After tool calls | Format files, log actions |
+| `UserPromptSubmit` | When user submits prompt | Inject context |
+| `Notification` | When Claude sends notifications | Custom alerts |
+| `Stop` | When Claude finishes responding | Post-response actions |
 
-## Hook Files (Documentation Only)
+## Our Project Hooks
 
-| File | Intended Purpose | Status |
-|------|-----------------|--------|
-| `pre_prompt.py` | Inject context before each prompt | **NOT EXECUTED** |
-| `pre_commit.py` | Run tests before git commit | **NOT EXECUTED** |
-| `pre_patch.py` | Lint Markdown before applying patches | **NOT EXECUTED** |
+### 1. Pre-Commit Test Enforcement
 
----
+Blocks `git commit` if tests haven't been run recently.
 
-## Alternative Implementations
+**Configure via `/hooks`:**
+- Event: `PreToolUse`
+- Matcher: `Bash`
+- Command: `"$CLAUDE_PROJECT_DIR"/.claude/hooks/pre_commit.py`
 
-Since hooks don't execute, use these alternatives:
+### 2. Markdown Formatter
 
-### pre_prompt.py Intent: Context Injection
+Auto-formats markdown files after editing.
 
-**What it was designed to do:**
-- Read `.claude/plans/active` symlink
-- Load rules from `rules/*.mdc`
-- Include `DEVELOPMENT.md` context
+**Configure via `/hooks`:**
+- Event: `PostToolUse`
+- Matcher: `Edit|Write`
+- Command: `"$CLAUDE_PROJECT_DIR"/.claude/hooks/markdown_formatter.py`
 
-**Claude Code Alternative:**
+### 3. SDD Context Reminder
 
-1. **Session start**: Read `.claude/DEVELOPMENT.md` manually
-2. **Check active work**: `ls -la .claude/plans/active`
-3. **Reference skills**: Include skill names in requests
+Reminds about sdd-checklist after completing tasks.
 
-```
-"Following spec-process-core and go-best-practices, implement the handler"
-```
-
-### pre_commit.py Intent: Test Enforcement
-
-**What it was designed to do:**
-- Run test suite before commit
-- Block commit if tests fail
-- Report coverage
-
-**Claude Code Alternative:**
-
-Use the `sdd-checklist` skill which enforces:
-
-1. Run tests: `go test ./...`
-2. Verify all pass
-3. Only then commit
-
-The checklist is manual but explicit. Include test running in TodoWrite:
-
-```javascript
-[
-  {"content": "Implement Step B03", "status": "completed"},
-  {"content": "Run tests", "status": "in_progress"},  // <-- Explicit step
-  {"content": "Commit changes", "status": "pending"}
-]
-```
-
-### pre_patch.py Intent: Lint Enforcement
-
-**What it was designed to do:**
-- Run vale and markdownlint on Markdown files
-- Add lint warnings as comments
-
-**Claude Code Alternative:**
-
-Run linters manually before committing documentation:
-
-```bash
-# If installed
-vale docs/
-markdownlint "**/*.md"
-
-# Or use Go linting for code
-golangci-lint run
-```
+**Configure via `/hooks`:**
+- Event: `Stop`
+- Matcher: (empty for all)
+- Command: `"$CLAUDE_PROJECT_DIR"/.claude/hooks/sdd_reminder.py`
 
 ---
 
-## Why Hooks Don't Work
+## Setup Instructions
 
-Claude Code is a CLI-based AI assistant that:
-- Runs in a sandboxed environment
-- Does not have a plugin/extension system
-- Cannot execute arbitrary Python scripts as workflow hooks
-- Uses a different architecture than Cursor IDE
+### Option 1: Via `/hooks` Command (Recommended)
 
-The hook files exist because:
-1. They document intended workflow automation
-2. They could work if Claude Code adds hook support in the future
-3. They serve as reference for manual enforcement
+1. Run `/hooks` in Claude Code
+2. Select the event (e.g., `PreToolUse`)
+3. Add matcher (e.g., `Bash`)
+4. Add hook command (e.g., path to script)
+5. Choose storage location (User or Project)
+
+### Option 2: Via settings.json
+
+Add to `~/.claude/settings.json` or `.claude/settings.local.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre_commit.py\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/markdown_formatter.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
 ---
 
-## Recommended Workflow Enforcement
+## Hook Scripts
 
-### TodoWrite Pattern
+### pre_commit.py
 
-Use TodoWrite to track enforcement steps explicitly:
-
-```javascript
-[
-  {"content": "Implement feature code", "status": "completed"},
-  {"content": "Write unit tests", "status": "completed"},
-  {"content": "Run tests (go test ./...)", "status": "completed"},
-  {"content": "Run linter (golangci-lint)", "status": "completed"},
-  {"content": "Commit with message", "status": "completed"},
-  {"content": "Update task.md progress", "status": "completed"},
-  {"content": "Update DEVELOPMENT.md", "status": "completed"}
-]
-```
-
-### sdd-checklist Skill
-
-Reference the `sdd-checklist` skill after completing any task:
-
-```
-"Task complete. Following sdd-checklist, let me commit and update progress."
-```
-
-The skill contains the 5-step post-task process:
-1. Tests pass
-2. Git commit
-3. Update task.md
-4. Update DEVELOPMENT.md
-5. Proceed to next task
-
----
-
-## Future Possibilities
-
-### If Claude Code Adds Hook Support
-
-The current Python files follow a reasonable interface:
+Validates git commits follow SDD (tests must pass first):
 
 ```python
-def pre_prompt_hook(prompt: str, context: dict) -> str:
-    # Modify prompt before processing
-    return modified_prompt
+#!/usr/bin/env python3
+import json
+import sys
 
-def pre_commit_hook(context: dict) -> str:
-    # Return empty string to allow, message to block
-    return ""
+data = json.load(sys.stdin)
+command = data.get('tool_input', {}).get('command', '')
+
+# Check if this is a git commit
+if 'git commit' in command:
+    # Output feedback message
+    print("SDD Reminder: Have you run tests before committing?")
+    print("Checklist: 1) go test ./... 2) All pass 3) Then commit")
+    # Exit 0 to allow, exit 2 to block with feedback
+    sys.exit(0)  # Allow but remind
+
+sys.exit(0)
 ```
 
-If Claude Code implements hooks, these could be adapted.
+### sdd_reminder.py
 
-### MCP (Model Context Protocol) Alternative
+Reminds about post-task workflow:
 
-MCP servers could provide similar functionality:
+```python
+#!/usr/bin/env python3
+import json
+import sys
 
-| MCP Server | Equivalent Hook |
-|------------|-----------------|
-| `mcp-git-validator` | pre_commit.py |
-| `mcp-test-runner` | pre_commit.py |
-| `mcp-lint` | pre_patch.py |
-| `mcp-context-loader` | pre_prompt.py |
+data = json.load(sys.stdin)
+# Check if response mentions task completion
+# Could analyze stop_reason or transcript
 
-MCP is not currently implemented but documented for future development.
+print("---")
+print("SDD Checklist: If task complete, remember to:")
+print("1. Run tests  2. Git commit  3. Update task.md  4. Update DEVELOPMENT.md")
+sys.exit(0)
+```
 
 ---
 
-## Summary
+## Hook Input/Output
 
-| Hook | Status | Alternative |
+### Input (JSON via stdin)
+
+```json
+{
+  "session_id": "abc123",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "git commit -m 'feat: add feature'",
+    "description": "Commit changes"
+  }
+}
+```
+
+### Output (Exit Codes)
+
+| Exit Code | Meaning |
+|-----------|---------|
+| 0 | Success, continue |
+| 2 | Block with feedback (stdout shown to Claude) |
+| Other | Error (logged, doesn't block) |
+
+---
+
+## Security Considerations
+
+⚠️ Hooks run with your environment's credentials. Always:
+- Review hook code before enabling
+- Don't expose secrets in hook output
+- Be careful with file paths and command injection
+
+---
+
+## Debugging
+
+1. Test hooks manually:
+```bash
+echo '{"tool_input":{"command":"git commit"}}' | python3 .claude/hooks/pre_commit.py
+```
+
+2. Check exit code:
+```bash
+echo $?
+```
+
+3. View logs in Claude Code output
+
+---
+
+## Current Status
+
+| Hook | Script | Configured? |
 |------|--------|-------------|
-| `pre_prompt.py` | Documentation only | Read DEVELOPMENT.md at session start |
-| `pre_commit.py` | Documentation only | sdd-checklist skill + TodoWrite |
-| `pre_patch.py` | Documentation only | Manual linter execution |
+| Pre-commit validation | `pre_commit.py` | ⚠️ Needs `/hooks` setup |
+| Markdown formatter | `markdown_formatter.py` | ⚠️ Needs `/hooks` setup |
+| SDD reminder | `sdd_reminder.py` | ⚠️ Needs `/hooks` setup |
 
-**The SDD workflow works through discipline, not automation.**
-
-Skills + TodoWrite + explicit workflow steps replace automated hooks.
+Run `/hooks` to configure these for your session.

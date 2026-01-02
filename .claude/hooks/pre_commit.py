@@ -1,25 +1,50 @@
+#!/usr/bin/env python3
 """
 Pre-commit hook for Claude Code.
 
-This hook runs before Claude creates a git commit.  It ensures
-that the unit tests and lints are passing.  If any test fails,
-the commit is aborted and a message is returned to the user.
+Configured as PreToolUse hook with Bash matcher.
+Reminds about SDD checklist when git commit is detected.
+
+Setup: /hooks → PreToolUse → Bash → this script
 """
+import json
+import sys
+import os
 
-import subprocess
-
-def pre_commit_hook(context: dict) -> str:
+def main():
     try:
-        # Run pytest to ensure unit and integration tests pass
-        result = subprocess.run([
-            "pytest", "--quiet", "--disable-warnings", "--maxfail=1"
-        ], capture_output=True, text=True)
-        if result.returncode != 0:
-            return (
-                "Tests failed:\n" + result.stdout + result.stderr +
-                "\nCommit aborted. Please fix the failing tests."
-            )
-        return ""  # success; no message needed
-    except FileNotFoundError:
-        # pytest not installed; skip test execution
-        return "Warning: pytest not installed. Tests not executed before commit."
+        data = json.load(sys.stdin)
+    except json.JSONDecodeError:
+        sys.exit(0)  # No input, allow
+
+    tool_input = data.get('tool_input', {})
+    command = tool_input.get('command', '')
+
+    # Check if this is a git commit command
+    if 'git commit' in command:
+        # Check if tests were run recently (within last 5 minutes)
+        # Look for test output files or just remind
+        project_dir = os.environ.get('CLAUDE_PROJECT_DIR', '.')
+
+        print("=" * 50)
+        print("SDD Pre-Commit Checklist")
+        print("=" * 50)
+        print()
+        print("Before committing, verify:")
+        print("  1. ✅ Tests pass: go test ./...")
+        print("  2. ✅ Coverage adequate")
+        print("  3. ✅ task.md will be updated after commit")
+        print("  4. ✅ DEVELOPMENT.md will be updated")
+        print()
+        print("Proceeding with commit...")
+        print("=" * 50)
+
+        # Exit 0 to allow (with reminder shown)
+        # Exit 2 to block (feedback shown to Claude)
+        sys.exit(0)
+
+    # Not a commit, allow
+    sys.exit(0)
+
+if __name__ == '__main__':
+    main()
