@@ -150,6 +150,61 @@ func TestBuildPaginatedResponse_SinglePage(t *testing.T) {
 	assert.False(t, resp.Pagination.HasPreviousPage)
 }
 
+func TestBuildAnalyticsTeamResponse(t *testing.T) {
+	// Reference: docs/api-reference/cursor_analytics.md
+	data := []models.AgentEditsDay{
+		{
+			EventDate:           "2025-01-15",
+			TotalSuggestedDiffs: 145,
+			TotalAcceptedDiffs:  98,
+		},
+	}
+	params := models.Params{
+		StartDate: "2025-01-01",
+		EndDate:   "2025-01-31",
+		Page:      1,
+		PageSize:  100,
+	}
+
+	resp := BuildAnalyticsTeamResponse(data, "agent-edits", params)
+
+	// Verify response structure
+	assert.Equal(t, data, resp.Data)
+	assert.Equal(t, "agent-edits", resp.Params.Metric)
+	assert.Equal(t, 12345, resp.Params.TeamID)
+	assert.Equal(t, "2025-01-01", resp.Params.StartDate)
+	assert.Equal(t, "2025-01-31", resp.Params.EndDate)
+	assert.Equal(t, 1, resp.Params.Page)
+	assert.Equal(t, 100, resp.Params.PageSize)
+
+	// Verify JSON serialization matches Cursor API format
+	jsonData, err := json.Marshal(resp)
+	require.NoError(t, err)
+
+	var parsed map[string]interface{}
+	err = json.Unmarshal(jsonData, &parsed)
+	require.NoError(t, err)
+
+	// Should have 'data' and 'params' keys only (no 'pagination')
+	assert.Contains(t, parsed, "data")
+	assert.Contains(t, parsed, "params")
+	assert.NotContains(t, parsed, "pagination", "team-level endpoints should not have pagination wrapper")
+}
+
+func TestBuildAnalyticsTeamResponse_WithUserFilter(t *testing.T) {
+	data := []interface{}{}
+	params := models.Params{
+		StartDate: "2025-01-01",
+		EndDate:   "2025-01-31",
+		User:      "user_001",
+	}
+
+	resp := BuildAnalyticsTeamResponse(data, "tabs", params)
+
+	assert.Equal(t, "user_001", resp.Params.Users)
+	assert.Equal(t, "tabs", resp.Params.Metric)
+}
+
 func TestRespondCSV_Commits(t *testing.T) {
 	rec := httptest.NewRecorder()
 
@@ -284,11 +339,11 @@ func TestParseQueryParams_PageSizeTooLarge(t *testing.T) {
 }
 
 func TestParseQueryParams_InvalidDateFormat(t *testing.T) {
-	req := httptest.NewRequest("GET", "/test?from=2024/01/01", nil)
+	req := httptest.NewRequest("GET", "/test?startDate=2024/01/01", nil)
 
 	_, err := ParseQueryParams(req)
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "from")
+	assert.Contains(t, err.Error(), "startDate")
 }
 
 func TestParseQueryParams_UserIDFilter(t *testing.T) {

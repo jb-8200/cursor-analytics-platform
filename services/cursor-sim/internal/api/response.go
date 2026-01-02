@@ -27,6 +27,7 @@ func RespondError(w http.ResponseWriter, statusCode int, message string) {
 }
 
 // BuildPaginatedResponse creates a paginated response wrapper.
+// Deprecated: Use BuildAnalyticsTeamResponse for team-level analytics endpoints.
 func BuildPaginatedResponse(data interface{}, params models.Params, totalCount int) models.PaginatedResponse {
 	totalPages := 0
 	if totalCount > 0 {
@@ -43,6 +44,26 @@ func BuildPaginatedResponse(data interface{}, params models.Params, totalCount i
 			HasPreviousPage: params.Page > 1,
 		},
 		Params: params,
+	}
+}
+
+// BuildAnalyticsTeamResponse creates an analytics team-level response.
+// This matches the Cursor Analytics API format for team endpoints.
+//
+// Reference: docs/api-reference/cursor_analytics.md (Team-Level Endpoints)
+// Format: { "data": [...], "params": {...} }
+func BuildAnalyticsTeamResponse(data interface{}, metric string, params models.Params) models.AnalyticsTeamResponse {
+	return models.AnalyticsTeamResponse{
+		Data: data,
+		Params: models.AnalyticsParams{
+			Metric:    metric,
+			TeamID:    12345, // Fixed team ID for simulator
+			StartDate: params.StartDate,
+			EndDate:   params.EndDate,
+			Users:     params.User,
+			Page:      params.Page,
+			PageSize:  params.PageSize,
+		},
 	}
 }
 
@@ -151,6 +172,7 @@ func getCSVRow(v reflect.Value) []string {
 }
 
 // ParseQueryParams extracts and validates query parameters from the request.
+// Uses Cursor API parameter names: startDate, endDate, user, page, pageSize.
 func ParseQueryParams(r *http.Request) (models.Params, error) {
 	params := models.Params{
 		Page:     1,
@@ -178,29 +200,88 @@ func ParseQueryParams(r *http.Request) (models.Params, error) {
 		params.PageSize = pageSize
 	}
 
-	// Parse date range
-	params.From = r.URL.Query().Get("from")
-	params.To = r.URL.Query().Get("to")
+	// Parse date range - support both new (startDate/endDate) and old (from/to) names
+	params.StartDate = r.URL.Query().Get("startDate")
+	params.EndDate = r.URL.Query().Get("endDate")
+
+	// Fallback to legacy parameter names for backwards compatibility
+	if params.StartDate == "" {
+		params.StartDate = r.URL.Query().Get("from")
+	}
+	if params.EndDate == "" {
+		params.EndDate = r.URL.Query().Get("to")
+	}
 
 	// Set defaults if not provided
-	if params.From == "" {
-		params.From = time.Now().AddDate(0, 0, -30).Format("2006-01-02")
+	if params.StartDate == "" {
+		params.StartDate = time.Now().AddDate(0, 0, -30).Format("2006-01-02")
 	}
-	if params.To == "" {
-		params.To = time.Now().Format("2006-01-02")
-	}
-
-	// Validate date format
-	if _, err := time.Parse("2006-01-02", params.From); err != nil {
-		return params, fmt.Errorf("invalid from date: must be YYYY-MM-DD format")
-	}
-	if _, err := time.Parse("2006-01-02", params.To); err != nil {
-		return params, fmt.Errorf("invalid to date: must be YYYY-MM-DD format")
+	if params.EndDate == "" {
+		params.EndDate = time.Now().Format("2006-01-02")
 	}
 
-	// Parse optional filters
-	params.UserID = r.URL.Query().Get("userId")
+	// Parse date with support for relative formats (7d, 30d, now, today)
+	startDate, err := parseDateParam(params.StartDate)
+	if err != nil {
+		return params, fmt.Errorf("invalid startDate: %v", err)
+	}
+	endDate, err := parseDateParam(params.EndDate)
+	if err != nil {
+		return params, fmt.Errorf("invalid endDate: %v", err)
+	}
+
+	// Store parsed dates in canonical format
+	params.StartDate = startDate.Format("2006-01-02")
+	params.EndDate = endDate.Format("2006-01-02")
+
+	// Also populate legacy fields for internal use
+	params.From = params.StartDate
+	params.To = params.EndDate
+
+	// Parse optional user filter (supports both 'user' and legacy 'userId')
+	params.User = r.URL.Query().Get("user")
+	if params.User == "" {
+		params.User = r.URL.Query().Get("userId")
+	}
+	params.UserID = params.User // Legacy field
+
+	// Parse optional repo filter
 	params.RepoName = r.URL.Query().Get("repoName")
 
 	return params, nil
+}
+
+// parseDateParam parses a date string supporting multiple formats.
+// Supports: ISO 8601 (2025-01-15T10:30:00Z), date-only (2025-01-15),
+// and relative shortcuts (7d, 30d, 90d, today, now).
+func parseDateParam(param string) (time.Time, error) {
+	// Try relative shortcuts first
+	if len(param) > 0 && param[len(param)-1] == 'd' {
+		days, err := strconv.Atoi(param[:len(param)-1])
+		if err == nil {
+			return time.Now().UTC().AddDate(0, 0, -days), nil
+		}
+	}
+
+	switch param {
+	case "today":
+		now := time.Now().UTC()
+		return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC), nil
+	case "now":
+		return time.Now().UTC(), nil
+	}
+
+	// Try ISO 8601 with time
+	t, err := time.Parse(time.RFC3339, param)
+	if err == nil {
+		return t, nil
+	}
+
+	// Try date-only format
+	t, err = time.Parse("2006-01-02", param)
+	if err == nil {
+		return t, nil
+	}
+
+	return time.Time{}, fmt.Errorf("must be YYYY-MM-DD, ISO 8601, or relative format (7d, 30d, now, today)")
 }

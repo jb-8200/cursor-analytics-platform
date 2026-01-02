@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -131,16 +130,21 @@ func TestE2E_AICodeCommits(t *testing.T) {
 	err := json.NewDecoder(resp.Body).Decode(&result)
 	require.NoError(t, err)
 
-	// Verify response structure
-	assert.Contains(t, result, "data")
-	assert.Contains(t, result, "pagination")
-	assert.Contains(t, result, "params")
+	// Verify response structure matches CommitsResponse from OpenAPI spec
+	assert.Contains(t, result, "items")
+	assert.Contains(t, result, "totalCount")
+	assert.Contains(t, result, "page")
+	assert.Contains(t, result, "pageSize")
 
 	// Verify we have commits
-	data := result["data"].([]interface{})
+	items := result["items"].([]interface{})
 	allCommits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
-	assert.Greater(t, len(data), 0)
-	assert.LessOrEqual(t, len(data), len(allCommits))
+	assert.Greater(t, len(items), 0)
+	assert.LessOrEqual(t, len(items), len(allCommits))
+
+	// Verify totalCount matches
+	totalCount := int(result["totalCount"].(float64))
+	assert.Equal(t, len(allCommits), totalCount)
 }
 
 func TestE2E_AICodeCommitsCSV(t *testing.T) {
@@ -185,10 +189,11 @@ func TestE2E_TeamAnalytics(t *testing.T) {
 			err := json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
 
-			// All analytics endpoints should have this structure
+			// Team-level endpoints use Analytics API format: { data, params }
+			// Reference: docs/api-reference/cursor_analytics.md (Team-Level Endpoints)
 			assert.Contains(t, result, "data")
-			assert.Contains(t, result, "pagination")
 			assert.Contains(t, result, "params")
+			assert.NotContains(t, result, "pagination", "team-level endpoints should not have pagination wrapper")
 		})
 	}
 }
@@ -259,13 +264,14 @@ func TestE2E_QueryParameters(t *testing.T) {
 	defer cleanup()
 
 	tests := []struct {
-		name     string
-		endpoint string
-		query    string
+		name         string
+		endpoint     string
+		query        string
+		expectedPage int
 	}{
-		{"Date range", "/analytics/ai-code/commits", "?from=2026-01-01&to=2026-01-02"},
-		{"Pagination", "/analytics/ai-code/commits", "?page=1&page_size=10"},
-		{"Combined", "/analytics/ai-code/commits", "?from=2026-01-01&to=2026-01-02&page=1&page_size=5"},
+		{"Date range", "/analytics/ai-code/commits", "?startDate=2026-01-01&endDate=2026-01-02", 1},
+		{"Pagination", "/analytics/ai-code/commits", "?page=2&pageSize=10", 2},
+		{"Combined", "/analytics/ai-code/commits", "?startDate=2026-01-01&endDate=2026-01-02&page=1&pageSize=5", 1},
 	}
 
 	for _, tt := range tests {
@@ -279,11 +285,15 @@ func TestE2E_QueryParameters(t *testing.T) {
 			err := json.NewDecoder(resp.Body).Decode(&result)
 			require.NoError(t, err)
 
-			// Verify pagination params were applied
-			params := result["params"].(map[string]interface{})
-			if strings.Contains(tt.query, "page=") {
-				assert.NotNil(t, params["page"])
-			}
+			// Verify CommitsResponse format
+			assert.Contains(t, result, "items")
+			assert.Contains(t, result, "totalCount")
+			assert.Contains(t, result, "page")
+			assert.Contains(t, result, "pageSize")
+
+			// Verify page number matches what was requested
+			page := int(result["page"].(float64))
+			assert.Equal(t, tt.expectedPage, page)
 		})
 	}
 }
