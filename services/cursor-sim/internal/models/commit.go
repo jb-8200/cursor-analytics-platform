@@ -44,3 +44,25 @@ func (c *Commit) NetLines() int {
 func (c *Commit) HasAIContent() bool {
 	return c.TabLinesAdded > 0 || c.ComposerLinesAdded > 0
 }
+
+// Change represents a granular accepted AI change record.
+// Matches the ChangeRecord schema in the Cursor AI Code Tracking API.
+type Change struct {
+	ChangeID          string               `json:"changeId"`
+	UserID            string               `json:"userId"`
+	UserEmail         string               `json:"userEmail"`
+	Source            string               `json:"source"` // "TAB" or "COMPOSER"
+	Model             string               `json:"model,omitempty"`
+	TotalLinesAdded   int                  `json:"totalLinesAdded"`
+	TotalLinesDeleted int                  `json:"totalLinesDeleted"`
+	CreatedAt         time.Time            `json:"createdAt"`
+	Metadata          []FileChangeMetadata `json:"metadata,omitempty"`
+}
+
+// FileChangeMetadata contains per-file breakdown of a change.
+type FileChangeMetadata struct {
+	FileName      string `json:"fileName"`
+	FileExtension string `json:"fileExtension"`
+	LinesAdded    int    `json:"linesAdded"`
+	LinesDeleted  int    `json:"linesDeleted"`
+}

@@ -83,60 +83,56 @@ func TestAICodeCommits_Success(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 	assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
 	// Should return all commits (default 30 days range)
-	commits := response.Data.([]interface{})
-	assert.GreaterOrEqual(t, len(commits), 2)
+	assert.GreaterOrEqual(t, len(response.Items), 2)
 }
 
 func TestAICodeCommits_WithDateRange(t *testing.T) {
 	store := setupTestStore()
 	handler := AICodeCommits(store)
 
-	// Request last 3 hours
-	from := time.Now().Add(-3 * time.Hour).Format("2006-01-02")
-	to := time.Now().Format("2006-01-02")
+	// Request with startDate/endDate parameters (Cursor API spec)
+	startDate := time.Now().Add(-3 * time.Hour).Format("2006-01-02")
+	endDate := time.Now().Format("2006-01-02")
 
-	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?from="+from+"&to="+to, nil)
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?startDate="+startDate+"&endDate="+endDate, nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
 	// Should return commits within range
-	assert.NotNil(t, response.Data)
-	assert.NotNil(t, response.Pagination)
+	assert.NotNil(t, response.Items)
+	assert.GreaterOrEqual(t, response.TotalCount, 0)
 }
 
 func TestAICodeCommits_WithUserFilter(t *testing.T) {
 	store := setupTestStore()
 	handler := AICodeCommits(store)
 
-	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?userId=user_001", nil)
+	// Use 'user' parameter (Cursor API spec)
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?user=user_001", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
 	// All commits should be from user_001
-	data, _ := json.Marshal(response.Data)
-	var commits []models.Commit
-	json.Unmarshal(data, &commits)
-
-	for _, c := range commits {
+	for _, c := range response.Items {
 		assert.Equal(t, "user_001", c.UserID)
 	}
 }
@@ -152,12 +148,13 @@ func TestAICodeCommits_WithPagination(t *testing.T) {
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
-	assert.Equal(t, 1, response.Pagination.Page)
-	assert.Equal(t, 2, response.Pagination.PageSize)
+	assert.Equal(t, 1, response.Page)
+	assert.Equal(t, 2, response.PageSize)
+	assert.LessOrEqual(t, len(response.Items), 2)
 }
 
 func TestAICodeCommits_EmptyStore(t *testing.T) {
@@ -171,22 +168,20 @@ func TestAICodeCommits_EmptyStore(t *testing.T) {
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
 	// Should return empty array
-	data, _ := json.Marshal(response.Data)
-	var commits []models.Commit
-	json.Unmarshal(data, &commits)
-	assert.Len(t, commits, 0)
+	assert.Len(t, response.Items, 0)
+	assert.Equal(t, 0, response.TotalCount)
 }
 
 func TestAICodeCommits_InvalidDateFormat(t *testing.T) {
 	store := setupTestStore()
 	handler := AICodeCommits(store)
 
-	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?from=invalid-date", nil)
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?startDate=invalid-date", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -197,7 +192,7 @@ func TestAICodeCommits_InvalidDateFormat(t *testing.T) {
 	var errorResp map[string]string
 	err := json.Unmarshal(rec.Body.Bytes(), &errorResp)
 	require.NoError(t, err)
-	assert.Contains(t, errorResp["error"], "from")
+	assert.Contains(t, errorResp["error"], "startDate")
 }
 
 func TestAICodeCommits_InvalidPagination(t *testing.T) {
@@ -224,19 +219,26 @@ func TestAICodeCommits_ResponseStructure(t *testing.T) {
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	// Verify CommitsResponse structure matches OpenAPI spec
+	var response map[string]interface{}
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
-	// Verify structure
-	assert.NotNil(t, response.Data)
-	assert.NotNil(t, response.Pagination)
-	assert.NotNil(t, response.Params)
+	// Verify required fields per OpenAPI spec
+	assert.Contains(t, response, "items")
+	assert.Contains(t, response, "totalCount")
+	assert.Contains(t, response, "page")
+	assert.Contains(t, response, "pageSize")
 
-	// Verify pagination fields
-	assert.Greater(t, response.Pagination.Page, 0)
-	assert.Greater(t, response.Pagination.PageSize, 0)
-	assert.GreaterOrEqual(t, response.Pagination.TotalPages, 0)
+	// Verify field types
+	_, ok := response["items"].([]interface{})
+	assert.True(t, ok, "items should be an array")
+
+	page := int(response["page"].(float64))
+	assert.Greater(t, page, 0)
+
+	pageSize := int(response["pageSize"].(float64))
+	assert.Greater(t, pageSize, 0)
 }
 
 func TestAICodeCommits_CommitFields(t *testing.T) {
@@ -250,18 +252,13 @@ func TestAICodeCommits_CommitFields(t *testing.T) {
 
 	assert.Equal(t, 200, rec.Code)
 
-	var response models.PaginatedResponse
+	var response models.CommitsResponse
 	err := json.Unmarshal(rec.Body.Bytes(), &response)
 	require.NoError(t, err)
 
-	// Extract commits
-	data, _ := json.Marshal(response.Data)
-	var commits []models.Commit
-	json.Unmarshal(data, &commits)
-
-	if len(commits) > 0 {
-		commit := commits[0]
-		// Verify required fields
+	if len(response.Items) > 0 {
+		commit := response.Items[0]
+		// Verify required fields per OpenAPI CommitRecord schema
 		assert.NotEmpty(t, commit.CommitHash)
 		assert.NotEmpty(t, commit.UserID)
 		assert.NotEmpty(t, commit.UserEmail)
@@ -298,7 +295,8 @@ func TestAICodeCommitsCSV_WithFilters(t *testing.T) {
 	store := setupTestStore()
 	handler := AICodeCommitsCSV(store)
 
-	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?userId=user_001", nil)
+	// Use 'user' parameter (Cursor API spec)
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?user=user_001", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -338,7 +336,7 @@ func TestAICodeCommitsCSV_InvalidParams(t *testing.T) {
 	store := setupTestStore()
 	handler := AICodeCommitsCSV(store)
 
-	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?from=invalid", nil)
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits.csv?startDate=invalid", nil)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)

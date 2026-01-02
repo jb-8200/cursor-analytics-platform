@@ -63,12 +63,11 @@ func TestPagination_FieldNames(t *testing.T) {
 
 func TestParams_FieldNames(t *testing.T) {
 	p := Params{
-		From:     "2026-01-01",
-		To:       "2026-01-31",
-		Page:     1,
-		PageSize: 100,
-		UserID:   "user_001",
-		RepoName: "acme/platform",
+		StartDate: "2026-01-01",
+		EndDate:   "2026-01-31",
+		Page:      1,
+		PageSize:  100,
+		User:      "user_001",
 	}
 
 	data, err := json.Marshal(p)
@@ -78,11 +77,16 @@ func TestParams_FieldNames(t *testing.T) {
 	err = json.Unmarshal(data, &raw)
 	require.NoError(t, err)
 
-	// Verify camelCase for params (matching Cursor API)
-	assert.Contains(t, raw, "from")
-	assert.Contains(t, raw, "to")
+	// Verify camelCase for params (matching Cursor API spec)
+	assert.Contains(t, raw, "startDate")
+	assert.Contains(t, raw, "endDate")
 	assert.Contains(t, raw, "page")
 	assert.Contains(t, raw, "pageSize")
-	assert.Contains(t, raw, "userId")
-	assert.Contains(t, raw, "repoName")
+	assert.Contains(t, raw, "user")
+
+	// Legacy fields (From, To, UserID, RepoName) should NOT be serialized
+	assert.NotContains(t, raw, "from")
+	assert.NotContains(t, raw, "to")
+	assert.NotContains(t, raw, "userId")
+	assert.NotContains(t, raw, "repoName")
 }

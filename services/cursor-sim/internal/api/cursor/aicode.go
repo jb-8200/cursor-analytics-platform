@@ -11,35 +11,28 @@ import (
 
 // AICodeCommits returns an HTTP handler for GET /analytics/ai-code/commits.
 // It retrieves commits from storage with time range and user filtering.
+// Response format matches the Cursor API CommitsResponse schema.
 func AICodeCommits(store storage.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Parse query parameters
+		// Parse query parameters (startDate, endDate, user, page, pageSize)
 		params, err := api.ParseQueryParams(r)
 		if err != nil {
 			api.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		// Parse date range
-		from, err := time.Parse("2006-01-02", params.From)
-		if err != nil {
-			api.RespondError(w, http.StatusBadRequest, "invalid from date: must be YYYY-MM-DD format")
-			return
-		}
-		to, err := time.Parse("2006-01-02", params.To)
-		if err != nil {
-			api.RespondError(w, http.StatusBadRequest, "invalid to date: must be YYYY-MM-DD format")
-			return
-		}
+		// Parse date range from already-validated params
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
 
 		// Add time to include full day
 		to = to.Add(24*time.Hour - time.Second)
 
 		// Query commits based on filters
 		var commits []models.Commit
-		if params.UserID != "" {
-			// Filter by user
-			commits = store.GetCommitsByUser(params.UserID, from, to)
+		if params.User != "" {
+			// Filter by user (email or user_id)
+			commits = store.GetCommitsByUser(params.User, from, to)
 		} else if params.RepoName != "" {
 			// Filter by repo
 			commits = store.GetCommitsByRepo(params.RepoName, from, to)
@@ -64,8 +57,13 @@ func AICodeCommits(store storage.Store) http.Handler {
 		// Extract page of commits
 		pageCommits := commits[start:end]
 
-		// Build paginated response
-		response := api.BuildPaginatedResponse(pageCommits, params, totalCount)
+		// Build response matching CommitsResponse schema from OpenAPI spec
+		response := models.CommitsResponse{
+			Items:      pageCommits,
+			TotalCount: totalCount,
+			Page:       params.Page,
+			PageSize:   params.PageSize,
+		}
 
 		// Send JSON response
 		api.RespondJSON(w, http.StatusOK, response)
@@ -74,34 +72,27 @@ func AICodeCommits(store storage.Store) http.Handler {
 
 // AICodeCommitsCSV returns an HTTP handler for GET /analytics/ai-code/commits.csv.
 // It reuses the query logic from AICodeCommits and exports results as CSV.
+// CSV exports don't use pagination - all results are streamed.
 func AICodeCommitsCSV(store storage.Store) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Parse query parameters
+		// Parse query parameters (startDate, endDate, user)
 		params, err := api.ParseQueryParams(r)
 		if err != nil {
 			api.RespondError(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		// Parse date range
-		from, err := time.Parse("2006-01-02", params.From)
-		if err != nil {
-			api.RespondError(w, http.StatusBadRequest, "invalid from date: must be YYYY-MM-DD format")
-			return
-		}
-		to, err := time.Parse("2006-01-02", params.To)
-		if err != nil {
-			api.RespondError(w, http.StatusBadRequest, "invalid to date: must be YYYY-MM-DD format")
-			return
-		}
+		// Parse date range from already-validated params
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
 
 		// Add time to include full day
 		to = to.Add(24*time.Hour - time.Second)
 
 		// Query commits based on filters (same logic as JSON endpoint)
 		var commits []models.Commit
-		if params.UserID != "" {
-			commits = store.GetCommitsByUser(params.UserID, from, to)
+		if params.User != "" {
+			commits = store.GetCommitsByUser(params.User, from, to)
 		} else if params.RepoName != "" {
 			commits = store.GetCommitsByRepo(params.RepoName, from, to)
 		} else {
