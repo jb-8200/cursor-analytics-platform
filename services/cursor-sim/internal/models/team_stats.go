@@ -166,6 +166,117 @@ type LeaderboardEntry struct {
 }
 
 // ===========================================================================
+// By-User Analytics Day Types (simpler structures for by-user endpoints)
+// ===========================================================================
+
+// AgentEditDay represents daily agent edit metrics for a single user.
+// Used in by-user agent-edits responses.
+type AgentEditDay struct {
+	EventDate      string `json:"event_date"`
+	SuggestedLines int    `json:"suggested_lines"`
+	AcceptedLines  int    `json:"accepted_lines"`
+}
+
+// TabDay represents daily tab metrics for a single user.
+// Used in by-user tabs responses.
+type TabDay struct {
+	EventDate      string `json:"event_date"`
+	SuggestedLines int    `json:"suggested_lines"`
+	AcceptedLines  int    `json:"accepted_lines"`
+}
+
+// ModelBreakdown represents model usage breakdown.
+type ModelBreakdown struct {
+	Model        string `json:"model"`
+	MessageCount int    `json:"message_count"`
+}
+
+// ModelDay represents daily model usage for a single user.
+// Used in by-user models responses.
+type ModelDay struct {
+	EventDate string           `json:"event_date"`
+	Breakdown []ModelBreakdown `json:"breakdown"`
+}
+
+// ByUserClientVersionDay represents client version for a single user on a date.
+// Used in by-user client-versions responses.
+type ByUserClientVersionDay struct {
+	EventDate string `json:"event_date"`
+	Version   string `json:"version"`
+}
+
+// ByUserFileExtensionDay represents file extension usage for a single user on a date.
+// Used in by-user top-file-extensions responses.
+type ByUserFileExtensionDay struct {
+	EventDate  string            `json:"event_date"`
+	Extensions []ExtensionStats  `json:"extensions"`
+}
+
+// ExtensionMetrics holds temporary metrics for aggregation.
+type ExtensionMetrics struct {
+	SuggestedLines int
+	AcceptedLines  int
+}
+
+// ExtensionStats represents file extension statistics.
+type ExtensionStats struct {
+	Extension      string `json:"extension"`
+	SuggestedLines int    `json:"suggested_lines"`
+	AcceptedLines  int    `json:"accepted_lines"`
+}
+
+// MCPToolDay represents MCP tool usage per day.
+type MCPToolDay struct {
+	EventDate string         `json:"event_date"`
+	Tools     []MCPToolUsage `json:"tools"`
+}
+
+// MCPToolUsage represents a single MCP tool usage count.
+type MCPToolUsage struct {
+	ToolName      string `json:"tool_name"`
+	MCPServerName string `json:"mcp_server_name"`
+	UsageCount    int    `json:"usage_count"`
+}
+
+// CommandDay represents command usage per day.
+type CommandDay struct {
+	EventDate string          `json:"event_date"`
+	Commands  []CommandUsage `json:"commands"`
+}
+
+// CommandUsage represents a single command usage count.
+type CommandUsage struct {
+	CommandName string `json:"command_name"`
+	UsageCount  int    `json:"usage_count"`
+}
+
+// PlanModelUsage represents plan mode model usage.
+type PlanModelUsage struct {
+	Model      string `json:"model"`
+	UsageCount int    `json:"usage_count"`
+}
+
+// ByUserPlanDay represents daily plan mode usage for a single user.
+// Used in by-user plans responses.
+type ByUserPlanDay struct {
+	EventDate string            `json:"event_date"`
+	Models    []PlanModelUsage  `json:"models"`
+}
+
+// AskModeModelUsage represents ask mode model usage.
+type AskModeModelUsage struct {
+	Model      string `json:"model"`
+	UsageCount int    `json:"usage_count"`
+}
+
+// ByUserAskModeDay represents daily ask mode usage for a single user.
+// Used in by-user ask-mode responses.
+type ByUserAskModeDay struct {
+	EventDate string              `json:"event_date"`
+	Models    []AskModeModelUsage `json:"models"`
+}
+
+// ===========================================================================
 // Internal Event Models (used for data generation)
 // ===========================================================================
 

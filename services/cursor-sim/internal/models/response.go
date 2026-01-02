@@ -122,13 +122,28 @@ type AnalyticsTeamResponse struct {
 
 // AnalyticsParams contains the request parameters for analytics endpoints.
 type AnalyticsParams struct {
-	Metric    string `json:"metric"`
-	TeamID    int    `json:"teamId,omitempty"`
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
-	Users     string `json:"users,omitempty"`
-	Page      int    `json:"page,omitempty"`
-	PageSize  int    `json:"pageSize,omitempty"`
+	Metric       string        `json:"metric"`
+	TeamID       int           `json:"teamId,omitempty"`
+	StartDate    string        `json:"startDate"`
+	EndDate      string        `json:"endDate"`
+	Users        string        `json:"users,omitempty"`
+	Page         int           `json:"page,omitempty"`
+	PageSize     int           `json:"pageSize,omitempty"`
+	UserMappings []UserMapping `json:"userMappings,omitempty"`
+}
+
+// ===========================================================================
+// By-User Analytics Response Types
+// ===========================================================================
+
+// AnalyticsByUserResponse is the response format for by-user analytics endpoints.
+// Data is keyed by user email, containing arrays of time-series data for each user.
+//
+// Reference: docs/api-reference/cursor_analytics.md (By-User Endpoints)
+type AnalyticsByUserResponse struct {
+	Data       map[string]interface{} `json:"data"`
+	Pagination Pagination             `json:"pagination"`
+	Params     AnalyticsParams        `json:"params"`
 }
 
 // ===========================================================================
@@ -187,4 +202,11 @@ type Params struct {
 	To       string `json:"-"`
 	UserID   string `json:"-"`
 	RepoName string `json:"-"`
+}
+
+// UserMapping represents a user ID to email mapping.
+// Used in by-user analytics responses to map user IDs to emails.
+type UserMapping struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
 }

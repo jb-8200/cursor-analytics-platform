@@ -67,6 +67,40 @@ func BuildAnalyticsTeamResponse(data interface{}, metric string, params models.P
 	}
 }
 
+// BuildAnalyticsByUserResponse creates an analytics by-user response.
+// This matches the Cursor Analytics API format for by-user endpoints.
+//
+// Reference: docs/api-reference/cursor_analytics.md (By-User Endpoints)
+// Format: { "data": { "email": [...] }, "pagination": {...}, "params": {...} }
+func BuildAnalyticsByUserResponse(data map[string]interface{}, metric string, params models.Params, totalUsers int, userMappings []models.UserMapping) models.AnalyticsByUserResponse {
+	totalPages := 0
+	if totalUsers > 0 {
+		totalPages = (totalUsers + params.PageSize - 1) / params.PageSize
+	}
+
+	return models.AnalyticsByUserResponse{
+		Data: data,
+		Pagination: models.Pagination{
+			Page:            params.Page,
+			PageSize:        params.PageSize,
+			TotalUsers:      totalUsers,
+			TotalPages:      totalPages,
+			HasNextPage:     params.Page < totalPages,
+			HasPreviousPage: params.Page > 1,
+		},
+		Params: models.AnalyticsParams{
+			Metric:       metric,
+			TeamID:       12345, // Fixed team ID for simulator
+			StartDate:    params.StartDate,
+			EndDate:      params.EndDate,
+			Users:        params.User,
+			Page:         params.Page,
+			PageSize:     params.PageSize,
+			UserMappings: userMappings,
+		},
+	}
+}
+
 // RespondCSV writes a CSV response for the given data.
 // The data must be a slice of structs with json tags.
 func RespondCSV(w http.ResponseWriter, data interface{}) error {

@@ -32,8 +32,7 @@ func TestByUserTabs_Success(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-// Stub endpoints
-func TestByUserModels_Stub(t *testing.T) {
+func TestByUserModels_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserModels(store)
 
@@ -45,7 +44,7 @@ func TestByUserModels_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserClientVersions_Stub(t *testing.T) {
+func TestByUserClientVersions_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserClientVersions(store)
 
@@ -57,7 +56,7 @@ func TestByUserClientVersions_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserTopFileExtensions_Stub(t *testing.T) {
+func TestByUserTopFileExtensions_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserTopFileExtensions(store)
 
@@ -69,7 +68,7 @@ func TestByUserTopFileExtensions_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserMCP_Stub(t *testing.T) {
+func TestByUserMCP_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserMCP(store)
 
@@ -81,7 +80,7 @@ func TestByUserMCP_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserCommands_Stub(t *testing.T) {
+func TestByUserCommands_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserCommands(store)
 
@@ -93,7 +92,7 @@ func TestByUserCommands_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserPlans_Stub(t *testing.T) {
+func TestByUserPlans_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserPlans(store)
 
@@ -105,7 +104,7 @@ func TestByUserPlans_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestByUserAskMode_Stub(t *testing.T) {
+func TestByUserAskMode_Success(t *testing.T) {
 	store := storage.NewMemoryStore()
 	handler := ByUserAskMode(store)
 
