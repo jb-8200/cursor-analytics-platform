@@ -1,0 +1,802 @@
+openapi: 3.1.0
+info:
+  title: Cursor Business API (Simulated)
+  description: |
+    OpenAPI specification for cursor-sim that exactly matches the Cursor Business API.
+    
+    This simulator implements:
+    - Admin API: Team management, daily usage, spending, usage events
+    - AI Code Tracking API: Per-commit metrics, granular code changes (Enterprise)
+    
+    All response shapes, field names, and behaviors match the production Cursor API.
+  version: 1.0.0
+  contact:
+    name: Cursor Analytics Platform
+    url: https://github.com/example/cursor-analytics-platform
+
+servers:
+  - url: http://localhost:8080
+    description: Local simulator
+  - url: https://api.cursor.com
+    description: Production Cursor API (for reference)
+
+security:
+  - basicAuth: []
+
+tags:
+  - name: Admin API
+    description: Team management and usage metrics
+  - name: AI Code Tracking
+    description: Enterprise - Per-commit AI code metrics
+
+paths:
+  # ===========================================================================
+  # Admin API
+  # ===========================================================================
+  
+  /teams/members:
+    get:
+      tags: [Admin API]
+      summary: Get team members
+      description: Retrieve all team members and their details.
+      operationId: getTeamMembers
+      responses:
+        '200':
+          description: List of team members
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMembersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/daily-usage-data:
+    post:
+      tags: [Admin API]
+      summary: Get daily usage metrics
+      description: Retrieve detailed daily usage metrics for your team within a date range.
+      operationId: getDailyUsageData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyUsageRequest'
+      responses:
+        '200':
+          description: Daily usage data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyUsageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/filtered-usage-events:
+    post:
+      tags: [Admin API]
+      summary: Get usage events
+      description: |
+        Retrieve detailed usage events for your team with comprehensive filtering,
+        search, and pagination options. Provides granular insights into individual
+        API calls, model usage, token consumption, and costs.
+      operationId: getFilteredUsageEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FilteredUsageEventsRequest'
+      responses:
+        '200':
+          description: Filtered usage events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilteredUsageEventsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /teams/spend:
+    post:
+      tags: [Admin API]
+      summary: Get team spending
+      description: Retrieve spending information for the current calendar month with search, sorting, and pagination.
+      operationId: getTeamSpend
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpendRequest'
+      responses:
+        '200':
+          description: Team spending data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpendResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===========================================================================
+  # AI Code Tracking API (Enterprise)
+  # ===========================================================================
+
+  /analytics/ai-code/commits:
+    get:
+      tags: [AI Code Tracking]
+      summary: Get commit metrics
+      description: |
+        Retrieve per-commit AI usage metrics. This includes AI-generated lines
+        (TAB and COMPOSER) as well as manually written lines.
+        
+        Lines metrics:
+        - tabLinesAdded/Deleted: From inline completions
+        - composerLinesAdded/Deleted: From Composer
+        - nonAiLinesAdded/Deleted: max(0, totalLines - AI lines)
+      operationId: getCommitMetrics
+      parameters:
+        - $ref: '#/components/parameters/startDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Commit metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /analytics/ai-code/commits.csv:
+    get:
+      tags: [AI Code Tracking]
+      summary: Download commit metrics as CSV
+      description: |
+        Stream commit metrics data in CSV format for large data extractions.
+        Pages of 10,000 records are streamed server-side.
+      operationId: getCommitMetricsCsv
+      parameters:
+        - $ref: '#/components/parameters/startDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/user'
+      responses:
+        '200':
+          description: CSV file stream
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /analytics/ai-code/changes:
+    get:
+      tags: [AI Code Tracking]
+      summary: Get granular code changes
+      description: |
+        Retrieve granular accepted AI changes, grouped by deterministic changeId.
+        Useful to analyze accepted AI events independent of commits.
+        
+        Sources:
+        - TAB: Inline completions that were accepted
+        - COMPOSER: Accepted diffs from Composer
+      operationId: getCodeChanges
+      parameters:
+        - $ref: '#/components/parameters/startDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/user'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Code changes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /analytics/ai-code/changes.csv:
+    get:
+      tags: [AI Code Tracking]
+      summary: Download code changes as CSV
+      description: Stream code changes data in CSV format.
+      operationId: getCodeChangesCsv
+      parameters:
+        - $ref: '#/components/parameters/startDate'
+        - $ref: '#/components/parameters/endDate'
+        - $ref: '#/components/parameters/user'
+      responses:
+        '200':
+          description: CSV file stream
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  # ===========================================================================
+  # Health Check
+  # ===========================================================================
+
+  /health:
+    get:
+      tags: [Admin API]
+      summary: Health check
+      description: Check simulator health status
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+      description: |
+        API key as username, empty password.
+        Format: key_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+  parameters:
+    startDate:
+      name: startDate
+      in: query
+      required: true
+      description: |
+        Start date. Supports:
+        - ISO 8601: 2025-07-01T00:00:00Z
+        - Relative: 7d, 30d (days ago)
+      schema:
+        type: string
+        example: "30d"
+
+    endDate:
+      name: endDate
+      in: query
+      required: true
+      description: |
+        End date. Supports:
+        - ISO 8601: 2025-07-30T23:59:59Z
+        - Relative: now, 0d
+      schema:
+        type: string
+        example: "now"
+
+    user:
+      name: user
+      in: query
+      required: false
+      description: Filter by user email or user_id
+      schema:
+        type: string
+        example: "developer@company.com"
+
+    page:
+      name: page
+      in: query
+      required: false
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+
+    pageSize:
+      name: pageSize
+      in: query
+      required: false
+      description: Records per page
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 1000
+
+  responses:
+    Unauthorized:
+      description: Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # =========================================================================
+    # Admin API Schemas
+    # =========================================================================
+
+    TeamMembersResponse:
+      type: object
+      required: [teamMembers]
+      properties:
+        teamMembers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+
+    TeamMember:
+      type: object
+      required: [name, email, role]
+      properties:
+        name:
+          type: string
+          example: "Alex Chen"
+        email:
+          type: string
+          format: email
+          example: "alex.chen@company.com"
+        role:
+          type: string
+          enum: [owner, member, free-owner]
+          example: "member"
+
+    DailyUsageRequest:
+      type: object
+      required: [startDate, endDate]
+      properties:
+        startDate:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds
+          example: 1710720000000
+        endDate:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds
+          example: 1710892800000
+
+    DailyUsageResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyUsageRecord'
+
+    DailyUsageRecord:
+      type: object
+      required: [date, org, totals]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-03-18"
+        org:
+          type: string
+          example: "acme-corp"
+        totals:
+          $ref: '#/components/schemas/UsageTotals'
+        by_user:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDailyUsage'
+
+    UsageTotals:
+      type: object
+      properties:
+        total_accepts:
+          type: integer
+          example: 1250
+        total_rejects:
+          type: integer
+          example: 320
+        total_tabs_shown:
+          type: integer
+          example: 4500
+        total_tabs_accepted:
+          type: integer
+          example: 3200
+        total_lines_added:
+          type: integer
+          example: 8500
+        total_lines_deleted:
+          type: integer
+          example: 2100
+
+    UserDailyUsage:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: "user_abc123xyz"
+        email:
+          type: string
+          example: "alex.chen@company.com"
+        accepts:
+          type: integer
+        rejects:
+          type: integer
+        tabs_shown:
+          type: integer
+        tabs_accepted:
+          type: integer
+        lines_added:
+          type: integer
+        lines_deleted:
+          type: integer
+
+    FilteredUsageEventsRequest:
+      type: object
+      properties:
+        startDate:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds
+        endDate:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds
+        email:
+          type: string
+          description: Filter by user email
+        userId:
+          type: integer
+          description: Filter by user ID
+        page:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 25
+
+    FilteredUsageEventsResponse:
+      type: object
+      required: [usageEvents, totalCount, page, pageSize, totalPages]
+      properties:
+        usageEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsageEvent'
+        totalCount:
+          type: integer
+          example: 1250
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 25
+        totalPages:
+          type: integer
+          example: 50
+
+    UsageEvent:
+      type: object
+      required: [id, userEmail, eventType, createdAt]
+      properties:
+        id:
+          type: string
+          example: "evt_a1b2c3d4e5f6"
+        userEmail:
+          type: string
+          example: "developer@company.com"
+        org:
+          type: string
+          example: "acme-corp"
+        eventType:
+          type: string
+          enum: [composer, chat, agent]
+          example: "composer"
+        model:
+          type: string
+          example: "gpt-4o"
+        totalAccepts:
+          type: integer
+          example: 3
+        totalRejects:
+          type: integer
+          example: 0
+        inputTokens:
+          type: integer
+          example: 1250
+        outputTokens:
+          type: integer
+          example: 420
+        cacheWriteTokens:
+          type: integer
+          example: 0
+        cacheReadTokens:
+          type: integer
+          example: 180
+        totalCents:
+          type: integer
+          description: Cost in cents
+          example: 15
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-06-15T14:32:17.000Z"
+
+    SpendRequest:
+      type: object
+      properties:
+        page:
+          type: integer
+          default: 1
+        pageSize:
+          type: integer
+          default: 25
+        search:
+          type: string
+        sortBy:
+          type: string
+        sortOrder:
+          type: string
+          enum: [asc, desc]
+
+    SpendResponse:
+      type: object
+      required: [teamMemberSpend, subscriptionCycleStart, totalMembers, totalPages]
+      properties:
+        teamMemberSpend:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberSpend'
+        subscriptionCycleStart:
+          type: integer
+          format: int64
+          description: Unix timestamp in milliseconds
+          example: 1708992000000
+        totalMembers:
+          type: integer
+          example: 50
+        totalPages:
+          type: integer
+          example: 2
+
+    MemberSpend:
+      type: object
+      required: [spendCents, fastPremiumRequests, name, email, role, hardLimitOverrideDollars]
+      properties:
+        spendCents:
+          type: integer
+          example: 2450
+        fastPremiumRequests:
+          type: integer
+          example: 1250
+        name:
+          type: string
+          example: "Alex Chen"
+        email:
+          type: string
+          example: "alex.chen@company.com"
+        role:
+          type: string
+          enum: [owner, member, free-owner]
+        hardLimitOverrideDollars:
+          type: integer
+          example: 100
+
+    # =========================================================================
+    # AI Code Tracking Schemas
+    # =========================================================================
+
+    CommitsResponse:
+      type: object
+      required: [items, totalCount, page, pageSize]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommitRecord'
+        totalCount:
+          type: integer
+          example: 4250
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 100
+
+    CommitRecord:
+      type: object
+      required:
+        - commitHash
+        - userId
+        - userEmail
+        - repoName
+        - branchName
+        - totalLinesAdded
+        - totalLinesDeleted
+        - tabLinesAdded
+        - tabLinesDeleted
+        - composerLinesAdded
+        - composerLinesDeleted
+        - nonAiLinesAdded
+        - nonAiLinesDeleted
+        - commitTs
+        - createdAt
+      properties:
+        commitHash:
+          type: string
+          description: Git commit SHA (truncated or full)
+          example: "a1b2c3d4e5f6g7h8"
+        userId:
+          type: string
+          description: Encoded external ID with user_ prefix
+          example: "user_3k9x8qwertyuio"
+        userEmail:
+          type: string
+          example: "developer@company.com"
+        repoName:
+          type: string
+          description: org/repo format
+          example: "acme-corp/payment-service"
+        branchName:
+          type: string
+          example: "main"
+        isPrimaryBranch:
+          type: boolean
+          description: True if this is the default branch
+          example: true
+        totalLinesAdded:
+          type: integer
+          example: 120
+        totalLinesDeleted:
+          type: integer
+          example: 30
+        tabLinesAdded:
+          type: integer
+          description: Lines from TAB (inline completions)
+          example: 50
+        tabLinesDeleted:
+          type: integer
+          example: 10
+        composerLinesAdded:
+          type: integer
+          description: Lines from Composer
+          example: 40
+        composerLinesDeleted:
+          type: integer
+          example: 5
+        nonAiLinesAdded:
+          type: integer
+          description: max(0, totalLinesAdded - tabLinesAdded - composerLinesAdded)
+          example: 30
+        nonAiLinesDeleted:
+          type: integer
+          description: max(0, totalLinesDeleted - tabLinesDeleted - composerLinesDeleted)
+          example: 15
+        message:
+          type: string
+          description: Commit message (may be omitted in privacy mode)
+          example: "Refactor: extract analytics client"
+        commitTs:
+          type: string
+          format: date-time
+          description: Commit timestamp
+          example: "2025-07-30T14:12:03.000Z"
+        createdAt:
+          type: string
+          format: date-time
+          description: Ingestion timestamp on server
+          example: "2025-07-30T14:12:30.000Z"
+
+    ChangesResponse:
+      type: object
+      required: [items, totalCount, page, pageSize]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangeRecord'
+        totalCount:
+          type: integer
+          example: 8920
+        page:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 100
+
+    ChangeRecord:
+      type: object
+      required:
+        - changeId
+        - userId
+        - userEmail
+        - source
+        - totalLinesAdded
+        - totalLinesDeleted
+        - createdAt
+      properties:
+        changeId:
+          type: string
+          description: Deterministic change identifier
+          example: "749356201"
+        userId:
+          type: string
+          example: "user_3k9x8qwertyuio"
+        userEmail:
+          type: string
+          example: "developer@company.com"
+        source:
+          type: string
+          enum: [TAB, COMPOSER]
+          description: TAB = inline completions, COMPOSER = composer diffs
+          example: "COMPOSER"
+        model:
+          type: string
+          description: AI model used (may be empty for TAB)
+          example: "gpt-4o"
+        totalLinesAdded:
+          type: integer
+          example: 18
+        totalLinesDeleted:
+          type: integer
+          example: 4
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-07-30T15:10:12.000Z"
+        metadata:
+          type: array
+          description: Per-file breakdown (may be omitted in privacy mode)
+          items:
+            $ref: '#/components/schemas/FileChangeMetadata'
+
+    FileChangeMetadata:
+      type: object
+      properties:
+        fileName:
+          type: string
+          example: "src/analytics/report.ts"
+        fileExtension:
+          type: string
+          example: "ts"
+        linesAdded:
+          type: integer
+          example: 12
+        linesDeleted:
+          type: integer
+          example: 3
+
+    # =========================================================================
+    # Common Schemas
+    # =========================================================================
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded]
+          example: "healthy"
+        mode:
+          type: string
+          enum: [runtime, replay]
+          description: Simulator operation mode
+        seed_loaded:
+          type: boolean
+          description: Whether seed.json was loaded
+        developers_count:
+          type: integer
+        commits_count:
+          type: integer
+        uptime_seconds:
+          type: integer
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+          example: "unauthorized"
+        message:
+          type: string
+          example: "Invalid or missing API key"

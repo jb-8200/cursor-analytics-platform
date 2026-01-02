@@ -1,29 +1,97 @@
 # Claude Code Hooks
 
-This directory contains hooks that extend Claude Code's capabilities for spec-driven development in the Cursor Analytics Platform project.
+This directory contains automation hooks for the Spec-Driven Development workflow.
 
-## Overview
+## Implemented Hooks
 
-Hooks are automated checks and context providers that help Claude follow project conventions and maintain quality standards. They integrate into the development workflow at key points to enforce TDD practices and spec-driven development.
+### pre_prompt.py
 
-## Available Hooks
+**Purpose**: Automatically injects context when Claude starts a coding session.
 
-### pre-implementation.md
+**Functionality**:
+- Reads active work item from `.claude/plans/active` symlink
+- Loads project rules from `rules/*.mdc`
+- Includes development context from `.claude/DEVELOPMENT.md`
 
-A checklist Claude should follow before implementing any feature. This ensures specifications are read, tests are written first, and dependencies are verified.
+**Usage**:
+```bash
+python .claude/hooks/pre_prompt.py
+```
 
-### post-test.sh
+**When to Use**: Called by Claude Code before processing prompts to ensure Claude "knows" the active context without explicit reminders.
 
-Runs after tests to analyze coverage and verify thresholds are met. Supports all three services with their respective testing tools.
+### pre_commit.py
 
-### validate-spec.sh
+**Purpose**: Enforces TDD by blocking commits if tests fail.
 
-Validates that all specification files exist and contain required sections. Helps maintain documentation quality.
+**Functionality**:
+- Detects which services have staged changes
+- Runs relevant test suites (Go, TypeScript, React)
+- Blocks commit if any tests fail
+- Reports test results and coverage
 
-## Usage Guidelines
+**Installation** (as git hook):
+```bash
+ln -sf ../../.claude/hooks/pre_commit.py .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
 
-When Claude is asked to implement a feature, it should mentally run through the pre-implementation checklist before writing any code. This ensures the TDD workflow is followed and specifications are consulted.
+**Manual Usage**:
+```bash
+python .claude/hooks/pre_commit.py
+```
 
-After running tests, the post-test hook can verify coverage meets the 80% threshold required for this project.
+## Hook Integration with Workflow
 
-Before any significant documentation changes, the validate-spec hook ensures all specs remain complete and well-formed.
+### Feature Start
+1. `/start-feature {name}` creates active symlink
+2. `pre_prompt.py` detects active feature
+3. Context is automatically loaded
+
+### During Development
+1. TDD: RED → GREEN → REFACTOR
+2. Attempt `git commit`
+3. `pre_commit.py` runs tests
+4. Commit blocked if tests fail
+
+### Feature Complete
+1. `/complete-feature {name}` verifies all steps
+2. Full test suite runs
+3. Symlink removed
+4. Completion committed
+
+## Directory Integration
+
+```
+.claude/
+├── hooks/
+│   ├── README.md           # This file
+│   ├── pre_prompt.py       # Context injection
+│   └── pre_commit.py       # Test enforcement
+├── plans/
+│   ├── README.md           # Symlink mechanism docs
+│   └── active -> ...       # Active feature symlink
+└── commands/
+    ├── start-feature.md    # Begin feature work
+    └── complete-feature.md # Verify and close
+
+.work-items/
+└── {feature}/
+    ├── user-story.md       # Requirements
+    ├── design.md           # Technical design
+    ├── task.md             # Step breakdown
+    └── {NN}_step.md        # Implementation steps
+
+rules/
+├── process-core.mdc        # Core SDD principles
+├── standards-tdd.mdc       # TDD standards
+└── standards-user-story.mdc # User story format
+```
+
+## Future Hooks
+
+The following hooks are planned but not yet implemented:
+
+- **post_test.py**: Coverage analysis after test runs
+- **validate_spec.py**: Ensures spec files are complete
+- **lint_check.py**: Pre-commit linting enforcement

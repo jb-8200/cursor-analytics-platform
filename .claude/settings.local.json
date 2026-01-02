@@ -21,7 +21,12 @@
       "Bash(tree:*)",
       "Bash(make all:*)",
       "Bash(./bin/cursor-sim:*)",
-      "Bash(gofmt:*)"
+      "Bash(gofmt:*)",
+      "WebFetch(domain:cursor.com)",
+      "Bash(rm:*)",
+      "Bash(ln:*)",
+      "Bash(go build:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

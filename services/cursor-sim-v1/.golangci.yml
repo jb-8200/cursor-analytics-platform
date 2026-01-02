@@ -34,7 +34,7 @@ linters-settings:
           - "sayRepetitiveInsteadOfStutters"
 
   goimports:
-    local-prefixes: github.com/cursor-analytics-platform/services/cursor-sim
+    local-prefixes: github.com/jb-8200/cursor-analytics-platform/services/cursor-sim
 
   gocritic:
     enabled-tags:

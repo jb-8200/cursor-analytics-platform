@@ -1,480 +1,767 @@
 # Feature Breakdown: Cursor Usage Analytics Platform
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026  
+**Version**: 2.0.0
+**Last Updated**: January 2026
 
-This document provides a comprehensive breakdown of all features across the three services, organized by priority and implementation phase. Each feature includes its scope, dependencies, and acceptance criteria summary.
+This document provides a comprehensive breakdown of all features across the three services, organized by priority and implementation phase. Version 2.0 introduces seed-based generation, exact Cursor API matching, GitHub PR simulation, and research framework support.
 
 ## Feature Overview Matrix
 
-The following matrix shows all features across services with their implementation priority and estimated complexity.
+### cursor-sim Features (v2.0)
 
-| Feature ID | Service | Feature Name | Priority | Complexity | Phase |
-|------------|---------|--------------|----------|------------|-------|
-| SIM-001 | cursor-sim | Developer Profile Generation | P0 | Medium | 1 |
-| SIM-002 | cursor-sim | Event Generation Engine | P0 | High | 1 |
-| SIM-003 | cursor-sim | REST API Server | P0 | Low | 1 |
-| SIM-004 | cursor-sim | CLI Configuration | P0 | Low | 1 |
-| SIM-005 | cursor-sim | Team Structure Simulation | P1 | Medium | 2 |
-| SIM-006 | cursor-sim | Realistic Time Patterns | P2 | Medium | 3 |
-| CORE-001 | cursor-analytics-core | Data Ingestion Worker | P0 | Medium | 1 |
-| CORE-002 | cursor-analytics-core | Database Schema & Migrations | P0 | Medium | 1 |
-| CORE-003 | cursor-analytics-core | GraphQL API Server | P0 | Medium | 1 |
-| CORE-004 | cursor-analytics-core | Metric Calculations | P0 | High | 1 |
-| CORE-005 | cursor-analytics-core | Developer Queries | P0 | Medium | 1 |
-| CORE-006 | cursor-analytics-core | Team Aggregations | P1 | Medium | 2 |
-| CORE-007 | cursor-analytics-core | Dashboard KPIs | P1 | Medium | 2 |
-| CORE-008 | cursor-analytics-core | Time Range Filtering | P1 | Low | 2 |
-| VIZ-001 | cursor-viz-spa | Dashboard Layout | P0 | Medium | 1 |
-| VIZ-002 | cursor-viz-spa | Velocity Heatmap | P0 | High | 1 |
-| VIZ-003 | cursor-viz-spa | Team Radar Chart | P1 | High | 2 |
-| VIZ-004 | cursor-viz-spa | Developer Efficiency Table | P0 | Medium | 1 |
-| VIZ-005 | cursor-viz-spa | Date Range Picker | P1 | Low | 2 |
-| VIZ-006 | cursor-viz-spa | Loading States | P1 | Low | 2 |
-| VIZ-007 | cursor-viz-spa | Error Handling | P1 | Low | 2 |
+| Feature ID | Feature Name | Priority | Complexity | Phase |
+|------------|--------------|----------|------------|-------|
+| SIM-R001 | Seed Loading & Validation | P0 | Medium | 1 |
+| SIM-R002 | CLI Configuration v2 | P0 | Low | 1 |
+| SIM-R003 | Commit Generation Engine | P0 | High | 1 |
+| SIM-R004 | Cursor Admin API | P0 | Medium | 1 |
+| SIM-R005 | Cursor AI Code Tracking API | P0 | Medium | 1 |
+| SIM-R006 | Cursor Team Analytics API | P0 | High | 1 |
+| SIM-R007 | Cursor By-User Analytics API | P0 | Medium | 1 |
+| SIM-R008 | In-Memory Storage v2 | P0 | Medium | 1 |
+| SIM-R009 | PR Generation Pipeline | P1 | High | 2 |
+| SIM-R010 | Review Simulation | P1 | High | 2 |
+| SIM-R011 | GitHub Repos/PRs API | P1 | High | 2 |
+| SIM-R012 | Quality Outcomes | P1 | Medium | 2 |
+| SIM-R013 | Research Dataset Export | P2 | Medium | 3 |
+| SIM-R014 | Code Survival Tracking | P2 | High | 3 |
+| SIM-R015 | Replay Mode | P2 | Medium | 3 |
 
-## Service A: cursor-sim Features
+### cursor-analytics-core Features (unchanged)
 
-### SIM-001: Developer Profile Generation
+| Feature ID | Feature Name | Priority | Complexity | Phase |
+|------------|--------------|----------|------------|-------|
+| CORE-001 | Data Ingestion Worker | P0 | Medium | 1 |
+| CORE-002 | Database Schema & Migrations | P0 | Medium | 1 |
+| CORE-003 | GraphQL API Server | P0 | Medium | 1 |
+| CORE-004 | Metric Calculations | P0 | High | 1 |
+| CORE-005 | Developer Queries | P0 | Medium | 1 |
+| CORE-006 | Team Aggregations | P1 | Medium | 2 |
+| CORE-007 | Dashboard KPIs | P1 | Medium | 2 |
+| CORE-008 | Time Range Filtering | P1 | Low | 2 |
 
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
+### cursor-viz-spa Features (unchanged)
 
-This feature generates realistic developer profiles with varying characteristics that influence their simulated behavior patterns.
+| Feature ID | Feature Name | Priority | Complexity | Phase |
+|------------|--------------|----------|------------|-------|
+| VIZ-001 | Dashboard Layout | P0 | Medium | 1 |
+| VIZ-002 | Velocity Heatmap | P0 | High | 1 |
+| VIZ-003 | Team Radar Chart | P1 | High | 2 |
+| VIZ-004 | Developer Efficiency Table | P0 | Medium | 1 |
+| VIZ-005 | Date Range Picker | P1 | Low | 2 |
+| VIZ-006 | Loading States | P1 | Low | 2 |
+| VIZ-007 | Error Handling | P1 | Low | 2 |
 
-**Scope:**
-The feature creates developer profiles with unique identifiers, names, email addresses, team assignments, and seniority levels. Each profile includes a calculated acceptance rate based on seniority, reflecting the observation that more experienced developers tend to accept a higher percentage of AI suggestions.
+---
 
-**Technical Requirements:**
-The system should support generating between 1 and 1000 developer profiles on startup. Names and emails should be generated using a deterministic algorithm based on a seed value, ensuring reproducibility. The seniority distribution should default to 20% junior, 50% mid-level, and 30% senior developers, with acceptance rates of 60%, 75%, and 90% respectively.
+## Service A: cursor-sim Features (v2.0)
 
-**Dependencies:**
-None - this is a foundational feature.
+### SIM-R001: Seed Loading & Validation
 
-**Acceptance Criteria Summary:**
-Profiles are generated on startup based on CLI parameters. Each profile has a unique identifier that persists for the session duration. Profiles are retrievable via the REST API endpoints.
+**Priority**: P0 (Critical)
+**Complexity**: Medium
+**Phase**: 1
 
-### SIM-002: Event Generation Engine
-
-**Priority**: P0 (Critical)  
-**Complexity**: High  
-**Phase**: 1  
-
-This feature implements the core simulation logic that generates usage events following statistical distributions that mimic real developer behavior.
-
-**Scope:**
-The engine generates four event types (cpp_suggestion_shown, cpp_suggestion_accepted, chat_message, cmd_k_prompt) at rates determined by the velocity parameter. Events follow a Poisson distribution to create natural clustering rather than uniform spacing. The fluctuation parameter adds per-developer variance so not all developers exhibit identical patterns.
-
-**Technical Requirements:**
-Events should be generated continuously in background goroutines, one per simulated developer. The base event rate should be configurable through the velocity parameter, where "low" generates approximately 10 events per hour and "high" generates approximately 100 events per hour. Each developer's actual rate should vary by plus or minus the fluctuation percentage. Suggestion acceptance events should only be generated following suggestion shown events, with the probability determined by the developer's acceptance rate.
-
-**Dependencies:**
-SIM-001 (Developer Profile Generation)
-
-**Acceptance Criteria Summary:**
-Events are generated continuously while the server runs. Event timing follows a Poisson distribution. Acceptance rates match developer profiles within statistical variance.
-
-### SIM-003: REST API Server
-
-**Priority**: P0 (Critical)  
-**Complexity**: Low  
-**Phase**: 1  
-
-This feature exposes the simulated data through REST endpoints that mirror the Cursor Business API contract.
+This feature loads and validates seed.json generated by DataDesigner, providing the foundation for all event generation.
 
 **Scope:**
-The server implements endpoints for listing developers, retrieving individual developer details, and querying activity events with time range filters. All responses use JSON format with schemas compatible with the real Cursor API.
+The feature parses the seed.json file containing developers, repositories, correlations, and text templates. Validation ensures all required fields are present and values are within acceptable ranges.
 
 **Technical Requirements:**
-The server should listen on a configurable port (default 8080). Endpoints should support CORS for local development. The activity endpoint should accept "from" and "to" query parameters in ISO 8601 format. Response pagination should be implemented for the activity endpoint when results exceed 1000 events.
+- Parse seed.json using Go's encoding/json
+- Validate developer user_ids match `user_xxx` format
+- Validate acceptance_rates are between 0.0 and 1.0
+- Validate repository primary_language is supported
+- Validate correlations have required keys
+- Return detailed error messages for validation failures
 
-**Dependencies:**
-SIM-001, SIM-002
+**Seed Schema:**
+```json
+{
+  "developers": [{
+    "user_id": "user_001",
+    "email": "dev@example.com",
+    "name": "Jane Developer",
+    "org": "Acme Corp",
+    "division": "Engineering",
+    "team": "Platform",
+    "seniority": "senior",
+    "region": "us-west",
+    "acceptance_rate": 0.85,
+    "pr_behavior": {
+      "prs_per_week": 2.5,
+      "avg_pr_size_loc": 150,
+      "greenfield_ratio": 0.3
+    }
+  }],
+  "repositories": [{
+    "repo_name": "acme/platform",
+    "primary_language": "go",
+    "age_days": 730,
+    "maturity": "mature",
+    "teams": ["Platform", "API"]
+  }],
+  "correlations": {
+    "seniority_acceptance_rate": {...},
+    "ai_ratio_revert_rate": {...}
+  },
+  "text_templates": {
+    "commit_messages": [...],
+    "pr_titles": [...],
+    "review_comments": [...]
+  }
+}
+```
 
-**Acceptance Criteria Summary:**
-All endpoints respond with valid JSON matching the documented schema. The health check endpoint returns within 100ms. Time range filtering correctly bounds returned events.
+**Dependencies:** None
 
-### SIM-004: CLI Configuration
+**Acceptance Criteria:**
+- Valid seed.json loads successfully with all data accessible
+- Invalid seed.json produces descriptive error with line number
+- Missing required fields are detected and reported
+- Out-of-range values are detected and reported
 
-**Priority**: P0 (Critical)  
-**Complexity**: Low  
-**Phase**: 1  
+---
 
-This feature provides command-line interface options for configuring the simulator's behavior.
+### SIM-R002: CLI Configuration v2
+
+**Priority**: P0 (Critical)
+**Complexity**: Low
+**Phase**: 1
+
+This feature implements the v2 CLI flags for operation mode, seed file, and generation parameters.
 
 **Scope:**
-The CLI accepts flags for port, number of developers, velocity level, and fluctuation percentage. Help text documents all available options. Invalid configurations are rejected with helpful error messages.
+The CLI accepts flags for mode (runtime/replay), seed file path, corpus file path, port, and simulation duration.
 
 **Technical Requirements:**
-Flags should use the standard Go flag package. The port flag should validate that the value is between 1024 and 65535. The developers flag should accept values between 1 and 1000. The velocity flag should accept "low", "medium", or "high" as values. The fluctuation flag should accept decimal values between 0 and 1.
+```
+cursor-sim [flags]
 
-**Dependencies:**
-None
+Flags:
+  --mode string        Operation mode: runtime or replay (default "runtime")
+  --seed string        Path to seed.json file (required for runtime mode)
+  --corpus string      Path to events.parquet (required for replay mode)
+  --port int           HTTP server port (default 8080)
+  --days int           Days of history to generate (default 90)
+  --velocity string    Event generation rate: low, medium, high (default "medium")
+  --help               Display help
+```
 
-**Acceptance Criteria Summary:**
-Running with --help displays all options. Invalid flag values produce descriptive error messages. Defaults are applied when flags are omitted.
+**Dependencies:** None
 
-### SIM-005: Team Structure Simulation
+**Acceptance Criteria:**
+- `--mode=runtime` requires `--seed` flag
+- `--mode=replay` requires `--corpus` flag
+- Invalid mode values produce clear error
+- `--help` shows all flags with descriptions
+- Environment variables can override flags (CURSOR_SIM_MODE, etc.)
 
-**Priority**: P1 (Important)  
-**Complexity**: Medium  
-**Phase**: 2  
+---
 
-This feature adds organizational structure to the simulation by grouping developers into teams with distinct characteristics.
+### SIM-R003: Commit Generation Engine
+
+**Priority**: P0 (Critical)
+**Complexity**: High
+**Phase**: 1
+
+This feature generates commits with AI attribution matching the Cursor API schema.
 
 **Scope:**
-The feature creates between 3 and 10 teams (configurable), distributing developers across teams. Each team can have different baseline characteristics affecting the average behavior of its members. Team names can be provided via a configuration file or generated automatically.
+Generate commits for each developer based on their pr_behavior settings. Each commit includes TAB and COMPOSER line attributions, proper timestamps, and references to PRs (in Phase 2).
 
 **Technical Requirements:**
-Teams should be approximately equal in size with some variance. A configuration file format should allow specifying team names and their baseline acceptance rate modifiers. The API should support filtering developers by team and aggregating statistics at the team level.
+- Generate commits following Poisson distribution timing
+- Split AI lines between TAB (60-80%) and COMPOSER (20-40%)
+- Calculate nonAiLinesAdded as max(0, total - tab - composer)
+- Generate realistic commit messages from templates
+- Assign commits to developers weighted by prs_per_week
+- Distribute commits across repositories by team assignment
 
-**Dependencies:**
-SIM-001, SIM-003
+**Commit Schema (Cursor API match):**
+```go
+type Commit struct {
+    CommitHash        string    `json:"commitHash"`
+    UserID            string    `json:"userId"`
+    UserEmail         string    `json:"userEmail"`
+    UserName          string    `json:"userName"`
+    RepoName          string    `json:"repoName"`
+    BranchName        string    `json:"branchName"`
+    IsPrimaryBranch   bool      `json:"isPrimaryBranch"`
+    TotalLinesAdded   int       `json:"totalLinesAdded"`
+    TotalLinesDeleted int       `json:"totalLinesDeleted"`
+    TabLinesAdded     int       `json:"tabLinesAdded"`
+    TabLinesDeleted   int       `json:"tabLinesDeleted"`
+    ComposerLinesAdded int      `json:"composerLinesAdded"`
+    ComposerLinesDeleted int    `json:"composerLinesDeleted"`
+    NonAILinesAdded   int       `json:"nonAiLinesAdded"`
+    NonAILinesDeleted int       `json:"nonAiLinesDeleted"`
+    Message           string    `json:"message"`
+    CommitTs          time.Time `json:"commitTs"`
+    CreatedAt         time.Time `json:"createdAt"`
+}
+```
 
-**Acceptance Criteria Summary:**
-Developers are distributed across teams on startup. Team-level aggregations are available via the API. Custom team configurations are loaded from file when provided.
+**Dependencies:** SIM-R001, SIM-R002
 
-### SIM-006: Realistic Time Patterns
+**Acceptance Criteria:**
+- Commits generated continuously at configured velocity
+- AI attribution lines sum correctly: total = tab + composer + nonAi
+- Commit distribution matches developer pr_behavior weights
+- Same seed produces reproducible commit sequences
 
-**Priority**: P2 (Nice to Have)  
-**Complexity**: Medium  
-**Phase**: 3  
+---
 
-This feature adds time-based patterns to the simulation, reflecting that developers have different activity levels during working hours versus nights and weekends.
+### SIM-R004: Cursor Admin API
+
+**Priority**: P0 (Critical)
+**Complexity**: Medium
+**Phase**: 1
+
+This feature implements the 4 Cursor Admin API endpoints.
+
+**Endpoints:**
+```
+GET  /teams/members
+POST /teams/daily-usage-data
+POST /teams/filtered-usage-events
+POST /teams/spend
+```
+
+**Technical Requirements:**
+- Basic Auth matching Cursor API (API key as username, empty password)
+- Pagination with page/pageSize (max 500)
+- Date filtering with startDate/endDate
+- JSON response format matching Cursor exactly
+
+**Response Format:**
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "pageSize": 100,
+    "totalUsers": 50,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  },
+  "params": {
+    "teamId": 12345
+  }
+}
+```
+
+**Dependencies:** SIM-R001, SIM-R008
+
+**Acceptance Criteria:**
+- All 4 endpoints respond with correct schema
+- Auth returns 401 for missing/invalid credentials
+- Pagination works correctly
+- Date filtering bounds results
+
+---
+
+### SIM-R005: Cursor AI Code Tracking API
+
+**Priority**: P0 (Critical)
+**Complexity**: Medium
+**Phase**: 1
+
+This feature implements the 4 AI Code Tracking endpoints including CSV exports.
+
+**Endpoints:**
+```
+GET /analytics/ai-code/commits
+GET /analytics/ai-code/commits.csv
+GET /analytics/ai-code/changes
+GET /analytics/ai-code/changes.csv
+```
+
+**Technical Requirements:**
+- Cursor pagination style with page/pageSize
+- startDate/endDate filtering
+- users filter (comma-separated emails or user IDs)
+- CSV endpoints return RFC 4180 compliant output
+- JSON response matches Cursor exactly
+
+**Dependencies:** SIM-R003, SIM-R008
+
+**Acceptance Criteria:**
+- JSON endpoints return proper Cursor response format
+- CSV endpoints produce valid CSV with headers
+- Date filtering works correctly
+- User filtering supports both email and user_id
+
+---
+
+### SIM-R006: Cursor Team Analytics API
+
+**Priority**: P0 (Critical)
+**Complexity**: High
+**Phase**: 1
+
+This feature implements all 11 team-level analytics endpoints.
+
+**Endpoints:**
+```
+GET /analytics/team/agent-edits
+GET /analytics/team/tabs
+GET /analytics/team/dau
+GET /analytics/team/client-versions
+GET /analytics/team/models
+GET /analytics/team/top-file-extensions
+GET /analytics/team/mcp
+GET /analytics/team/commands
+GET /analytics/team/plans
+GET /analytics/team/ask-mode
+GET /analytics/team/leaderboard
+```
+
+**Technical Requirements:**
+- All endpoints support startDate/endDate/users query params
+- Response aggregates by event_date
+- Leaderboard supports page/pageSize pagination
+- Rate limiting: 100 requests/minute
+
+**Response Schemas:**
+Each endpoint has a specific schema. See Cursor documentation for exact field names.
+
+**Dependencies:** SIM-R003, SIM-R008
+
+**Acceptance Criteria:**
+- All 11 endpoints respond with correct schema
+- Aggregations are accurate by date
+- Leaderboard ranks correctly by acceptance ratio
+- Rate limiting returns 429 when exceeded
+
+---
+
+### SIM-R007: Cursor By-User Analytics API
+
+**Priority**: P0 (Critical)
+**Complexity**: Medium
+**Phase**: 1
+
+This feature implements all 9 by-user analytics endpoints.
+
+**Endpoints:**
+```
+GET /analytics/by-user/agent-edits
+GET /analytics/by-user/tabs
+GET /analytics/by-user/models
+GET /analytics/by-user/top-file-extensions
+GET /analytics/by-user/client-versions
+GET /analytics/by-user/mcp
+GET /analytics/by-user/commands
+GET /analytics/by-user/plans
+GET /analytics/by-user/ask-mode
+```
+
+**Technical Requirements:**
+- Pagination with page/pageSize (max 500)
+- Response grouped by user_email
+- userMappings in params section
+- Rate limiting: 50 requests/minute
+
+**Response Format:**
+```json
+{
+  "data": {
+    "user@example.com": [
+      { "event_date": "2026-01-15", ... }
+    ]
+  },
+  "pagination": {...},
+  "params": {
+    "metric": "tabs",
+    "userMappings": [
+      { "id": "user_001", "email": "user@example.com" }
+    ]
+  }
+}
+```
+
+**Dependencies:** SIM-R003, SIM-R008
+
+**Acceptance Criteria:**
+- All 9 endpoints respond with correct schema
+- Data correctly grouped by user
+- Pagination across users works correctly
+- Rate limiting returns 429 when exceeded
+
+---
+
+### SIM-R008: In-Memory Storage v2
+
+**Priority**: P0 (Critical)
+**Complexity**: Medium
+**Phase**: 1
+
+This feature implements thread-safe in-memory storage for v2 data models.
 
 **Scope:**
-The feature modifies event generation rates based on simulated time of day and day of week. Configurable parameters control the work day start and end times, weekend reduction factor, and timezone offset.
+Store developers (from seed), commits, and (in Phase 2) PRs and reviews. Support efficient queries by time range, user, and repository.
 
 **Technical Requirements:**
-Event rates should be reduced by 80% outside of configured work hours. Weekend rates should be further reduced by the weekend factor (default 90% reduction). The simulation should optionally accelerate time to generate weeks of data quickly for demo purposes.
+- Thread-safe using sync.RWMutex or sync.Map
+- Time-indexed commits for efficient range queries
+- User-indexed data for by-user endpoints
+- Repository-indexed for GitHub API
+- Memory-efficient for 100k+ commits
 
-**Dependencies:**
-SIM-002
+**Interface:**
+```go
+type Store interface {
+    // Developers
+    LoadDevelopers([]Developer) error
+    GetDeveloper(userID string) (*Developer, error)
+    ListDevelopers() []Developer
 
-**Acceptance Criteria Summary:**
-Event density visibly varies by time of day in the data. Weekend data shows significantly reduced activity. Time acceleration mode generates historical data on demand.
+    // Commits
+    AddCommit(Commit) error
+    GetCommitsByTimeRange(from, to time.Time) []Commit
+    GetCommitsByUser(userID string, from, to time.Time) []Commit
+    GetCommitsByRepo(repoName string, from, to time.Time) []Commit
 
-## Service B: cursor-analytics-core Features
+    // PRs (Phase 2)
+    AddPullRequest(PullRequest) error
+    GetPullRequest(repoName string, number int) (*PullRequest, error)
+    // ...
+}
+```
 
-### CORE-001: Data Ingestion Worker
+**Dependencies:** SIM-R001
 
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
+**Acceptance Criteria:**
+- Concurrent read/write is safe
+- Time range queries return correct results
+- Memory usage < 500MB for 100k commits
+- Query performance < 10ms for typical queries
 
-This feature implements the background process that fetches data from the simulator and stores it in the database.
+---
+
+### SIM-R009: PR Generation Pipeline
+
+**Priority**: P1 (Important)
+**Complexity**: High
+**Phase**: 2
+
+This feature generates pull requests with full lifecycle and correlation enforcement.
 
 **Scope:**
-The worker polls the simulator's activity endpoint at configurable intervals, transforms the JSON response into database records, and handles deduplication to prevent storing duplicate events on overlapping queries.
+Generate PRs with realistic attributes including size, scatter, timeline, and review metrics. Enforce correlations between seniority/AI ratio and outcomes.
 
 **Technical Requirements:**
-The polling interval should be configurable via environment variable, defaulting to 60 seconds. The worker should implement retry logic with exponential backoff when the simulator is unavailable. Event deduplication should use the event ID as the unique key. The worker should track the last successfully processed timestamp to optimize subsequent queries.
+- Select authors weighted by prs_per_week
+- Generate 1-8 commits per PR
+- Calculate timeline: coding → PR open → review → merge
+- Apply correlation coefficients from seed
+- Generate PR attributes: additions, deletions, changed_files
+- Track initial vs final additions for scope_creep
 
-**Dependencies:**
-CORE-002
+**PR Lifecycle:**
+```
+first_commit_at
+    │ coding_lead_time
+    ▼
+created_at (PR opened)
+    │ pickup_time
+    ▼
+first_review_at
+    │ review iterations
+    ▼
+merged_at (or closed)
+```
 
-**Acceptance Criteria Summary:**
-Events are fetched and stored automatically when the service starts. Duplicate events are not created on overlapping polls. Service recovers gracefully from simulator outages.
+**Dependencies:** SIM-R003, SIM-R008
 
-### CORE-002: Database Schema & Migrations
+**Acceptance Criteria:**
+- PRs have realistic size distribution (lognormal)
+- Timelines respect business hours by region
+- Correlations are enforced within configured tolerance
+- Same seed produces reproducible PRs
 
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
+---
 
-This feature defines the PostgreSQL database schema and provides migration tooling for schema evolution.
+### SIM-R010: Review Simulation
+
+**Priority**: P1 (Important)
+**Complexity**: High
+**Phase**: 2
+
+This feature simulates code review iterations with comments and approvals.
 
 **Scope:**
-The schema includes tables for developers, usage events, and materialized views for aggregated statistics. Migrations are versioned and can be applied forward and rolled back. Initial seed data is provided for development purposes.
+Generate review events including CHANGES_REQUESTED, APPROVED, and comments. Model iteration cycles where high AI ratio leads to more iterations.
 
 **Technical Requirements:**
-Migrations should use a versioning tool such as knex, Prisma, or node-pg-migrate. The schema should include appropriate indexes for query performance. Foreign key constraints should ensure referential integrity. A materialized view should pre-aggregate daily statistics for performance.
+- Generate 1-5 reviewers per PR
+- Generate review comments proportional to PR size
+- Model iteration: review → rework commits → re-review
+- Apply ai_ratio → iterations correlation
+- Generate realistic review comment text from templates
 
-**Dependencies:**
-None
+**Review States:**
+```
+PENDING → CHANGES_REQUESTED → APPROVED
+              ↓ (rework)        ↑
+         new commits ──────────┘
+```
 
-**Acceptance Criteria Summary:**
-Migrations run successfully on a fresh database. Schema matches the documented design. Rollback restores the previous schema state.
+**Dependencies:** SIM-R009, SIM-R008
 
-### CORE-003: GraphQL API Server
+**Acceptance Criteria:**
+- Reviews correctly cycle through states
+- Iteration count correlates with AI ratio
+- Review density (comments/LoC) is realistic
+- Same seed produces reproducible reviews
 
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
+---
 
-This feature implements the GraphQL server that exposes analytics data to the frontend.
+### SIM-R011: GitHub Repos/PRs API
+
+**Priority**: P1 (Important)
+**Complexity**: High
+**Phase**: 2
+
+This feature implements GitHub-style REST endpoints for repositories and pull requests.
+
+**Endpoints:**
+```
+GET /repos
+GET /repos/{owner}/{repo}
+GET /repos/{owner}/{repo}/pulls
+GET /repos/{owner}/{repo}/pulls/{n}
+GET /repos/{owner}/{repo}/pulls/{n}/commits
+GET /repos/{owner}/{repo}/pulls/{n}/files
+GET /repos/{owner}/{repo}/pulls/{n}/reviews
+GET /repos/{owner}/{repo}/commits
+GET /repos/{owner}/{repo}/commits/{sha}
+```
+
+**Technical Requirements:**
+- GitHub-style pagination with Link headers
+- Response schemas match GitHub API v3
+- Support state filter (open, closed, merged, all)
+- Support sort/direction params
+
+**Dependencies:** SIM-R009, SIM-R010
+
+**Acceptance Criteria:**
+- All endpoints return GitHub-compatible responses
+- Pagination with Link headers works correctly
+- Filters correctly limit results
+- Same PR data accessible via Cursor and GitHub APIs
+
+---
+
+### SIM-R012: Quality Outcomes
+
+**Priority**: P1 (Important)
+**Complexity**: Medium
+**Phase**: 2
+
+This feature determines quality outcomes (reverts, hotfixes) based on correlations.
 
 **Scope:**
-The server provides a GraphQL endpoint with queries for developers, teams, and dashboard statistics. The schema is typed and includes resolver implementations for all queries. GraphQL Playground is available in development mode for API exploration.
+Mark PRs as reverted or having hotfix follow-ups based on ai_ratio and seniority correlations. Generate revert/hotfix PRs.
 
 **Technical Requirements:**
-The server should use Apollo Server 4 with Express. The schema should be defined using SDL (Schema Definition Language). Resolvers should use DataLoader to batch database queries and avoid N+1 problems. The server should implement query complexity analysis to prevent expensive queries.
+- Revert within 7 days based on ai_ratio_revert_rate correlation
+- Hotfix PRs within 48 hours for urgent fixes
+- Connect revert PRs to original via reference
+- Track survival state for code survival analysis
 
-**Dependencies:**
-CORE-002
+**Outcome Logic:**
+```
+if rand() < ai_ratio_revert_rate[ai_bucket]:
+    mark PR as reverted
+    generate revert PR within 7 days
 
-**Acceptance Criteria Summary:**
-GraphQL endpoint responds to documented queries. DataLoader batches related queries efficiently. Query complexity limits reject overly expensive operations.
+if rand() < hotfix_rate[severity]:
+    generate hotfix PR within 48 hours
+```
 
-### CORE-004: Metric Calculations
+**Dependencies:** SIM-R009, SIM-R008
 
-**Priority**: P0 (Critical)  
-**Complexity**: High  
-**Phase**: 1  
+**Acceptance Criteria:**
+- Revert rate matches configured correlations
+- Revert PRs reference original PR
+- Hotfix timing is realistic (< 48h)
+- Outcomes reproducible with same seed
 
-This feature implements the business logic for calculating key performance indicators from raw event data.
+---
+
+### SIM-R013: Research Dataset Export
+
+**Priority**: P2 (Nice to Have)
+**Complexity**: Medium
+**Phase**: 3
+
+This feature provides pre-joined research datasets via API.
+
+**Endpoints:**
+```
+GET /research/dataset?format=json|csv|parquet
+GET /research/metrics/velocity
+GET /research/metrics/review-costs
+GET /research/metrics/quality
+```
+
+**Technical Requirements:**
+- Join Cursor and GitHub data on shared keys
+- Export as JSON, CSV, or Parquet
+- Include all research variables per row
+- Support filtering by date range
+
+**Research Dataset Columns:**
+```
+pr_number, author_email, repo_name,
+ai_lines_added, ai_ratio, pr_volume, greenfield_index,
+coding_lead_time_hours, pickup_time_hours, review_lead_time_hours,
+review_density, iterations, rework_ratio, scope_creep,
+is_reverted, survival_rate_30d, has_hotfix_followup,
+author_seniority, repo_age_days, primary_language
+```
+
+**Dependencies:** SIM-R009, SIM-R012
+
+**Acceptance Criteria:**
+- All formats produce valid output
+- JOIN keys align correctly
+- Research variables calculated accurately
+- Export performance > 10MB/s
+
+---
+
+### SIM-R014: Code Survival Tracking
+
+**Priority**: P2 (Nice to Have)
+**Complexity**: High
+**Phase**: 3
+
+This feature tracks what percentage of code survives over time.
 
 **Scope:**
-The feature calculates acceptance rate, AI velocity, chat dependency ratio, and composite productivity scores. Calculations can be performed at the developer, team, and organization levels. Time-windowed calculations support day, week, and month granularities.
+Calculate code survival rates at 7, 14, and 30 days. Track which commits are modified or removed by subsequent commits.
 
 **Technical Requirements:**
-Calculations should be performed in PostgreSQL where possible for efficiency. The acceptance rate formula is (accepted suggestions divided by shown suggestions) multiplied by 100. AI velocity formula is (AI lines added divided by total lines added) multiplied by 100. Null handling should avoid division by zero errors. Results should be cached in the materialized view and refreshed periodically.
+- Track line-level changes across commits
+- Calculate survival as: (lines_remaining / lines_added) at t+N days
+- Store survival snapshots for efficiency
+- Support per-file and per-PR survival
 
-**Dependencies:**
-CORE-002
+**Dependencies:** SIM-R003, SIM-R009
 
-**Acceptance Criteria Summary:**
-Metrics match expected values for test data sets. Division by zero scenarios return null rather than errors. Cached calculations refresh at configured intervals.
+**Acceptance Criteria:**
+- Survival rates calculated correctly
+- Performance acceptable for 100k commits
+- Survival correlates with AI ratio (configurable)
 
-### CORE-005: Developer Queries
+---
 
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
+### SIM-R015: Replay Mode
 
-This feature implements GraphQL queries for retrieving developer information and statistics.
+**Priority**: P2 (Nice to Have)
+**Complexity**: Medium
+**Phase**: 3
+
+This feature serves pre-generated events from a Parquet file.
 
 **Scope:**
-Queries support fetching a single developer by ID, listing all developers with pagination, and filtering developers by team. Each developer query can include nested statistics with optional time range parameters.
+Load events from Parquet corpus and serve via the same APIs. No generation logic, just read-only serving for reproducible research.
 
 **Technical Requirements:**
-The developer query should accept an ID parameter and return null if not found. The developers query should support limit, offset, and team filter parameters. Statistics should be calculated lazily when requested to avoid unnecessary computation.
-
-**Dependencies:**
-CORE-003, CORE-004
-
-**Acceptance Criteria Summary:**
-Developer queries return expected data shape. Pagination correctly limits results. Team filtering returns only matching developers.
-
-### CORE-006: Team Aggregations
-
-**Priority**: P1 (Important)  
-**Complexity**: Medium  
-**Phase**: 2  
-
-This feature adds queries for team-level statistics aggregated from individual developer data.
-
-**Scope:**
-Queries return team statistics including member count, average acceptance rate, total suggestions, and identification of top performers. Comparison data enables ranking teams against each other.
-
-**Technical Requirements:**
-Team statistics should be calculated from developer statistics, not stored separately. The top performer identification should use acceptance rate as the primary metric. Team comparison should return all teams sorted by the specified metric.
-
-**Dependencies:**
-CORE-004, CORE-005
-
-**Acceptance Criteria Summary:**
-Team statistics accurately aggregate developer data. Top performer is correctly identified. All teams are included in comparison queries.
-
-### CORE-007: Dashboard KPIs
-
-**Priority**: P1 (Important)  
-**Complexity**: Medium  
-**Phase**: 2  
-
-This feature implements the comprehensive dashboard query that returns all key performance indicators in a single request.
-
-**Scope:**
-The dashboard query returns organization-wide statistics, team comparisons, and trend data optimized for the main dashboard view. The query is designed to minimize database round trips while providing all necessary data.
-
-**Technical Requirements:**
-The query should return total and active developer counts, overall acceptance rate, today's suggestion counts, team comparison array, and daily trend data for the specified range. Active developers are those with at least one event in the last 7 days. The query should complete within 500ms for organizations with up to 500 developers.
-
-**Dependencies:**
-CORE-004, CORE-005, CORE-006
-
-**Acceptance Criteria Summary:**
-Dashboard query returns complete KPI data. Active developer count reflects recent activity. Query performance meets latency requirements.
-
-### CORE-008: Time Range Filtering
-
-**Priority**: P1 (Important)  
-**Complexity**: Low  
-**Phase**: 2  
-
-This feature adds time range support to all statistics queries for historical analysis.
-
-**Scope:**
-All statistics queries accept optional from and to parameters that bound the time window for calculations. Preset ranges (today, this week, this month, last 30 days) are supported as shortcuts.
-
-**Technical Requirements:**
-Date parameters should be parsed as ISO 8601 timestamps. Missing parameters default to appropriate boundaries (start of epoch for "from", current time for "to"). Preset range names should expand to their corresponding timestamps server-side.
-
-**Dependencies:**
-CORE-004
-
-**Acceptance Criteria Summary:**
-Time ranges correctly filter event data. Preset ranges map to expected boundaries. Invalid date formats return descriptive errors.
-
-## Service C: cursor-viz-spa Features
-
-### VIZ-001: Dashboard Layout
-
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
-
-This feature implements the main dashboard page layout with responsive grid arrangement of visualization components.
-
-**Scope:**
-The layout includes a header with summary KPIs, a main content area with chart components arranged in a responsive grid, and a sidebar for navigation and filters. The layout adapts to desktop, tablet, and mobile viewport sizes.
-
-**Technical Requirements:**
-The layout should use CSS Grid or Flexbox for responsive behavior. Breakpoints should be set at 768px and 1024px for tablet and desktop transitions. The sidebar should collapse to a hamburger menu on mobile. Chart containers should maintain aspect ratios when resizing.
-
-**Dependencies:**
-None
-
-**Acceptance Criteria Summary:**
-Layout renders correctly at all viewport sizes. Components reflow appropriately at breakpoints. No horizontal scrolling on mobile.
-
-### VIZ-002: Velocity Heatmap
-
-**Priority**: P0 (Critical)  
-**Complexity**: High  
-**Phase**: 1  
-
-This feature implements the GitHub-style contribution graph showing AI code acceptance intensity over time.
-
-**Scope:**
-The heatmap displays a grid of cells representing days, colored by the intensity of AI-accepted code on that day. Tooltips show exact values on hover. The display shows the most recent 52 weeks by default with options to scroll back further.
-
-**Technical Requirements:**
-Cells should use a gradient from light to dark based on the acceptance count. The color scale should be configurable. Week labels should appear on the left edge. Month labels should appear above the appropriate week boundaries. The component should accept daily statistics data and calculate the color mapping internally.
-
-**Dependencies:**
-VIZ-001, CORE-007
-
-**Acceptance Criteria Summary:**
-Heatmap renders with correct date alignment. Colors accurately represent value intensity. Tooltips display on hover.
-
-### VIZ-003: Team Radar Chart
-
-**Priority**: P1 (Important)  
-**Complexity**: High  
-**Phase**: 2  
-
-This feature implements the multi-axis radar chart for comparing teams across different metrics.
-
-**Scope:**
-The radar chart displays multiple teams as overlapping polygons on axes representing different metrics. Selectable teams allow focusing the comparison on specific groups. Axes include Chat Usage, Code Completion, Refactoring Prompts, Acceptance Rate, and AI Velocity.
-
-**Technical Requirements:**
-The chart should support displaying 2-5 teams simultaneously. Team selection should use a multi-select dropdown. Axis labels should be positioned outside the chart area. Each team should have a distinct color with semi-transparent fill. The chart should include a legend mapping colors to team names.
-
-**Dependencies:**
-VIZ-001, CORE-006
-
-**Acceptance Criteria Summary:**
-Radar chart renders with correct axis positions. Team polygons accurately represent metric values. Legend clearly identifies each team.
-
-### VIZ-004: Developer Efficiency Table
-
-**Priority**: P0 (Critical)  
-**Complexity**: Medium  
-**Phase**: 1  
-
-This feature implements the sortable table displaying individual developer metrics with visual performance indicators.
-
-**Scope:**
-The table displays columns for developer name, team, total AI suggestions, accepted suggestions, acceptance rate, and AI lines written. Rows are sortable by any column. Rows with acceptance rates below 20% are highlighted in red to flag potential issues.
-
-**Technical Requirements:**
-Sorting should be client-side for tables under 100 rows, server-side for larger datasets. The acceptance rate column should include a visual bar indicator in addition to the numeric value. Pagination should display 25 rows per page by default. A search filter should allow finding specific developers by name.
-
-**Dependencies:**
-VIZ-001, CORE-005
-
-**Acceptance Criteria Summary:**
-Table sorts correctly by all columns. Low acceptance rate rows are visually distinct. Search filter matches partial names.
-
-### VIZ-005: Date Range Picker
-
-**Priority**: P1 (Important)  
-**Complexity**: Low  
-**Phase**: 2  
-
-This feature provides a date range selection component that controls the time window for all dashboard visualizations.
-
-**Scope:**
-The picker includes preset options (Today, This Week, This Month, Last 30 Days, Custom) and a custom date range selector. Selection updates all dashboard components through shared state.
-
-**Technical Requirements:**
-The component should use a dropdown for preset selection. Custom range selection should open a calendar popup allowing start and end date selection. The selected range should be displayed in a human-readable format. Range changes should trigger re-fetching of dashboard data through React Query.
-
-**Dependencies:**
-CORE-008
-
-**Acceptance Criteria Summary:**
-Preset selections apply correct date boundaries. Custom range selector validates that start is before end. Dashboard updates when range changes.
-
-### VIZ-006: Loading States
-
-**Priority**: P1 (Important)  
-**Complexity**: Low  
-**Phase**: 2  
-
-This feature implements consistent loading indicators across all dashboard components during data fetching.
-
-**Scope:**
-Each visualization component displays a skeleton loader while its data is loading. The skeleton matches the approximate shape of the loaded content to minimize layout shift. A global loading indicator appears in the header during any active fetch.
-
-**Technical Requirements:**
-Skeleton loaders should use CSS animation for subtle pulsing effect. The loading state should be determined by React Query's isLoading flag. Components should display cached data with a subtle staleness indicator while revalidating.
-
-**Dependencies:**
-VIZ-001
-
-**Acceptance Criteria Summary:**
-Skeletons appear during initial data load. Layout does not shift when data arrives. Stale data indicator appears during revalidation.
-
-### VIZ-007: Error Handling
-
-**Priority**: P1 (Important)  
-**Complexity**: Low  
-**Phase**: 2  
-
-This feature implements consistent error display and recovery mechanisms across the dashboard.
-
-**Scope:**
-Components display helpful error messages when queries fail. A retry button allows manual re-fetch. The error boundary prevents individual component failures from crashing the entire dashboard.
-
-**Technical Requirements:**
-Error messages should be user-friendly, not raw error strings. The retry button should be prominently displayed within the error state. Error boundaries should log errors to console in development and to an error service in production. Network errors should suggest checking connectivity.
-
-**Dependencies:**
-VIZ-001
-
-**Acceptance Criteria Summary:**
-Errors display user-friendly messages. Retry successfully re-fetches data. Single component errors do not affect siblings.
+- Load Parquet using parquet-go library
+- Index data for efficient queries
+- Same API responses as runtime mode
+- Fast startup (< 1s for 1M events)
+
+**Usage:**
+```bash
+cursor-sim --mode=replay --corpus=research_corpus.parquet --port=8080
+```
+
+**Dependencies:** SIM-R008
+
+**Acceptance Criteria:**
+- Parquet files load correctly
+- APIs return identical results to runtime mode
+- Startup time < 1s for typical corpus
+- Read-only (no writes accepted)
+
+---
 
 ## Phase Summary
 
-### Phase 1: Core Functionality (MVP)
+### Phase 1: Complete Cursor API (MVP)
 
-Phase 1 delivers a working end-to-end system with basic simulation, data processing, and visualization. Upon completion, users can run the platform locally, see synthetic developer data flowing through the pipeline, and view basic analytics on the dashboard.
+**Goal:** Working cursor-sim that exactly matches Cursor Business API
 
-Features included: SIM-001 through SIM-004, CORE-001 through CORE-005, VIZ-001, VIZ-002, VIZ-004.
+**Features:**
+- SIM-R001: Seed Loading
+- SIM-R002: CLI v2
+- SIM-R003: Commit Generation
+- SIM-R004: Admin API
+- SIM-R005: AI Code Tracking
+- SIM-R006: Team Analytics
+- SIM-R007: By-User Analytics
+- SIM-R008: Storage v2
 
-### Phase 2: Enhanced Analytics
+**Estimated Hours:** 45
 
-Phase 2 adds team-level analytics, improved filtering, and polished user experience. Upon completion, users can compare teams, filter by date range, and experience smooth loading and error states.
+**Exit Criteria:**
+- All 29 Cursor endpoints implemented
+- Response schemas match Cursor docs
+- Test coverage > 80%
 
-Features included: SIM-005, CORE-006 through CORE-008, VIZ-003, VIZ-005 through VIZ-007.
+### Phase 2: PR Lifecycle + GitHub API
 
-### Phase 3: Advanced Simulation
+**Goal:** Full SDLC simulation with PR lifecycle
 
-Phase 3 adds sophisticated simulation features for more realistic demos and testing scenarios. Upon completion, the simulator produces data patterns that closely match real-world usage.
+**Features:**
+- SIM-R009: PR Generation
+- SIM-R010: Review Simulation
+- SIM-R011: GitHub API
+- SIM-R012: Quality Outcomes
 
-Features included: SIM-006.
+**Estimated Hours:** 28
+
+**Exit Criteria:**
+- All 12 GitHub endpoints implemented
+- Correlations enforced correctly
+- Revert/hotfix simulation working
+
+### Phase 3: Research Framework
+
+**Goal:** Research-ready dataset export
+
+**Features:**
+- SIM-R013: Research Dataset
+- SIM-R014: Code Survival
+- SIM-R015: Replay Mode
+
+**Estimated Hours:** 18
+
+**Exit Criteria:**
+- Pre-joined dataset export working
+- Parquet export functional
+- Replay mode stable
+
+---
+
+## Deprecation Notice: v1.0 Features
+
+The following v1.0 features are replaced by v2.0 equivalents:
+
+| v1.0 Feature | Status | v2.0 Replacement |
+|--------------|--------|------------------|
+| SIM-001: Developer Profile Generation | DEPRECATED | SIM-R001: Seed Loading |
+| SIM-002: Event Generation Engine | DEPRECATED | SIM-R003: Commit Generation |
+| SIM-003: REST API Server | DEPRECATED | SIM-R004 through SIM-R007 |
+| SIM-004: CLI Configuration | DEPRECATED | SIM-R002: CLI v2 |
+| SIM-005: Team Structure Simulation | DEPRECATED | Loaded from seed |
+| SIM-006: Realistic Time Patterns | RETAINED | Integrated into SIM-R003 |
+
+The v1.0 code is archived at `services/cursor-sim-v1/` for reference.

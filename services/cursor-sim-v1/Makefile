@@ -25,7 +25,7 @@ lint: ## Run linter (optional)
 	@if command -v golangci-lint > /dev/null; then \
 		golangci-lint run; \
 	else \
-		echo "golangci-lint not installed (skipping lint)"; \
+		echo "⚠️  golangci-lint not installed (skipping lint)"; \
 		echo "   Install with: brew install golangci-lint"; \
 		echo "   or visit https://golangci-lint.run/usage/install/"; \
 	fi

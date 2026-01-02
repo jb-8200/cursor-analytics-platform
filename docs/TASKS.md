@@ -1,894 +1,1109 @@
 # Implementation Tasks: Cursor Usage Analytics Platform
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026  
+**Version**: 2.0.0
+**Last Updated**: January 2026
 
-This document breaks down features into actionable implementation tasks. Each task is designed to be completable in 2-4 hours and includes a clear definition of done. Tasks are organized by phase and service, with dependencies explicitly noted. The task structure supports both human developers and AI coding assistants following spec-driven development.
+This document breaks down features into actionable implementation tasks for cursor-sim v2. Each task is designed to be completable in 2-4 hours and follows TDD workflow.
 
 ## Task Status Legend
 
-Each task uses one of the following status indicators to track progress across the project.
+| Status | Description |
+|--------|-------------|
+| NOT_STARTED | Work has not begun |
+| IN_PROGRESS | Active development |
+| BLOCKED | Dependency not met |
+| REVIEW | Awaiting code review |
+| DONE | Complete and merged |
 
-**NOT_STARTED** indicates work has not begun on this task. **IN_PROGRESS** indicates active development is underway. **BLOCKED** indicates the task cannot proceed due to an unresolved dependency. **REVIEW** indicates implementation is complete and awaiting code review. **DONE** indicates the task is complete and merged.
+## v1.0 Tasks (ARCHIVED)
 
-## Phase 1: Core Functionality (MVP)
+The v1.0 tasks (TASK-SIM-001 through TASK-SIM-007) are archived. See `services/cursor-sim-v1/` for reference implementation. The following v1 tasks were completed:
 
-Phase 1 delivers a working end-to-end system. The goal is to have all three services communicating and basic visualizations functional by the end of this phase.
-
-### Service A: cursor-sim Tasks
-
-#### TASK-SIM-001: Initialize Go Project Structure
-
-**Status**: NOT_STARTED  
-**Feature**: SIM-004  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
-
-This task creates the foundational Go project with proper module structure, linting configuration, and initial dependencies.
-
-**Implementation Steps:**
-
-The developer should start by creating the project directory and initializing the Go module with `go mod init github.com/org/cursor-sim`. The directory structure should follow Go conventions with a `cmd/` directory for the main entry point, an `internal/` directory for private packages, and a `pkg/` directory for any packages intended for external use.
-
-The essential directories to create include `cmd/cursor-sim/` for the main application, `internal/config/` for configuration handling, `internal/models/` for domain types, `internal/generator/` for data generation logic, `internal/api/` for HTTP handlers, and `internal/storage/` for the in-memory data store.
-
-Configuration files needed include a `.golangci.yml` for linting rules, a `Makefile` with common commands, and a `Dockerfile` for containerization.
-
-**Definition of Done:**
-
-The project compiles successfully with `go build ./...`. The linter passes with `golangci-lint run`. A minimal main.go file exists that prints a version string and exits.
-
-**Dependencies**: None
-
-**Files to Create:**
-- cmd/cursor-sim/main.go
-- internal/config/config.go
-- go.mod
-- .golangci.yml
-- Makefile
-- Dockerfile
+| v1.0 Task | Status | Reuse in v2 |
+|-----------|--------|-------------|
+| TASK-SIM-001: Go Project Structure | DONE | Partial - directory layout |
+| TASK-SIM-002: CLI Flag Parsing | DONE | Replace - new flags |
+| TASK-SIM-003: Developer Generator | DONE | Replace - seed loading |
+| TASK-SIM-004: Event Generator | DONE | Partial - Poisson timing |
+| TASK-SIM-005: In-Memory Storage | NOT_STARTED | Replace - new models |
+| TASK-SIM-006: REST API Handlers | NOT_STARTED | Replace - Cursor API |
+| TASK-SIM-007: Wire Up Main | NOT_STARTED | Replace - new modes |
 
 ---
 
-#### TASK-SIM-002: Implement CLI Flag Parsing
+## Phase 1: Complete Cursor API (MVP)
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-004  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
+### Service A: cursor-sim v2 Tasks
 
-This task implements command-line argument parsing for all simulator configuration options.
+---
+
+#### TASK-R001: Initialize v2 Project Structure
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R001, SIM-R002
+**Estimated Hours**: 1
+**Model Recommendation**: Haiku
+
+Create the v2 project structure by copying from v1 and updating module paths.
 
 **Implementation Steps:**
-
-Create a `Config` struct in `internal/config/config.go` that holds all configuration values including Port (int), Developers (int), Velocity (string), Fluctuation (float64), and Seed (int64 for reproducibility).
-
-Implement a `ParseFlags()` function that uses the standard `flag` package to define and parse all flags. The function should return a `Config` struct and an error for invalid configurations.
-
-Add validation logic that ensures Port is between 1024 and 65535, Developers is between 1 and 1000, Velocity is one of "low", "medium", or "high", and Fluctuation is between 0.0 and 1.0.
-
-Implement `--help` output that clearly documents each flag, its default value, and valid options.
+1. Archive v1: `mv services/cursor-sim services/cursor-sim-v1`
+2. Create new v2 directory: `mkdir -p services/cursor-sim`
+3. Copy reusable infrastructure: Makefile, Dockerfile, .golangci.yml
+4. Initialize go.mod with same module path
+5. Create v2 directory structure:
+   ```
+   services/cursor-sim/
+   ├── cmd/simulator/main.go
+   ├── internal/
+   │   ├── config/
+   │   ├── seed/
+   │   ├── models/
+   │   ├── generator/
+   │   ├── storage/
+   │   └── api/
+   │       ├── cursor/
+   │       ├── github/
+   │       └── research/
+   ├── go.mod
+   ├── Makefile
+   └── Dockerfile
+   ```
 
 **Definition of Done:**
+- Project compiles with `go build ./...`
+- Linter passes with `golangci-lint run`
+- Main prints version and exits
 
-Running `./cursor-sim --help` displays all options with descriptions. Invalid flag values produce descriptive error messages. Valid configurations are correctly parsed into the Config struct. Unit tests cover all validation scenarios.
+**Dependencies:** None
 
-**Dependencies**: TASK-SIM-001
+---
 
-**Files to Create/Modify:**
+#### TASK-R002: Implement Seed Schema Types
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R001
+**Estimated Hours**: 2
+**Model Recommendation**: Haiku
+
+Define Go types matching the seed.json schema from DataDesigner.
+
+**Implementation Steps:**
+1. Create `internal/seed/types.go` with all seed structures
+2. Define Developer with all fields (user_id, email, pr_behavior, etc.)
+3. Define Repository with language, maturity, teams
+4. Define Correlations struct with coefficient maps
+5. Define TextTemplates for commit messages, PR titles
+6. Add JSON tags matching exact schema
+
+**Types to Define:**
+```go
+type SeedData struct {
+    Developers    []Developer    `json:"developers"`
+    Repositories  []Repository   `json:"repositories"`
+    Correlations  Correlations   `json:"correlations"`
+    TextTemplates TextTemplates  `json:"text_templates"`
+}
+
+type Developer struct {
+    UserID         string     `json:"user_id"`
+    Email          string     `json:"email"`
+    Name           string     `json:"name"`
+    Org            string     `json:"org"`
+    Division       string     `json:"division"`
+    Team           string     `json:"team"`
+    Seniority      string     `json:"seniority"`
+    Region         string     `json:"region"`
+    AcceptanceRate float64    `json:"acceptance_rate"`
+    PRBehavior     PRBehavior `json:"pr_behavior"`
+}
+
+type PRBehavior struct {
+    PRsPerWeek       float64 `json:"prs_per_week"`
+    AvgPRSizeLoc     int     `json:"avg_pr_size_loc"`
+    GreenfieldRatio  float64 `json:"greenfield_ratio"`
+}
+
+type Repository struct {
+    RepoName        string   `json:"repo_name"`
+    PrimaryLanguage string   `json:"primary_language"`
+    AgeDays         int      `json:"age_days"`
+    Maturity        string   `json:"maturity"`
+    Teams           []string `json:"teams"`
+}
+```
+
+**Definition of Done:**
+- All seed types defined with JSON tags
+- Unit tests verify JSON marshaling/unmarshaling
+- Test with sample seed.json from DataDesigner
+
+**Files to Create:**
+- internal/seed/types.go
+- internal/seed/types_test.go
+
+---
+
+#### TASK-R003: Implement Seed Loader with Validation
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R001
+**Estimated Hours**: 3
+**Model Recommendation**: Sonnet
+
+Implement seed.json loading and comprehensive validation.
+
+**Implementation Steps:**
+1. Create `internal/seed/loader.go` with `LoadSeed(path string) (*SeedData, error)`
+2. Read and parse JSON file
+3. Validate required fields are present
+4. Validate user_id format (must match `user_xxx`)
+5. Validate acceptance_rate is 0.0-1.0
+6. Validate seniority is one of: junior, mid, senior
+7. Validate region is supported
+8. Validate repository languages are known
+9. Validate correlations have required keys
+10. Return structured errors with context
+
+**Validation Rules:**
+```go
+func (s *SeedData) Validate() error {
+    for i, dev := range s.Developers {
+        if !strings.HasPrefix(dev.UserID, "user_") {
+            return fmt.Errorf("developer[%d]: user_id must start with 'user_', got %q", i, dev.UserID)
+        }
+        if dev.AcceptanceRate < 0 || dev.AcceptanceRate > 1 {
+            return fmt.Errorf("developer[%d]: acceptance_rate must be 0-1, got %f", i, dev.AcceptanceRate)
+        }
+        // ... more validations
+    }
+    return nil
+}
+```
+
+**Definition of Done:**
+- LoadSeed successfully loads valid seed files
+- Invalid seeds produce descriptive errors
+- Validation covers all required fields
+- 90%+ test coverage
+
+**Files to Create:**
+- internal/seed/loader.go
+- internal/seed/loader_test.go
+- internal/seed/validation.go
+- testdata/valid_seed.json
+- testdata/invalid_seed_*.json (various failure cases)
+
+**Test Cases:**
+```go
+func TestLoadSeed_Valid(t *testing.T)
+func TestLoadSeed_FileNotFound(t *testing.T)
+func TestLoadSeed_InvalidJSON(t *testing.T)
+func TestLoadSeed_MissingDevelopers(t *testing.T)
+func TestLoadSeed_InvalidUserID(t *testing.T)
+func TestLoadSeed_AcceptanceRateOutOfRange(t *testing.T)
+func TestLoadSeed_InvalidSeniority(t *testing.T)
+```
+
+**Dependencies:** TASK-R002
+
+---
+
+#### TASK-R004: Implement CLI v2 Flags
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R002
+**Estimated Hours**: 2
+**Model Recommendation**: Haiku
+
+Implement v2 CLI with mode, seed, and corpus flags.
+
+**Implementation Steps:**
+1. Create `internal/config/config.go` with v2 Config struct
+2. Add Mode field (runtime/replay)
+3. Add SeedPath field (for runtime mode)
+4. Add CorpusPath field (for replay mode)
+5. Add Port, Days, Velocity fields
+6. Implement ParseFlags() with validation
+7. Validate mode-specific requirements
+8. Support environment variable overrides
+
+**Config Struct:**
+```go
+type Config struct {
+    Mode       string // "runtime" or "replay"
+    SeedPath   string // required for runtime
+    CorpusPath string // required for replay
+    Port       int
+    Days       int
+    Velocity   string // "low", "medium", "high"
+}
+
+func ParseFlags() (*Config, error) {
+    cfg := &Config{}
+    flag.StringVar(&cfg.Mode, "mode", "runtime", "Operation mode: runtime or replay")
+    flag.StringVar(&cfg.SeedPath, "seed", "", "Path to seed.json (required for runtime)")
+    flag.StringVar(&cfg.CorpusPath, "corpus", "", "Path to events.parquet (required for replay)")
+    flag.IntVar(&cfg.Port, "port", 8080, "HTTP server port")
+    flag.IntVar(&cfg.Days, "days", 90, "Days of history to generate")
+    flag.StringVar(&cfg.Velocity, "velocity", "medium", "Event rate: low, medium, high")
+    flag.Parse()
+
+    // Environment variable overrides
+    if v := os.Getenv("CURSOR_SIM_MODE"); v != "" {
+        cfg.Mode = v
+    }
+    // ... more overrides
+
+    return cfg, cfg.Validate()
+}
+```
+
+**Definition of Done:**
+- All flags parse correctly
+- Mode validation enforces seed/corpus requirements
+- Environment variables override flags
+- --help shows all options
+- Unit tests cover all scenarios
+
+**Files to Create:**
 - internal/config/config.go
 - internal/config/config_test.go
-- cmd/cursor-sim/main.go
 
-**Test Cases to Write:**
-```go
-func TestParseFlags_Defaults(t *testing.T)
-func TestParseFlags_CustomValues(t *testing.T)
-func TestParseFlags_InvalidPort(t *testing.T)
-func TestParseFlags_InvalidVelocity(t *testing.T)
-func TestParseFlags_InvalidFluctuation(t *testing.T)
-```
+**Dependencies:** TASK-R001
 
 ---
 
-#### TASK-SIM-003: Implement Developer Profile Generator
+#### TASK-R005: Implement Cursor Data Models
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-001  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
+**Status**: NOT_STARTED
+**Feature**: SIM-R003
+**Estimated Hours**: 3
+**Model Recommendation**: Haiku
 
-This task implements the logic for generating realistic developer profiles with varied characteristics.
+Define Go types matching exact Cursor API response schemas.
 
 **Implementation Steps:**
+1. Create `internal/models/commit.go` with Commit struct
+2. Create `internal/models/change.go` with Change struct
+3. Create `internal/models/team_stats.go` for analytics types
+4. Match exact JSON field names from Cursor API
+5. Use camelCase for Cursor APIs
+6. Add helper methods for common operations
 
-Create a `Developer` struct in `internal/models/developer.go` with fields for ID, Name, Email, Team, Seniority, AcceptanceRate, and CreatedAt.
+**Types to Define:**
+```go
+// internal/models/commit.go
+type Commit struct {
+    CommitHash           string    `json:"commitHash"`
+    UserID               string    `json:"userId"`
+    UserEmail            string    `json:"userEmail"`
+    UserName             string    `json:"userName"`
+    RepoName             string    `json:"repoName"`
+    BranchName           string    `json:"branchName"`
+    IsPrimaryBranch      bool      `json:"isPrimaryBranch"`
+    TotalLinesAdded      int       `json:"totalLinesAdded"`
+    TotalLinesDeleted    int       `json:"totalLinesDeleted"`
+    TabLinesAdded        int       `json:"tabLinesAdded"`
+    TabLinesDeleted      int       `json:"tabLinesDeleted"`
+    ComposerLinesAdded   int       `json:"composerLinesAdded"`
+    ComposerLinesDeleted int       `json:"composerLinesDeleted"`
+    NonAILinesAdded      int       `json:"nonAiLinesAdded"`
+    NonAILinesDeleted    int       `json:"nonAiLinesDeleted"`
+    Message              string    `json:"message"`
+    CommitTs             time.Time `json:"commitTs"`
+    CreatedAt            time.Time `json:"createdAt"`
+}
 
-Implement a name generator that produces realistic names using a deterministic algorithm based on the random seed. The generator should use common first and last name lists to create combinations.
-
-Create a team assignment algorithm that distributes developers across a configurable number of teams (default 5) with some variance in team sizes.
-
-Implement seniority assignment following the distribution of 20% junior, 50% mid-level, and 30% senior, with acceptance rates of 60%, 75%, and 90% respectively (with some per-developer variance).
-
-Create a `GenerateDevelopers(count int, seed int64) []Developer` function that produces the specified number of profiles.
+// internal/models/team_stats.go
+type AgentEditsDay struct {
+    EventDate               string `json:"event_date"`
+    TotalSuggestedDiffs     int    `json:"total_suggested_diffs"`
+    TotalAcceptedDiffs      int    `json:"total_accepted_diffs"`
+    TotalRejectedDiffs      int    `json:"total_rejected_diffs"`
+    TotalGreenLinesAccepted int    `json:"total_green_lines_accepted"`
+    TotalRedLinesAccepted   int    `json:"total_red_lines_accepted"`
+    // ... all fields from Cursor docs
+}
+```
 
 **Definition of Done:**
-
-Generated profiles have unique IDs and emails. Seniority distribution matches target percentages within 10% variance. Acceptance rates correlate correctly with seniority. The same seed produces identical profiles across runs. All unit tests pass.
-
-**Dependencies**: TASK-SIM-001
+- All Cursor API response types defined
+- JSON tags match Cursor documentation exactly
+- Helper methods for calculations (e.g., AIRatio())
+- Unit tests verify JSON compatibility
 
 **Files to Create:**
-- internal/models/developer.go
-- internal/generator/developer_generator.go
-- internal/generator/developer_generator_test.go
-- internal/generator/names.go (name data)
+- internal/models/commit.go
+- internal/models/change.go
+- internal/models/team_stats.go
+- internal/models/user_stats.go
+- internal/models/response.go (pagination, params)
 
-**Test Cases to Write:**
-```go
-func TestGenerateDevelopers_Count(t *testing.T)
-func TestGenerateDevelopers_UniqueIDs(t *testing.T)
-func TestGenerateDevelopers_SeniorityDistribution(t *testing.T)
-func TestGenerateDevelopers_AcceptanceRates(t *testing.T)
-func TestGenerateDevelopers_Reproducibility(t *testing.T)
-```
+**Dependencies:** None
 
 ---
 
-#### TASK-SIM-004: Implement Event Generation Engine
+#### TASK-R006: Implement Commit Generation Engine
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-002  
-**Estimated Hours**: 6  
-**Assignee**: Unassigned  
+**Status**: NOT_STARTED
+**Feature**: SIM-R003
+**Estimated Hours**: 5
+**Model Recommendation**: Sonnet
 
-This task implements the core simulation logic for generating usage events with realistic timing patterns.
+Generate commits with AI attribution matching seed behavior.
 
 **Implementation Steps:**
+1. Create `internal/generator/commit_generator.go`
+2. Copy Poisson timing from v1 (tested, working)
+3. Implement developer selection weighted by prs_per_week
+4. Generate commit sizes using lognormal distribution
+5. Split AI lines: TAB (60-80%), COMPOSER (20-40%)
+6. Calculate nonAiLines = max(0, total - tab - composer)
+7. Generate commit messages from templates
+8. Assign to repositories by team
+9. Generate for configured time range (--days)
 
-Create a `UsageEvent` struct in `internal/models/event.go` with fields for ID, DeveloperID, EventType, Timestamp, and Metadata (containing LinesAdded, LinesDeleted, ModelUsed, Accepted, TokensInput, TokensOutput).
+**Key Methods:**
+```go
+type CommitGenerator struct {
+    seed       *seed.SeedData
+    store      storage.Store
+    rng        *rand.Rand
+    velocity   VelocityConfig
+}
 
-Implement a Poisson distribution event timer that generates events with natural clustering rather than uniform spacing. The mean interval should be derived from the velocity configuration.
+func (g *CommitGenerator) GenerateCommits(ctx context.Context, days int) error {
+    startTime := time.Now().AddDate(0, 0, -days)
 
-Create event type generators for each of the four types: cpp_suggestion_shown, cpp_suggestion_accepted, chat_message, and cmd_k_prompt. The accepted events should only follow shown events with probability matching the developer's acceptance rate.
+    for _, dev := range g.seed.Developers {
+        if err := g.generateForDeveloper(ctx, dev, startTime); err != nil {
+            return err
+        }
+    }
+    return nil
+}
 
-Implement per-developer fluctuation by adjusting each developer's base rate by a random factor within the configured fluctuation range.
+func (g *CommitGenerator) generateForDeveloper(ctx context.Context, dev seed.Developer, start time.Time) error {
+    // Use Poisson distribution for commit timing
+    rate := g.velocity.CommitsPerHour(dev.PRBehavior.PRsPerWeek)
 
-Create an `EventGenerator` that manages goroutines for each developer, coordinating event generation and providing access to generated events.
+    current := start
+    for current.Before(time.Now()) {
+        // Wait time follows exponential distribution
+        waitHours := g.exponential(1.0 / rate)
+        current = current.Add(time.Duration(waitHours * float64(time.Hour)))
+
+        if current.After(time.Now()) {
+            break
+        }
+
+        // Generate commit
+        commit := g.generateCommit(dev, current)
+        if err := g.store.AddCommit(commit); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+```
 
 **Definition of Done:**
-
-Events are generated continuously with Poisson-distributed timing. Event types appear in correct proportions. Acceptance rates match developer profiles within statistical variance. The generator can be started and stopped cleanly. All unit tests pass including statistical distribution tests.
-
-**Dependencies**: TASK-SIM-003
+- Commits generated for configured date range
+- AI attribution sums correctly (tab + composer + nonAi = total)
+- Developer distribution matches weights
+- Reproducible with same seed
+- 85%+ test coverage
 
 **Files to Create:**
-- internal/models/event.go
-- internal/generator/event_generator.go
-- internal/generator/event_generator_test.go
-- internal/generator/poisson.go
+- internal/generator/commit_generator.go
+- internal/generator/commit_generator_test.go
+- internal/generator/poisson.go (copy from v1)
+- internal/generator/velocity.go
 
-**Test Cases to Write:**
+**Test Cases:**
 ```go
-func TestEventGenerator_AllEventTypes(t *testing.T)
-func TestEventGenerator_AcceptanceCorrelation(t *testing.T)
-func TestEventGenerator_VelocityImpact(t *testing.T)
-func TestEventGenerator_PoissonDistribution(t *testing.T)
-func TestEventGenerator_StartStop(t *testing.T)
+func TestCommitGenerator_AIAttribution(t *testing.T)
+func TestCommitGenerator_DeveloperDistribution(t *testing.T)
+func TestCommitGenerator_TimeRange(t *testing.T)
+func TestCommitGenerator_Reproducibility(t *testing.T)
+func TestCommitGenerator_RegionTimezones(t *testing.T)
 ```
+
+**Dependencies:** TASK-R003, TASK-R005
 
 ---
 
-#### TASK-SIM-005: Implement In-Memory Storage
+#### TASK-R007: Implement In-Memory Storage v2
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-003  
-**Estimated Hours**: 3  
-**Assignee**: Unassigned  
+**Status**: NOT_STARTED
+**Feature**: SIM-R008
+**Estimated Hours**: 4
+**Model Recommendation**: Sonnet
 
-This task implements thread-safe in-memory storage for developers and events.
+Thread-safe storage for v2 models with efficient queries.
 
 **Implementation Steps:**
+1. Create `internal/storage/store.go` with interface
+2. Create `internal/storage/memory.go` with implementation
+3. Index commits by time for range queries
+4. Index by user for by-user endpoints
+5. Index by repo for GitHub API
+6. Use sync.RWMutex for concurrency
+7. Implement efficient time range filtering
 
-Create a `Store` interface in `internal/storage/store.go` that defines methods for storing and retrieving developers and events.
+**Interface:**
+```go
+type Store interface {
+    // Developers (loaded from seed)
+    LoadDevelopers(developers []seed.Developer) error
+    GetDeveloper(userID string) (*seed.Developer, error)
+    GetDeveloperByEmail(email string) (*seed.Developer, error)
+    ListDevelopers() []seed.Developer
 
-Implement `MemoryStore` that uses `sync.Map` or mutex-protected maps for thread-safe access. The store should support adding developers, listing all developers, getting a developer by ID, adding events, and querying events by time range.
+    // Commits
+    AddCommit(commit models.Commit) error
+    GetCommitByHash(hash string) (*models.Commit, error)
+    GetCommitsByTimeRange(from, to time.Time) []models.Commit
+    GetCommitsByUser(userID string, from, to time.Time) []models.Commit
+    GetCommitsByRepo(repoName string, from, to time.Time) []models.Commit
 
-Implement efficient time-range queries by maintaining events in a time-sorted structure. Consider using a skip list or B-tree for efficient range queries, or accept O(n) scanning for simplicity given the in-memory nature.
+    // Aggregations
+    GetDailyCommitStats(from, to time.Time) []models.DailyStats
+    GetUserDailyStats(userID string, from, to time.Time) []models.DailyStats
+}
+```
 
-Add a method to clear all data for testing purposes.
+**Memory Structure:**
+```go
+type MemoryStore struct {
+    mu sync.RWMutex
+
+    developers      map[string]*seed.Developer // by user_id
+    developerEmails map[string]string          // email -> user_id
+
+    commits         []*models.Commit           // time-sorted
+    commitsByHash   map[string]*models.Commit
+    commitsByUser   map[string][]*models.Commit
+    commitsByRepo   map[string][]*models.Commit
+}
+```
 
 **Definition of Done:**
-
-Concurrent access to the store is safe. Time-range queries return correct results. The store can handle 1000 developers and 100,000 events without performance degradation. All unit tests pass including concurrency tests.
-
-**Dependencies**: TASK-SIM-003, TASK-SIM-004
+- Thread-safe read/write operations
+- Time range queries O(log n) or better
+- Memory < 500MB for 100k commits
+- Query latency < 10ms
+- 90%+ test coverage
 
 **Files to Create:**
 - internal/storage/store.go
-- internal/storage/memory_store.go
-- internal/storage/memory_store_test.go
+- internal/storage/memory.go
+- internal/storage/memory_test.go
 
-**Test Cases to Write:**
+**Test Cases:**
 ```go
-func TestMemoryStore_AddDeveloper(t *testing.T)
-func TestMemoryStore_GetDeveloper(t *testing.T)
-func TestMemoryStore_AddEvent(t *testing.T)
-func TestMemoryStore_QueryEventsByTimeRange(t *testing.T)
+func TestMemoryStore_LoadDevelopers(t *testing.T)
+func TestMemoryStore_AddCommit(t *testing.T)
+func TestMemoryStore_TimeRangeQuery(t *testing.T)
+func TestMemoryStore_UserQuery(t *testing.T)
 func TestMemoryStore_ConcurrentAccess(t *testing.T)
+func TestMemoryStore_MemoryEfficiency(t *testing.T)
 ```
+
+**Dependencies:** TASK-R002, TASK-R005
 
 ---
 
-#### TASK-SIM-006: Implement REST API Handlers
+#### TASK-R008: Implement Common API Infrastructure
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-003  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
+**Status**: NOT_STARTED
+**Feature**: SIM-R004
+**Estimated Hours**: 2
+**Model Recommendation**: Haiku
 
-This task implements the REST API endpoints that expose simulated data.
+Create shared API infrastructure: auth, pagination, error handling.
 
 **Implementation Steps:**
+1. Create `internal/api/middleware.go` for common middleware
+2. Implement Basic Auth middleware
+3. Implement rate limiting middleware
+4. Create `internal/api/response.go` for response helpers
+5. Implement Cursor pagination format
+6. Implement error response format
 
-Create HTTP handlers in `internal/api/handlers.go` using the standard `net/http` package. Each handler should interact with the storage layer to retrieve data.
+**Response Helpers:**
+```go
+type PaginatedResponse struct {
+    Data       interface{} `json:"data"`
+    Pagination Pagination  `json:"pagination"`
+    Params     Params      `json:"params"`
+}
 
-Implement `GET /v1/org/users` to return all developers as a JSON array. Implement `GET /v1/org/users/:id` to return a single developer or 404 if not found. Implement `GET /v1/stats/activity` with `from` and `to` query parameters for time filtering. Implement `GET /health` to return service status.
+type Pagination struct {
+    Page            int  `json:"page"`
+    PageSize        int  `json:"pageSize"`
+    TotalUsers      int  `json:"totalUsers,omitempty"`
+    TotalPages      int  `json:"totalPages"`
+    HasNextPage     bool `json:"hasNextPage"`
+    HasPreviousPage bool `json:"hasPreviousPage"`
+}
 
-Add middleware for CORS headers to allow cross-origin requests during development. Add middleware for request logging.
+func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(status)
+    json.NewEncoder(w).Encode(data)
+}
 
-Implement pagination for the activity endpoint, returning a maximum of 1000 events per request with a `nextCursor` field when more results exist.
+func WriteCSV(w http.ResponseWriter, filename string, data [][]string) {
+    w.Header().Set("Content-Type", "text/csv")
+    w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+    csv.NewWriter(w).WriteAll(data)
+}
+```
+
+**Middleware:**
+```go
+func BasicAuth(apiKey string) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            user, _, ok := r.BasicAuth()
+            if !ok || user != apiKey {
+                http.Error(w, "Unauthorized", http.StatusUnauthorized)
+                return
+            }
+            next.ServeHTTP(w, r)
+        })
+    }
+}
+
+func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler
+```
 
 **Definition of Done:**
-
-All endpoints return correct JSON responses matching the documented schema. Time filtering correctly bounds results. CORS headers are present on responses. Invalid requests return appropriate error codes. All integration tests pass.
-
-**Dependencies**: TASK-SIM-005
+- Auth middleware validates Basic Auth
+- Rate limiting returns 429 when exceeded
+- Pagination helper generates correct format
+- CSV writer produces RFC 4180 output
 
 **Files to Create:**
-- internal/api/handlers.go
-- internal/api/handlers_test.go
 - internal/api/middleware.go
-- internal/api/router.go
+- internal/api/middleware_test.go
+- internal/api/response.go
+- internal/api/response_test.go
 
-**Test Cases to Write:**
-```go
-func TestHandler_ListDevelopers(t *testing.T)
-func TestHandler_GetDeveloper(t *testing.T)
-func TestHandler_GetDeveloper_NotFound(t *testing.T)
-func TestHandler_QueryActivity(t *testing.T)
-func TestHandler_QueryActivity_TimeFilter(t *testing.T)
-func TestHandler_QueryActivity_Pagination(t *testing.T)
-func TestHandler_Health(t *testing.T)
-```
+**Dependencies:** None
 
 ---
 
-#### TASK-SIM-007: Wire Up Main Application
+#### TASK-R009: Implement /teams/members Endpoint
 
-**Status**: NOT_STARTED  
-**Feature**: SIM-004  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
+**Status**: NOT_STARTED
+**Feature**: SIM-R004
+**Estimated Hours**: 1.5
+**Model Recommendation**: Haiku
 
-This task connects all components in the main function to create the working simulator.
+First Cursor Admin API endpoint.
 
 **Implementation Steps:**
+1. Create `internal/api/cursor/admin.go`
+2. Implement GET /teams/members handler
+3. Return developers from storage
+4. Apply pagination
+5. Match Cursor response format exactly
 
-Update `cmd/cursor-sim/main.go` to parse configuration, initialize the storage, generate developers, start the event generator, set up the HTTP router, and start the server.
-
-Implement graceful shutdown handling using signals (SIGINT, SIGTERM) to cleanly stop event generation and close the HTTP server.
-
-Add startup logging that reports the configuration being used.
-
-Create a Makefile target for building and running the simulator with common configurations.
+**Response Format:**
+```json
+{
+  "data": [
+    {
+      "id": "user_001",
+      "email": "dev@example.com",
+      "name": "Jane Developer",
+      "role": "member"
+    }
+  ],
+  "pagination": {...}
+}
+```
 
 **Definition of Done:**
+- Endpoint returns all developers
+- Pagination works correctly
+- Response matches Cursor schema
+- Auth required
 
-Running `./cursor-sim` starts the server with default configuration. The server responds to health checks immediately. Events begin generating after startup. SIGINT causes graceful shutdown. Integration tests verify end-to-end functionality.
+**Files to Create:**
+- internal/api/cursor/admin.go
+- internal/api/cursor/admin_test.go
 
-**Dependencies**: TASK-SIM-002, TASK-SIM-004, TASK-SIM-006
+**Dependencies:** TASK-R007, TASK-R008
+
+---
+
+#### TASK-R010: Implement /analytics/ai-code/commits Endpoint
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R005
+**Estimated Hours**: 2
+**Model Recommendation**: Sonnet
+
+Primary AI Code Tracking endpoint.
+
+**Implementation Steps:**
+1. Create `internal/api/cursor/aicode.go`
+2. Implement GET /analytics/ai-code/commits
+3. Parse startDate/endDate query params
+4. Parse users filter (comma-separated)
+5. Query storage for commits in range
+6. Format response with exact Cursor schema
+
+**Query Parameters:**
+- startDate (default: 7 days ago)
+- endDate (default: today)
+- users (optional: comma-separated emails or IDs)
+- page, pageSize
+
+**Response Format:**
+```json
+{
+  "data": [
+    {
+      "commitHash": "abc123",
+      "userId": "user_001",
+      "userEmail": "dev@example.com",
+      "repoName": "acme/platform",
+      "totalLinesAdded": 150,
+      "tabLinesAdded": 80,
+      "composerLinesAdded": 40,
+      "nonAiLinesAdded": 30,
+      "commitTs": "2026-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {...},
+  "params": {
+    "startDate": "2026-01-08",
+    "endDate": "2026-01-15"
+  }
+}
+```
+
+**Definition of Done:**
+- Date filtering works correctly
+- User filtering supports email and user_id
+- Pagination works correctly
+- Response matches Cursor exactly
+
+**Files to Create:**
+- internal/api/cursor/aicode.go
+- internal/api/cursor/aicode_test.go
+
+**Dependencies:** TASK-R007, TASK-R008
+
+---
+
+#### TASK-R011: Implement /analytics/ai-code/commits.csv Endpoint
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R005
+**Estimated Hours**: 1
+**Model Recommendation**: Haiku
+
+CSV export for commits.
+
+**Implementation Steps:**
+1. Add handler for GET /analytics/ai-code/commits.csv
+2. Reuse query logic from JSON endpoint
+3. Format as RFC 4180 CSV
+4. Set Content-Disposition header
+
+**Definition of Done:**
+- CSV is valid RFC 4180
+- Headers match JSON field names
+- Download filename is commits.csv
+
+**Dependencies:** TASK-R010
+
+---
+
+#### TASK-R012: Implement /analytics/team/* Endpoints (11 total)
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R006
+**Estimated Hours**: 6
+**Model Recommendation**: Sonnet
+
+All 11 team analytics endpoints.
+
+**Implementation Steps:**
+1. Create `internal/api/cursor/team.go`
+2. Implement shared handler pattern for common logic
+3. Implement each endpoint with specific aggregation:
+   - agent-edits: aggregate diffs suggested/accepted/rejected
+   - tabs: aggregate tab completions
+   - dau: count distinct active users per day
+   - client-versions: group by version
+   - models: group by model name
+   - top-file-extensions: group by extension
+   - mcp: group by MCP server
+   - commands: group by command name
+   - plans: group by model
+   - ask-mode: group by model
+   - leaderboard: rank by acceptance ratio
+
+**Common Handler Pattern:**
+```go
+type teamHandler struct {
+    store   storage.Store
+    metric  string
+    extract func(commits []models.Commit) interface{}
+}
+
+func (h *teamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    from, to := parseDateRange(r)
+    commits := h.store.GetCommitsByTimeRange(from, to)
+
+    data := h.extract(commits)
+
+    WriteJSON(w, http.StatusOK, PaginatedResponse{
+        Data:   data,
+        Params: Params{Metric: h.metric, TeamID: 12345},
+    })
+}
+```
+
+**Definition of Done:**
+- All 11 endpoints implemented
+- Aggregations are accurate
+- Date filtering works
+- Rate limiting enforced (100/min)
+
+**Files to Create:**
+- internal/api/cursor/team.go
+- internal/api/cursor/team_test.go
+
+**Dependencies:** TASK-R007, TASK-R008
+
+---
+
+#### TASK-R013: Implement /analytics/by-user/* Endpoints (9 total)
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R007
+**Estimated Hours**: 4
+**Model Recommendation**: Sonnet
+
+All 9 by-user analytics endpoints.
+
+**Implementation Steps:**
+1. Create `internal/api/cursor/byuser.go`
+2. Implement shared pattern for user grouping
+3. Group data by user_email
+4. Include userMappings in params
+5. Apply pagination across users
+
+**Response Format:**
+```json
+{
+  "data": {
+    "dev@example.com": [
+      { "event_date": "2026-01-15", "total_accepts": 45 }
+    ]
+  },
+  "pagination": {...},
+  "params": {
+    "metric": "tabs",
+    "userMappings": [
+      { "id": "user_001", "email": "dev@example.com" }
+    ]
+  }
+}
+```
+
+**Definition of Done:**
+- All 9 endpoints implemented
+- Data grouped correctly by user
+- Pagination across users works
+- Rate limiting enforced (50/min)
+
+**Files to Create:**
+- internal/api/cursor/byuser.go
+- internal/api/cursor/byuser_test.go
+
+**Dependencies:** TASK-R007, TASK-R008
+
+---
+
+#### TASK-R014: Implement HTTP Server and Router
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R004
+**Estimated Hours**: 2
+**Model Recommendation**: Haiku
+
+Wire up all endpoints with routing and middleware.
+
+**Implementation Steps:**
+1. Create `internal/api/router.go`
+2. Register all Cursor endpoints
+3. Apply auth middleware to analytics routes
+4. Apply rate limiting middleware
+5. Add health check endpoint
+6. Add graceful shutdown handling
+
+**Router Setup:**
+```go
+func NewRouter(store storage.Store, cfg *config.Config) http.Handler {
+    r := http.NewServeMux()
+
+    // Health (no auth)
+    r.HandleFunc("GET /health", healthHandler)
+
+    // Cursor Admin API
+    admin := cursor.NewAdminHandler(store)
+    r.Handle("GET /teams/members", admin.Members())
+
+    // Cursor AI Code Tracking
+    aicode := cursor.NewAICodeHandler(store)
+    r.Handle("GET /analytics/ai-code/commits", aicode.Commits())
+    r.Handle("GET /analytics/ai-code/commits.csv", aicode.CommitsCSV())
+
+    // ... all other endpoints
+
+    // Apply middleware
+    handler := RateLimit(100, time.Minute)(r)
+    handler = BasicAuth(cfg.APIKey)(handler)
+    handler = Logger(handler)
+
+    return handler
+}
+```
+
+**Definition of Done:**
+- All endpoints routable
+- Auth required on analytics routes
+- Health check public
+- Graceful shutdown works
+
+**Files to Create:**
+- internal/api/router.go
+- internal/api/router_test.go
+
+**Dependencies:** TASK-R009 through TASK-R013
+
+---
+
+#### TASK-R015: Wire Up Main Application
+
+**Status**: NOT_STARTED
+**Feature**: SIM-R002
+**Estimated Hours**: 2
+**Model Recommendation**: Haiku
+
+Connect all components in main for runtime mode.
+
+**Implementation Steps:**
+1. Update `cmd/simulator/main.go`
+2. Parse config flags
+3. Load seed.json
+4. Initialize storage
+5. Load developers into storage
+6. Generate commits
+7. Start HTTP server
+8. Handle graceful shutdown
+
+**Main Flow:**
+```go
+func main() {
+    cfg, err := config.ParseFlags()
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if cfg.Mode != "runtime" {
+        log.Fatal("Replay mode not implemented yet")
+    }
+
+    seed, err := seed.LoadSeed(cfg.SeedPath)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    store := storage.NewMemoryStore()
+    store.LoadDevelopers(seed.Developers)
+
+    gen := generator.NewCommitGenerator(seed, store)
+    if err := gen.GenerateCommits(context.Background(), cfg.Days); err != nil {
+        log.Fatal(err)
+    }
+
+    router := api.NewRouter(store, cfg)
+    server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: router}
+
+    // Graceful shutdown
+    go func() {
+        sigint := make(chan os.Signal, 1)
+        signal.Notify(sigint, os.Interrupt, syscall.SIGTERM)
+        <-sigint
+        server.Shutdown(context.Background())
+    }()
+
+    log.Printf("cursor-sim v2 running on :%d", cfg.Port)
+    server.ListenAndServe()
+}
+```
+
+**Definition of Done:**
+- Server starts with seed file
+- All endpoints respond correctly
+- Graceful shutdown works
+- Integration tests pass
 
 **Files to Modify:**
-- cmd/cursor-sim/main.go
-- Makefile
+- cmd/simulator/main.go
+- Makefile (add run target)
+
+**Dependencies:** TASK-R014
 
 ---
 
-### Service B: cursor-analytics-core Tasks
+#### TASK-R016: End-to-End Testing
 
-#### TASK-CORE-001: Initialize TypeScript Project Structure
+**Status**: NOT_STARTED
+**Feature**: All Phase 1
+**Estimated Hours**: 4
+**Model Recommendation**: Sonnet
 
-**Status**: NOT_STARTED  
-**Feature**: CORE-002  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
-
-This task creates the Node.js/TypeScript project with Apollo Server and database tooling.
+Comprehensive integration tests for all 29 endpoints.
 
 **Implementation Steps:**
+1. Create `test/integration/` directory
+2. Start server with test seed
+3. Test all Cursor endpoints
+4. Verify response schemas match docs
+5. Test pagination edge cases
+6. Test date filtering
+7. Test error cases (auth, rate limit)
 
-Initialize the project with `npm init` and configure TypeScript with strict mode enabled. Install core dependencies including Apollo Server 4, Express, PostgreSQL client (pg or Prisma), and GraphQL tools.
+**Test Structure:**
+```go
+func TestIntegration(t *testing.T) {
+    // Start server with test seed
+    seed := loadTestSeed(t)
+    store := storage.NewMemoryStore()
+    store.LoadDevelopers(seed.Developers)
 
-Create the directory structure with `src/` containing subdirectories for `resolvers/`, `models/`, `services/`, `workers/`, and `db/`.
+    gen := generator.NewCommitGenerator(seed, store)
+    gen.GenerateCommits(context.Background(), 7)
 
-Configure ESLint with TypeScript support and Prettier for code formatting. Set up Jest with ts-jest for testing.
+    router := api.NewRouter(store, testConfig)
+    server := httptest.NewServer(router)
+    defer server.Close()
 
-Create a Dockerfile for containerization and configure the build process.
+    t.Run("GET /teams/members", func(t *testing.T) {
+        // ...
+    })
 
-**Definition of Done:**
-
-The project compiles with `npm run build`. Linting passes with `npm run lint`. Jest is configured and a sample test runs. The Docker image builds successfully.
-
-**Dependencies**: None
-
-**Files to Create:**
-- package.json
-- tsconfig.json
-- .eslintrc.js
-- .prettierrc
-- jest.config.js
-- Dockerfile
-- src/index.ts (minimal)
-
----
-
-#### TASK-CORE-002: Define Database Schema and Migrations
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-002  
-**Estimated Hours**: 3  
-**Assignee**: Unassigned  
-
-This task creates the PostgreSQL schema with migration support.
-
-**Implementation Steps:**
-
-Choose a migration tool (Prisma recommended for TypeScript projects, or knex/node-pg-migrate for raw SQL control). Create the initial migration that defines the developers table with columns for id (UUID primary key), external_id (unique, from simulator), name, email, team, seniority, and timestamps.
-
-Create the usage_events table with columns for id (UUID primary key), developer_id (foreign key), event_type, event_timestamp, lines_added, lines_deleted, model_used, accepted (boolean), tokens_input, tokens_output, and created_at.
-
-Add indexes on developer_id, event_timestamp, and event_type for query performance.
-
-Create a materialized view for daily_stats that pre-aggregates daily statistics per developer.
-
-**Definition of Done:**
-
-Migrations run successfully against a fresh PostgreSQL instance. Schema matches the design document. Indexes are created for performance-critical columns. A rollback migration exists and successfully reverses the changes.
-
-**Dependencies**: TASK-CORE-001
-
-**Files to Create:**
-- prisma/schema.prisma (or migrations/*.sql)
-- src/db/client.ts
-- src/db/migrations/*
-
----
-
-#### TASK-CORE-003: Implement GraphQL Schema
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-003  
-**Estimated Hours**: 3  
-**Assignee**: Unassigned  
-
-This task defines the GraphQL schema using SDL and sets up Apollo Server.
-
-**Implementation Steps:**
-
-Create the schema definition in `src/schema.graphql` with all types defined in the design document. Define the Developer type with fields for id, externalId, name, email, team, seniority, stats (with range argument), and dailyStats.
-
-Define the UsageStats type with fields for totalSuggestions, acceptedSuggestions, acceptanceRate, chatInteractions, cmdKUsages, totalLinesAdded, totalLinesDeleted, and aiVelocity.
-
-Define the Query type with developer, developers, teamStats, teams, and dashboardSummary queries.
-
-Create input types for DateRangeInput with from and to DateTime fields.
-
-Set up Apollo Server with the schema and placeholder resolvers that return mock data.
-
-**Definition of Done:**
-
-GraphQL Playground is accessible and shows the schema. All types and queries are defined matching the specification. Mock resolvers return valid response shapes. Type generation produces TypeScript types from the schema.
-
-**Dependencies**: TASK-CORE-001
-
-**Files to Create:**
-- src/schema.graphql
-- src/resolvers/index.ts (placeholder)
-- src/server.ts
-- src/generated/types.ts (from codegen)
-
----
-
-#### TASK-CORE-004: Implement Data Ingestion Worker
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-001  
-**Estimated Hours**: 5  
-**Assignee**: Unassigned  
-
-This task implements the background worker that polls the simulator and stores data.
-
-**Implementation Steps:**
-
-Create a `DataIngestionWorker` class in `src/workers/ingestion.ts` that manages the polling lifecycle. The worker should track the last successful fetch timestamp and use it for incremental queries.
-
-Implement HTTP client logic to fetch from the simulator's `/v1/org/users` and `/v1/stats/activity` endpoints. Handle the JSON response and transform it into database records.
-
-Add retry logic with exponential backoff for failed requests. Start with a 1-second delay, double after each failure, and cap at 30 seconds.
-
-Implement deduplication by checking event IDs before insertion. Consider using upsert operations for efficiency.
-
-Create a worker manager that starts the ingestion on application startup and stops it gracefully on shutdown.
-
-**Definition of Done:**
-
-The worker polls at the configured interval. New events are stored in the database. Duplicate events are not created. The worker recovers gracefully from simulator outages. Unit tests cover all scenarios including failure cases.
-
-**Dependencies**: TASK-CORE-002
-
-**Files to Create:**
-- src/workers/ingestion.ts
-- src/workers/ingestion.test.ts
-- src/services/simulatorClient.ts
-- src/services/simulatorClient.test.ts
-
-**Test Cases to Write:**
-```typescript
-describe('DataIngestionWorker', () => {
-  it('should poll at configured interval')
-  it('should use last timestamp for incremental fetch')
-  it('should retry with exponential backoff')
-  it('should deduplicate events')
-  it('should stop gracefully on shutdown')
-})
+    t.Run("GET /analytics/ai-code/commits", func(t *testing.T) {
+        // ...
+    })
+    // ... all endpoints
+}
 ```
 
----
-
-#### TASK-CORE-005: Implement Metric Calculation Service
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-004  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-This task implements the business logic for calculating KPIs from raw event data.
-
-**Implementation Steps:**
-
-Create a `MetricsService` class in `src/services/metrics.ts` with methods for calculating each KPI.
-
-Implement `calculateAcceptanceRate(developerId, dateRange)` that queries suggestion events and computes the percentage. Return null when no suggestions exist to avoid division by zero.
-
-Implement `calculateAIVelocity(developerId, dateRange)` that computes the ratio of AI lines to total lines.
-
-Implement aggregate methods for team and organization-level calculations. Team calculations should use weighted averages based on total activity, not simple averages of percentages.
-
-Implement `refreshDailyStats()` to update the materialized view for pre-computed statistics.
-
 **Definition of Done:**
-
-All metric calculations match the formulas in the design document. Edge cases (zero denominators) are handled correctly. Team aggregations use weighted averages. Unit tests verify calculations with known test data.
-
-**Dependencies**: TASK-CORE-002
+- All 29 endpoints tested
+- Response schemas validated
+- Pagination tested
+- Error cases tested
+- 80%+ coverage
 
 **Files to Create:**
-- src/services/metrics.ts
-- src/services/metrics.test.ts
+- test/integration/cursor_api_test.go
+- test/testdata/integration_seed.json
 
-**Test Cases to Write:**
-```typescript
-describe('MetricsService', () => {
-  it('should calculate acceptance rate correctly')
-  it('should return null for zero suggestions')
-  it('should calculate AI velocity correctly')
-  it('should use weighted average for team stats')
-  it('should respect date range boundaries')
-})
-```
+**Dependencies:** TASK-R015
 
 ---
 
-#### TASK-CORE-006: Implement Developer Resolvers
+## Phase 1 Summary
 
-**Status**: NOT_STARTED  
-**Feature**: CORE-005  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-This task implements GraphQL resolvers for developer queries.
-
-**Implementation Steps:**
-
-Create resolver functions in `src/resolvers/developer.ts` for the developer and developers queries.
-
-Implement the `developer(id)` resolver to fetch a single developer by ID, returning null if not found.
-
-Implement the `developers(team, limit, offset)` resolver with filtering and pagination support. Use DataLoader to batch database queries for efficiency.
-
-Implement the nested `stats` resolver on the Developer type that calls the metrics service to calculate statistics. Accept the optional range argument for time-bounded calculations.
-
-Implement the `dailyStats` resolver to return the pre-aggregated daily statistics from the materialized view.
-
-**Definition of Done:**
-
-All developer queries return correct data matching the schema. Pagination works correctly with limit and offset. Team filtering returns only matching developers. Nested stats resolve correctly with optional time range. DataLoader prevents N+1 query problems.
-
-**Dependencies**: TASK-CORE-003, TASK-CORE-005
-
-**Files to Create:**
-- src/resolvers/developer.ts
-- src/resolvers/developer.test.ts
-- src/dataloaders/developerLoader.ts
-
-**Test Cases to Write:**
-```typescript
-describe('Developer Resolvers', () => {
-  it('should return developer by ID')
-  it('should return null for non-existent developer')
-  it('should paginate developers list')
-  it('should filter by team')
-  it('should calculate nested stats')
-})
-```
+| Task | Feature | Hours | Status |
+|------|---------|-------|--------|
+| TASK-R001 | Project Structure | 1 | NOT_STARTED |
+| TASK-R002 | Seed Types | 2 | NOT_STARTED |
+| TASK-R003 | Seed Loader | 3 | NOT_STARTED |
+| TASK-R004 | CLI v2 | 2 | NOT_STARTED |
+| TASK-R005 | Cursor Models | 3 | NOT_STARTED |
+| TASK-R006 | Commit Generator | 5 | NOT_STARTED |
+| TASK-R007 | Storage v2 | 4 | NOT_STARTED |
+| TASK-R008 | API Infrastructure | 2 | NOT_STARTED |
+| TASK-R009 | /teams/members | 1.5 | NOT_STARTED |
+| TASK-R010 | /ai-code/commits | 2 | NOT_STARTED |
+| TASK-R011 | /ai-code/commits.csv | 1 | NOT_STARTED |
+| TASK-R012 | /team/* (11) | 6 | NOT_STARTED |
+| TASK-R013 | /by-user/* (9) | 4 | NOT_STARTED |
+| TASK-R014 | Router | 2 | NOT_STARTED |
+| TASK-R015 | Main | 2 | NOT_STARTED |
+| TASK-R016 | E2E Tests | 4 | NOT_STARTED |
+| **Total** | | **44.5** | |
 
 ---
 
-### Service C: cursor-viz-spa Tasks
+## Phase 2: PR Lifecycle + GitHub API
 
-#### TASK-VIZ-001: Initialize React Project with Vite
+*Tasks to be detailed after Phase 1 completion*
 
-**Status**: NOT_STARTED  
-**Feature**: VIZ-001  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
-
-This task creates the React application with modern tooling.
-
-**Implementation Steps:**
-
-Create the project using `npm create vite@latest cursor-viz-spa -- --template react-ts`. Install dependencies including Apollo Client, TanStack Query, Recharts, and Tailwind CSS.
-
-Configure TypeScript with strict mode. Set up ESLint with React and TypeScript rules. Configure Prettier for consistent formatting.
-
-Create the directory structure with `src/components/`, `src/hooks/`, `src/graphql/`, `src/pages/`, and `src/utils/`.
-
-Set up Vitest for unit testing and create a sample test to verify the configuration. Configure MSW (Mock Service Worker) for API mocking in tests.
-
-Create a Dockerfile for containerization.
-
-**Definition of Done:**
-
-The application runs with `npm run dev`. Linting passes with `npm run lint`. A sample component test runs successfully. The Docker image builds and serves the application.
-
-**Dependencies**: None
-
-**Files to Create:**
-- package.json
-- vite.config.ts
-- tsconfig.json
-- tailwind.config.js
-- .eslintrc.cjs
-- Dockerfile
-- src/main.tsx
-- src/App.tsx
+| Task | Feature | Est. Hours |
+|------|---------|------------|
+| TASK-R017 | PR Generation Pipeline | 6 |
+| TASK-R018 | Review Simulation | 6 |
+| TASK-R019 | GitHub /repos endpoints | 4 |
+| TASK-R020 | GitHub /pulls endpoints | 6 |
+| TASK-R021 | Quality Outcomes | 4 |
+| TASK-R022 | E2E Tests | 4 |
+| **Total** | | **30** |
 
 ---
 
-#### TASK-VIZ-002: Implement Dashboard Layout
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-001  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-This task creates the responsive dashboard layout structure.
-
-**Implementation Steps:**
-
-Create a `DashboardGrid` component using CSS Grid that defines areas for the header, main content, and optional sidebar.
-
-Create a `Header` component that displays the KPI summary bar with placeholders for total developers, active developers, and acceptance rate.
-
-Implement responsive breakpoints at 768px and 1024px using Tailwind's responsive utilities. On mobile, the layout should stack vertically. On tablet and desktop, content should use the grid layout.
-
-Create placeholder components for `VelocityHeatmap`, `DeveloperTable`, and `TeamRadarChart` that will be implemented in subsequent tasks.
-
-**Definition of Done:**
-
-The dashboard renders with proper layout at all viewport sizes. Components reflow appropriately at breakpoints. No horizontal scrolling occurs on mobile. Placeholder components are visible in their grid positions.
-
-**Dependencies**: TASK-VIZ-001
-
-**Files to Create:**
-- src/components/layout/DashboardGrid.tsx
-- src/components/layout/Header.tsx
-- src/components/layout/Sidebar.tsx
-- src/pages/Dashboard.tsx
-
-**Test Cases to Write:**
-```tsx
-describe('DashboardGrid', () => {
-  it('should render all layout sections')
-  it('should apply responsive classes')
-})
-```
-
----
-
-#### TASK-VIZ-003: Implement GraphQL Client Setup
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-001  
-**Estimated Hours**: 2  
-**Assignee**: Unassigned  
-
-This task configures Apollo Client for GraphQL communication.
-
-**Implementation Steps:**
-
-Install and configure Apollo Client with the GraphQL endpoint from environment variables. Create the client instance in `src/graphql/client.ts`.
-
-Define GraphQL queries in `src/graphql/queries.ts` for dashboard summary, developer list, and team statistics.
-
-Create query fragments in `src/graphql/fragments.ts` for reusable type selections.
-
-Set up GraphQL code generation to produce TypeScript types from the schema. Configure the codegen to run as part of the build process.
-
-**Definition of Done:**
-
-Apollo Client connects to the backend GraphQL endpoint. Queries are defined with proper TypeScript types. Code generation produces accurate types from the schema. The client handles errors gracefully.
-
-**Dependencies**: TASK-VIZ-001
-
-**Files to Create:**
-- src/graphql/client.ts
-- src/graphql/queries.ts
-- src/graphql/fragments.ts
-- codegen.ts
-
----
-
-#### TASK-VIZ-004: Implement Velocity Heatmap
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-002  
-**Estimated Hours**: 6  
-**Assignee**: Unassigned  
-
-This task implements the GitHub-style contribution heatmap.
-
-**Implementation Steps:**
-
-Create a `VelocityHeatmap` component that accepts daily statistics data as props. The component should render a grid of cells representing days, with 7 rows for days of the week and columns for weeks.
-
-Implement color mapping logic that converts acceptance counts to color intensity. Use a gradient from light (low activity) to dark (high activity). Make the color scale configurable.
-
-Add day-of-week labels on the left edge (at minimum Mon, Wed, Fri). Add month labels above the appropriate week boundaries.
-
-Implement hover tooltips using a lightweight tooltip library or custom CSS. The tooltip should display the date and exact acceptance count.
-
-Use Recharts or custom SVG rendering for the grid visualization.
-
-**Definition of Done:**
-
-The heatmap renders with correct date alignment. Colors accurately represent value intensity. Tooltips display on hover. Labels are positioned correctly. The component is responsive and resizes appropriately.
-
-**Dependencies**: TASK-VIZ-002, TASK-VIZ-003
-
-**Files to Create:**
-- src/components/charts/VelocityHeatmap.tsx
-- src/components/charts/VelocityHeatmap.test.tsx
-- src/components/charts/Tooltip.tsx
-
-**Test Cases to Write:**
-```tsx
-describe('VelocityHeatmap', () => {
-  it('should render correct number of cells')
-  it('should apply color intensity based on value')
-  it('should show day labels')
-  it('should show month labels')
-})
-```
-
----
-
-#### TASK-VIZ-005: Implement Developer Efficiency Table
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-004  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-This task implements the sortable developer metrics table.
-
-**Implementation Steps:**
-
-Create a `DeveloperTable` component that displays columns for Name, Team, Total Suggestions, Accepted, Acceptance Rate, and AI Lines.
-
-Implement client-side sorting by adding click handlers to column headers. Track the current sort column and direction in component state. Sort the data array before rendering.
-
-Add visual indicators for sort direction (up/down arrows) on the active column header.
-
-Implement conditional row styling that applies a warning background to rows where acceptance rate is below 20%.
-
-Add a search input that filters the displayed rows by developer name. Implement debouncing to avoid excessive re-renders during typing.
-
-Implement pagination with configurable page size (default 25). Add navigation controls for first, previous, next, and last pages.
-
-**Definition of Done:**
-
-The table displays all required columns. Sorting works correctly for all columns. Low acceptance rate rows are visually distinct. Search filtering matches partial names. Pagination displays the correct subset of rows.
-
-**Dependencies**: TASK-VIZ-002, TASK-VIZ-003
-
-**Files to Create:**
-- src/components/tables/DeveloperTable.tsx
-- src/components/tables/DeveloperTable.test.tsx
-- src/components/tables/TablePagination.tsx
-
-**Test Cases to Write:**
-```tsx
-describe('DeveloperTable', () => {
-  it('should display all columns')
-  it('should sort by column on click')
-  it('should highlight low acceptance rates')
-  it('should filter by search term')
-  it('should paginate correctly')
-})
-```
-
----
-
-### Infrastructure Tasks
-
-#### TASK-INFRA-001: Create Docker Compose Configuration
-
-**Status**: NOT_STARTED  
-**Feature**: All  
-**Estimated Hours**: 3  
-**Assignee**: Unassigned  
-
-This task creates the Docker Compose file that orchestrates all services.
-
-**Implementation Steps:**
-
-Create `docker-compose.yml` in the project root that defines services for cursor-sim, postgres, cursor-analytics-core, and cursor-viz-spa.
-
-Configure health checks for each service. The simulator should check `/health`, the core should verify database connectivity and simulator reachability, and the SPA should check that the dev server is responding.
-
-Set up service dependencies so that postgres starts first, then cursor-sim, then cursor-analytics-core (after both are healthy), and finally cursor-viz-spa.
-
-Configure environment variables for each service using the values defined in the design document.
-
-Create a `docker-compose.override.yml` for development-specific settings like volume mounts for hot reloading.
-
-**Definition of Done:**
-
-Running `docker-compose up` starts all services in the correct order. Health checks pass for all services. The dashboard is accessible at localhost:3000 and displays data from the simulator.
-
-**Dependencies**: TASK-SIM-007, TASK-CORE-006, TASK-VIZ-005
-
-**Files to Create:**
-- docker-compose.yml
-- docker-compose.override.yml
-- .env.example
-
----
-
-## Phase 2: Enhanced Analytics
-
-Phase 2 adds team-level analytics, improved filtering, and polished user experience.
-
-### TASK-CORE-007: Implement Team Statistics Resolvers
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-006  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-Implements GraphQL resolvers for team-level aggregations including member count, average acceptance rate, and top performer identification.
-
-**Dependencies**: TASK-CORE-006
-
----
-
-### TASK-CORE-008: Implement Dashboard Summary Query
-
-**Status**: NOT_STARTED  
-**Feature**: CORE-007  
-**Estimated Hours**: 5  
-**Assignee**: Unassigned  
-
-Implements the comprehensive dashboard query that returns all KPIs efficiently in a single request.
-
-**Dependencies**: TASK-CORE-007
-
----
-
-### TASK-VIZ-006: Implement Team Radar Chart
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-003  
-**Estimated Hours**: 6  
-**Assignee**: Unassigned  
-
-Implements the multi-axis radar chart for team comparison using Recharts.
-
-**Dependencies**: TASK-CORE-007
-
----
-
-### TASK-VIZ-007: Implement Date Range Picker
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-005  
-**Estimated Hours**: 3  
-**Assignee**: Unassigned  
-
-Implements the date range selection component with presets and custom range support.
-
-**Dependencies**: TASK-VIZ-003
-
----
-
-### TASK-VIZ-008: Implement Loading and Error States
-
-**Status**: NOT_STARTED  
-**Feature**: VIZ-006, VIZ-007  
-**Estimated Hours**: 4  
-**Assignee**: Unassigned  
-
-Implements skeleton loaders, error displays, and retry mechanisms across all components.
-
-**Dependencies**: TASK-VIZ-004, TASK-VIZ-005
+## Phase 3: Research Framework
+
+*Tasks to be detailed after Phase 2 completion*
+
+| Task | Feature | Est. Hours |
+|------|---------|------------|
+| TASK-R023 | Research Dataset Export | 4 |
+| TASK-R024 | Code Survival Tracking | 6 |
+| TASK-R025 | Replay Mode | 4 |
+| TASK-R026 | E2E Tests | 4 |
+| **Total** | | **18** |
 
 ---
 
 ## Task Dependency Graph
 
-The following shows the critical path through the implementation tasks.
-
 ```
-TASK-SIM-001 (Project Init)
+TASK-R001 (Project Init)
     │
-    ├── TASK-SIM-002 (CLI) ────────────┐
-    │                                   │
-    └── TASK-SIM-003 (Developers)       │
-            │                           │
-            └── TASK-SIM-004 (Events)   │
-                    │                   │
-                    └── TASK-SIM-005 (Storage)
-                            │
-                            └── TASK-SIM-006 (API)
-                                    │
-                                    └── TASK-SIM-007 (Wire Up)
-                                            │
-                                            ▼
-TASK-CORE-001 (Project Init)
-    │
-    ├── TASK-CORE-002 (Schema)
+    ├── TASK-R002 (Seed Types)
     │       │
-    │       ├── TASK-CORE-004 (Ingestion)
-    │       │
-    │       └── TASK-CORE-005 (Metrics)
+    │       └── TASK-R003 (Seed Loader)
     │               │
-    │               └── TASK-CORE-006 (Resolvers)
+    │               └── TASK-R006 (Commit Generator)
     │                       │
-    └── TASK-CORE-003 (GraphQL)
-                            │
-                            ▼
-TASK-VIZ-001 (Project Init)
+    │                       └── TASK-R007 (Storage)
+    │                               │
+    │                               └── TASK-R009-R013 (Endpoints)
+    │                                       │
+    │                                       └── TASK-R014 (Router)
+    │                                               │
+    │                                               └── TASK-R015 (Main)
+    │                                                       │
+    │                                                       └── TASK-R016 (E2E)
     │
-    ├── TASK-VIZ-002 (Layout)
-    │       │
-    │       ├── TASK-VIZ-004 (Heatmap)
-    │       │
-    │       └── TASK-VIZ-005 (Table)
+    ├── TASK-R004 (CLI) ────────────────────────────────────┘
     │
-    └── TASK-VIZ-003 (Client)
-                            │
-                            ▼
-                    TASK-INFRA-001 (Docker)
+    ├── TASK-R005 (Cursor Models) ─────────────────────────┘
+    │
+    └── TASK-R008 (API Infrastructure) ────────────────────┘
 ```

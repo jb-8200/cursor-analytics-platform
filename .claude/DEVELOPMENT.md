@@ -1,206 +1,194 @@
 # Development Session Context
 
-**Last Updated**: January 2, 2026
-**Current Phase**: P1 - Core Functionality
-**Primary Focus**: cursor-sim (Cursor API Simulator)
+**Last Updated**: January 2026
+**Current Phase**: Phase 1 - Complete Cursor API (v2.0)
+**Primary Focus**: cursor-sim v2 (Major Rewrite)
 
 ---
 
 ## Current Status
 
 ### Project State
-- **Implementation**: 57% (TASK-SIM-001 ✓, TASK-SIM-002 ✓, TASK-SIM-003 ✓, TASK-SIM-004 ✓)
-- **Specifications**: 100% complete
-- **Testing**: 91.8% average coverage (config: 80.4%, generator: 93.3%)
-- **Infrastructure**: Docker Compose ready, multi-stage Dockerfiles complete
 
-### Recent Work
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Documentation | COMPLETE | DESIGN.md, FEATURES.md, TASKS.md updated for v2 |
+| cursor-sim v1 | ARCHIVED | To be moved to `services/cursor-sim-v1/` |
+| cursor-sim v2 | NOT_STARTED | 16 tasks, ~45 hours estimated |
+| cursor-analytics-core | NOT_STARTED | Unchanged from v1 plan |
+| cursor-viz-spa | NOT_STARTED | Unchanged from v1 plan |
+| OpenAPI Specs | PENDING | To be copied from research zip |
+| DataDesigner | PENDING | To be set up in `tools/data-designer/` |
 
-#### Completed (January 2, 2026)
+### Major Revision: v1.0 → v2.0
 
-1. **TASK-SIM-004: Implement Event Generation Engine** ✓
-   - Poisson distribution event timing (mathematically correct exponential distribution)
-   - EventGenerator with goroutine-per-developer architecture
-   - Commit and Change models matching SPEC
-   - Thread-safe concurrent event generation
-   - Immediate first event + Poisson-timed subsequent events
-   - TAB vs COMPOSER ratio (70/30)
-   - Graceful shutdown with separate WaitGroups
-   - 28 comprehensive tests (93.3% coverage)
+The project underwent a major architectural revision:
 
-2. **TASK-SIM-003: Implement Developer Profile Generator** ✓
-   - DeveloperGenerator with organizational hierarchy
-   - Seniority distribution (20% junior, 50% mid, 30% senior)
-   - Acceptance rate correlation with seniority
-   - Deterministic name generation (120 first + 120 last names)
-   - 19 comprehensive tests (91.7% coverage)
+| Area | v1.0 | v2.0 |
+|------|------|------|
+| Data Generation | Internal random | Seed-based from DataDesigner |
+| API Surface | Generic (~5 endpoints) | Exact Cursor + GitHub (49 endpoints) |
+| Research Support | None | Full SDLC framework |
+| Operation Modes | Single | Runtime + Replay |
 
-3. **TASK-SIM-002: Implement CLI Flag Parsing** ✓
-   - ParseFlags() using standard flag package
-   - JSON configuration file support
-   - Comprehensive validation with helpful error messages
-   - Custom --help output with examples
-   - Test coverage: 80.4%
+### What Was Preserved from v1
 
-4. **TASK-SIM-001: Initialize Go Project Structure** ✓
-   - Created standard Go project layout (cmd/, internal/)
-   - Implemented configuration package with validation
-   - Added basic domain models
-   - Created Makefile with build automation
-   - Multi-stage Dockerfile for optimized builds
+- Poisson distribution timing (proven, tested)
+- Go project structure patterns
+- TDD workflow and test infrastructure
+- Makefile and Docker configuration
 
-5. **Previous Milestones**
-   - Comprehensive Specifications (SPEC.md v2.0.0)
-   - Claude Code SDD Structure (skills, commands)
-   - Project Review (gap analysis complete)
+### What Was Replaced
 
-#### In Progress
-- None (ready for TASK-SIM-005)
+- Developer generation → loads from seed.json
+- Event models → Cursor-exact schema with camelCase
+- API handlers → all 29 Cursor endpoints
+- CLI flags → new --mode, --seed, --corpus flags
 
 ---
 
-## Active Work Item
+## Active Work: Pre-Implementation Setup
 
-**Next**: TASK-SIM-005 - Implement In-Memory Storage
+Before beginning TASK-R001, complete these setup tasks:
 
-**Recommended Model**: Sonnet (thread-safety and concurrency require careful implementation)
-**Estimated Time**: 3 hours
-**Dependencies**: TASK-SIM-003 ✓, TASK-SIM-004 ✓
+### Setup Checklist
 
-**Objective**: Implement thread-safe in-memory storage for developers and events:
-- Store interface with CRUD operations
-- MemoryStore using sync.Map or mutex-protected maps
-- Time-range queries for events
-- Support for 1000 developers and 100,000+ events
-- Concurrent access safety
+- [ ] Archive v1: `mv services/cursor-sim services/cursor-sim-v1`
+- [ ] Copy OpenAPI specs to `specs/openapi/`
+- [ ] Copy DataDesigner to `tools/data-designer/`
+- [ ] Create sample seed.json for testing
+- [ ] Validate SDD structure still works
 
 ---
 
-## Service Focus: cursor-sim
+## Phase 1: Complete Cursor API (MVP)
 
-### Purpose
-Go-based CLI tool and REST API server that simulates Cursor Business API endpoints with realistic synthetic data.
+**Goal**: Working cursor-sim that exactly matches Cursor Business API
 
-### Key Decisions Made
+### Tasks Overview (16 total)
 
-1. **API Compatibility** (CRITICAL)
-   - Simulator MUST match actual Cursor API endpoints:
-     - `/v1/analytics/ai-code/commits`
-     - `/v1/analytics/ai-code/changes`
-     - `/v1/analytics/team/agent-edits`
-     - `/v1/analytics/team/tabs`
-     - `/v1/analytics/team/dau`
-     - `/v1/analytics/team/models`
-     - `/v1/teams/members`
+| Task | Description | Hours | Model | Status |
+|------|-------------|-------|-------|--------|
+| TASK-R001 | Project structure | 1 | Haiku | NOT_STARTED |
+| TASK-R002 | Seed schema types | 2 | Haiku | NOT_STARTED |
+| TASK-R003 | Seed loader + validation | 3 | Sonnet | NOT_STARTED |
+| TASK-R004 | CLI v2 flags | 2 | Haiku | NOT_STARTED |
+| TASK-R005 | Cursor data models | 3 | Haiku | NOT_STARTED |
+| TASK-R006 | Commit generation | 5 | Sonnet | NOT_STARTED |
+| TASK-R007 | Storage v2 | 4 | Sonnet | NOT_STARTED |
+| TASK-R008 | API infrastructure | 2 | Haiku | NOT_STARTED |
+| TASK-R009 | /teams/members | 1.5 | Haiku | NOT_STARTED |
+| TASK-R010 | /ai-code/commits | 2 | Sonnet | NOT_STARTED |
+| TASK-R011 | /ai-code/commits.csv | 1 | Haiku | NOT_STARTED |
+| TASK-R012 | /team/* (11 endpoints) | 6 | Sonnet | NOT_STARTED |
+| TASK-R013 | /by-user/* (9 endpoints) | 4 | Sonnet | NOT_STARTED |
+| TASK-R014 | Router | 2 | Haiku | NOT_STARTED |
+| TASK-R015 | Main application | 2 | Haiku | NOT_STARTED |
+| TASK-R016 | E2E tests | 4 | Sonnet | NOT_STARTED |
 
-2. **Organizational Hierarchy**
-   - Developer model includes: Region → Division → Group → Team
-   - Regions: US (50%), EU (35%), APAC (15%)
-   - Divisions: AGS, AT, ST
-   - Groups: TMOBILE, ATANT
-   - Teams: dev (75%), support (25%)
+**Total**: 44.5 hours
 
-3. **Configuration**
-   - Accepts JSON config file (not just CLI flags)
-   - Generates fake API credentials (Basic Auth)
-   - Supports break conditions (PR count limit or infinite)
+### Critical Path
 
-4. **Interactive CLI**
-   - Live dashboard with stats
-   - Ctrl+S: Soft stop (finish in-flight events)
-   - Ctrl+E: Export database to JSON
-   - Ctrl+C: Immediate quit
+```
+R001 → R002 → R003 → R006 → R007 → Endpoints → R014 → R015 → R016
+```
 
-5. **Storage**
-   - In-memory only (sync.Map or go-memdb)
-   - Acceptable data loss on restart for MVP
-   - Thread-safe concurrent access
+---
 
-### Tech Stack
-- **Language**: Go 1.21+
-- **HTTP**: net/http (standard library)
-- **Testing**: go test + testify + mockery
-- **Storage**: sync.Map or go-memdb
-- **Distribution**: Poisson for realistic event timing
+## Cursor API Surface (29 endpoints)
+
+### Admin API (4)
+```
+GET  /teams/members
+POST /teams/daily-usage-data
+POST /teams/filtered-usage-events
+POST /teams/spend
+```
+
+### AI Code Tracking (4)
+```
+GET /analytics/ai-code/commits
+GET /analytics/ai-code/commits.csv
+GET /analytics/ai-code/changes
+GET /analytics/ai-code/changes.csv
+```
+
+### Team Analytics (11)
+```
+GET /analytics/team/agent-edits
+GET /analytics/team/tabs
+GET /analytics/team/dau
+GET /analytics/team/client-versions
+GET /analytics/team/models
+GET /analytics/team/top-file-extensions
+GET /analytics/team/mcp
+GET /analytics/team/commands
+GET /analytics/team/plans
+GET /analytics/team/ask-mode
+GET /analytics/team/leaderboard
+```
+
+### By-User Analytics (9)
+```
+GET /analytics/by-user/agent-edits
+GET /analytics/by-user/tabs
+GET /analytics/by-user/models
+GET /analytics/by-user/top-file-extensions
+GET /analytics/by-user/client-versions
+GET /analytics/by-user/mcp
+GET /analytics/by-user/commands
+GET /analytics/by-user/plans
+GET /analytics/by-user/ask-mode
+```
+
+### Health (1)
+```
+GET /health
+```
 
 ---
 
 ## Key Documentation Files
 
-### Specifications (Single Source of Truth)
-| File | Purpose | Status |
-|------|---------|--------|
-| services/cursor-sim/SPEC.md | Complete service specification | ✓ v2.0.0 |
-| specs/api/graphql-schema.graphql | GraphQL contract | ✓ Complete |
-| services/cursor-analytics-core/SPEC.md | Aggregator spec | Pending |
-| services/cursor-viz-spa/SPEC.md | Frontend spec | Pending |
+### v2.0 Documentation
 
-### Design Documents
 | File | Purpose | Status |
 |------|---------|--------|
-| docs/DESIGN.md | System architecture | ✓ v1.0.0 |
-| docs/FEATURES.md | Feature breakdown | ✓ Complete |
-| docs/TESTING_STRATEGY.md | TDD approach | ✓ Complete |
+| docs/DESIGN.md | System architecture v2.0 | COMPLETE |
+| docs/FEATURES.md | Feature breakdown v2.0 | COMPLETE |
+| docs/TASKS.md | Implementation tasks v2.0 | COMPLETE |
+| .claude/DEVELOPMENT.md | Session context (this file) | COMPLETE |
 
-### Implementation Guides
+### Specifications
+
 | File | Purpose | Status |
 |------|---------|--------|
-| docs/TASKS.md | Task breakdown (895 lines) | ✓ Complete |
-| docs/USER_STORIES.md | Acceptance criteria (712 lines) | ✓ Complete |
-| P0_MAKERUNNABLE.md | 8 tasks to make repo runnable | ✓ Complete |
-| PROJECT_REVIEW.md | Gap analysis | ✓ Complete |
+| specs/openapi/cursor-api.yaml | Cursor API schema | PENDING |
+| specs/openapi/github-sim-api.yaml | GitHub simulation API | PENDING |
+| tools/data-designer/seed_schema.yaml | Seed file schema | PENDING |
 
 ### Claude Code Integration
-| File | Purpose | Status |
-|------|---------|--------|
-| CLAUDE.md | Project instructions for AI | ✓ Complete |
-| .claude/skills/cursor-api-patterns.md | API implementation guide | ✓ Complete |
-| .claude/skills/go-best-practices.md | Go coding standards | ✓ Complete |
-| .claude/commands/spec.md | /spec command | ✓ Complete |
-| .claude/commands/start-feature.md | /start-feature command | ✓ Complete |
-| .claude/commands/verify.md | /verify command | ✓ Complete |
-| .claude/commands/next-task.md | /next-task command | ✓ Complete |
-| .claude/DEVELOPMENT.md | Session context (this file) | ✓ Complete |
+
+| File | Purpose |
+|------|---------|
+| CLAUDE.md | Project instructions |
+| .claude/skills/cursor-api-patterns.md | API implementation guide |
+| .claude/skills/go-best-practices.md | Go coding standards |
+| .claude/skills/model-selection-guide.md | Task-to-model mapping |
+| .claude/commands/implement.md | /implement command |
+| .claude/commands/next-task.md | /next-task command |
 
 ---
 
-## Next Steps (Priority Order)
-
-### P1: cursor-sim Core Features (In Progress)
-From docs/TASKS.md:
-
-- ✅ TASK-SIM-001: Initialize Go Project Structure
-- ✅ TASK-SIM-002: Implement CLI Flag Parsing
-- ✅ TASK-SIM-003: Implement Developer Profile Generator
-- ✅ TASK-SIM-004: Implement Event Generation Engine
-- **→ TASK-SIM-005: Implement In-Memory Storage** (Next)
-- TASK-SIM-006: Implement REST API Handlers
-- TASK-SIM-007: Wire Up Main Application
-
-**Progress**: 4/7 tasks complete (57%)
-
-### P0: Make Runnable (Partial)
-Basic scaffolding complete:
-- ✅ P0.1: Go scaffolding (go.mod, main.go, Dockerfile)
-- ⏸️ P0.2-P0.8: Other services (deferred to focus on cursor-sim)
-
-### P2: Integration & Polish (Future)
-- Implement actual .claude/hooks/ scripts
-- Add rate limiting
-- Add Basic Auth simulation
-- Add OpenTelemetry traces
-- Add Prometheus metrics
-
----
-
-## TDD Workflow Reminder
+## TDD Workflow
 
 ### Red-Green-Refactor Cycle
 
-1. **RED**: Write a failing test
+1. **RED**: Write failing test
    ```bash
    go test ./... -v
-   # Test should FAIL with clear error message
+   # Test should FAIL
    ```
 
 2. **GREEN**: Write minimal code to pass
@@ -209,173 +197,111 @@ Basic scaffolding complete:
    # Test should PASS
    ```
 
-3. **REFACTOR**: Clean up while tests stay green
+3. **REFACTOR**: Clean up while green
    ```bash
    go test ./... -v
-   # Tests should STILL PASS
    gofmt -s -w .
    golangci-lint run
    ```
 
 ### Coverage Target
-- **Minimum**: 80% for all services
+- **Minimum**: 80%
 - **Check**: `go test ./... -cover`
-- **Report**: `go test ./... -coverprofile=coverage.out && go tool cover -html=coverage.out`
 
 ---
 
-## Common Development Commands
+## Development Commands
 
-### cursor-sim (Go)
+### cursor-sim v2
 ```bash
-# Navigate to service
 cd services/cursor-sim
 
-# Initialize module (first time)
-go mod init github.com/yourusername/cursor-analytics-platform/services/cursor-sim
-
-# Run tests
-go test ./...
+# Tests
 go test ./... -v -cover
+make test
 
-# Run linter
+# Linting
 golangci-lint run
+make lint
 
-# Format code
-gofmt -s -w .
-
-# Run locally
-go run cmd/simulator/main.go --config=config.example.json
-
-# Build binary
+# Build
 go build -o bin/cursor-sim cmd/simulator/main.go
+make build
+
+# Run (after implementation)
+./bin/cursor-sim --mode=runtime --seed=seed.json --port=8080
 ```
 
-### Docker (All Services)
+### Docker
 ```bash
-# Build all services
-docker-compose build
-
-# Start all services
 docker-compose up -d
-
-# View logs
 docker-compose logs -f cursor-sim
-docker-compose logs -f cursor-analytics-core
-docker-compose logs -f cursor-viz-spa
-
-# Stop all services
 docker-compose down
-
-# Restart single service
-docker-compose restart cursor-sim
-```
-
-### Makefile Shortcuts (when P0.6 complete)
-```bash
-make build          # Build all Docker images
-make up             # Start all services
-make down           # Stop all services
-make test           # Run all tests
-make test-coverage  # Run tests with coverage
-make logs           # Tail all logs
 ```
 
 ---
 
-## Open Questions / Decisions Needed
+## Model Selection Guide
 
-1. **Database Schema**: PostgreSQL schema for cursor-analytics-core not yet defined
-2. **Authentication**: Should simulator validate credentials or just echo them?
-3. **Rate Limiting**: Implement immediately or defer to P2?
-4. **Observability**: OpenTelemetry setup - P0, P1, or P2?
-5. **CI/CD**: GitHub Actions or other? (Deferred to P2)
+| Task Type | Model | Rationale |
+|-----------|-------|-----------|
+| Type definitions | Haiku | Well-specified, low complexity |
+| Validation logic | Sonnet | Requires careful edge case handling |
+| Generation engine | Sonnet | Complex Poisson/statistical logic |
+| Simple endpoints | Haiku | Straightforward CRUD |
+| Complex aggregations | Sonnet | Multiple transformations |
+| E2E tests | Sonnet | Integration complexity |
+
+---
+
+## Session Checklist
+
+When starting a new session:
+
+1. [ ] Read this file (DEVELOPMENT.md)
+2. [ ] Check current task status in docs/TASKS.md
+3. [ ] Identify next task to implement
+4. [ ] Select appropriate model per guide
+5. [ ] Follow TDD workflow
+6. [ ] Update task status when complete
 
 ---
 
 ## Reference Links
 
-### External Documentation
-- [Cursor Business API - AI Code Tracking](https://docs.cursor.com/business/api-reference/ai-code-tracking)
-- [Cursor Business API - Analytics](https://docs.cursor.com/business/api-reference/analytics)
+### External
+- [Cursor Analytics API](https://cursor.com/docs/account/teams/analytics-api)
+- [Cursor AI Code Tracking](https://docs.cursor.com/business/api-reference/ai-code-tracking)
 
-### Internal Specs
-- Simulator: services/cursor-sim/SPEC.md
-- GraphQL: specs/api/graphql-schema.graphql
-- Tasks: docs/TASKS.md
-- Stories: docs/USER_STORIES.md
-
----
-
-## Session Notes
-
-### Recent Clarifications
-
-1. **Event Generation Architecture** (January 2, 2026)
-   - Goroutine-per-developer design for independent event streams
-   - Immediate first event prevents long test wait times
-   - Separate WaitGroups (generators vs collectors) prevents deadlock
-   - Unique RNG seeds per developer (baseSeed + devIndex*1000)
-   - Channel-based event collection (buffered: 100 commits, 1000 changes)
-   - Poisson timing uses exponential distribution: -ln(U)/λ
-
-2. **Concurrency Patterns Established**
-   - Context-based cancellation for goroutine coordination
-   - Mutex-protected shared state
-   - Stopped flag prevents double-close panic
-   - Clean shutdown: cancel → wait generators → close channels → wait collectors
-
-3. **TDD Workflow Refined**
-   - Consistently achieving 90%+ test coverage
-   - RED-GREEN-REFACTOR cycle strictly followed
-   - Statistical tests for Poisson distribution validation
-   - Comprehensive edge case coverage
-
-4. **Go Best Practices Applied**
-   - Standard project layout (cmd/, internal/)
-   - Table-driven tests with testify
-   - Error wrapping with context
-   - Proper package organization
-   - Thread-safe concurrent access patterns
-
-### Earlier Clarifications
-
-1. **API Endpoint Alignment** (RESOLVED)
-   - User confirmed simulator must match actual Cursor API
-   - SPEC.md v2.0.0 now uses correct endpoints
-
-2. **SDD Methodology** (RESOLVED)
-   - Confirmed Claude Code uses Skills (not .mdc rules)
-   - Skills and commands now implemented
+### Internal
+- docs/DESIGN.md - Architecture
+- docs/FEATURES.md - Feature specs
+- docs/TASKS.md - Task breakdown
 
 ---
 
-## Tips for AI Assistants
+## Notes
 
-When starting a new session:
+### Architecture Decisions
 
-1. **Read this file first** to understand current state
-2. **Check `.claude/plans/active`** symlink for active work item
-3. **Run `/next-task`** to see what to work on
-4. **Read relevant SPEC.md** before writing any code
-5. **Write tests first** - this is non-negotiable
-6. **Use Skills** - invoke cursor-api-patterns or go-best-practices as needed
-7. **Update this file** when making significant progress or decisions
+1. **Seed-based generation**: DataDesigner generates dimension data, cursor-sim generates time-series events
 
-### Quick Context Check
-```bash
-# What am I working on?
-ls -la .claude/plans/active
+2. **Exact API matching**: Response schemas match Cursor documentation exactly for drop-in replacement
 
-# What's next?
-/next-task cursor-sim
+3. **Two operation modes**:
+   - Runtime: Generate from seed.json
+   - Replay: Serve from pre-generated Parquet
 
-# What does the spec say?
-/spec cursor-sim
-```
+4. **JOIN key consistency**: All APIs share commit_sha, user_email, repo_name keys
+
+### Open Items
+
+1. NVIDIA API access for DataDesigner (scipy/faker fallback available)
+2. Parquet library selection for replay mode (Phase 3)
+3. PostgreSQL schema for cursor-analytics-core (unchanged)
 
 ---
 
-**Remember**: Specifications → Tests → Implementation → Refactor → Documentation
+**Remember**: Specifications → Tests → Implementation → Refactor
 
 This is the way.

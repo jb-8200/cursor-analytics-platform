@@ -1,0 +1,609 @@
+# Seed Data Schema
+# This defines what DataDesigner generates as input to cursor-sim.
+# DataDesigner handles: dimension data, realistic text, static correlations.
+# cursor-sim handles: time-series events, API contract, pagination, aggregation.
+
+version: "1.0"
+
+# =============================================================================
+# Developer Roster
+# =============================================================================
+developers:
+  description: "Team member profiles with org structure and behavioral parameters"
+  fields:
+    - name: user_id
+      type: string
+      format: "user_{random_alphanumeric(12)}"
+      description: "Stable external ID with user_ prefix (matches Cursor API)"
+    
+    - name: email
+      type: string
+      generator: person_email
+      description: "Developer email address"
+    
+    - name: name
+      type: string
+      generator: person_full_name
+      description: "Full name"
+    
+    # Organization Structure
+    - name: org
+      type: string
+      values: ["acme-corp", "techstartup-io", "enterprise-inc"]
+      description: "Organization identifier"
+    
+    - name: division
+      type: string
+      parent: org
+      values:
+        acme-corp: ["Engineering", "Product", "Data"]
+        techstartup-io: ["Core Platform", "Growth"]
+        enterprise-inc: ["R&D", "Platform Engineering", "IT"]
+    
+    - name: team
+      type: string
+      parent: division
+      values:
+        Engineering: ["Backend", "Frontend", "Mobile", "DevOps"]
+        Product: ["Design", "PM"]
+        Data: ["Data Engineering", "ML/AI", "Analytics"]
+        Core Platform: ["API", "Infrastructure", "Security"]
+        Growth: ["Web", "Mobile", "Experiments"]
+        R&D: ["Research", "Innovation Lab"]
+        Platform Engineering: ["Core", "Integrations", "SRE"]
+        IT: ["Internal Tools", "Support Systems"]
+    
+    - name: role
+      type: string
+      values: ["member", "owner", "free-owner"]
+      weights: [0.85, 0.10, 0.05]
+    
+    # Demographics & Locale
+    - name: region
+      type: string
+      values: ["US", "EU", "APAC"]
+      weights: [0.50, 0.30, 0.20]
+    
+    - name: timezone
+      type: string
+      parent: region
+      values:
+        US: ["America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles"]
+        EU: ["Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Warsaw"]
+        APAC: ["Asia/Tokyo", "Asia/Singapore", "Asia/Shanghai", "Australia/Sydney"]
+    
+    - name: locale
+      type: string
+      parent: region
+      values:
+        US: ["en-US"]
+        EU: ["en-GB", "de-DE", "fr-FR"]
+        APAC: ["ja-JP", "zh-CN", "en-AU"]
+    
+    # Seniority & Behavioral Parameters
+    - name: seniority
+      type: string
+      values: ["junior", "mid", "senior", "staff", "principal"]
+      weights: [0.20, 0.40, 0.25, 0.10, 0.05]
+    
+    - name: acceptance_rate_band
+      type: object
+      description: "Acceptance rate range based on seniority"
+      parent: seniority
+      values:
+        junior: { min: 0.45, max: 0.65 }
+        mid: { min: 0.60, max: 0.80 }
+        senior: { min: 0.75, max: 0.92 }
+        staff: { min: 0.80, max: 0.95 }
+        principal: { min: 0.82, max: 0.96 }
+    
+    - name: working_hours_band
+      type: object
+      description: "Active hours range based on region"
+      parent: region
+      values:
+        US: { start: 9, end: 18, peak: 14 }
+        EU: { start: 8, end: 17, peak: 11 }
+        APAC: { start: 9, end: 19, peak: 15 }
+    
+    - name: activity_level
+      type: string
+      values: ["low", "medium", "high", "power_user"]
+      weights: [0.15, 0.40, 0.35, 0.10]
+    
+    - name: chat_vs_code_ratio
+      type: object
+      description: "Ratio of chat interactions to code completions"
+      parent: team
+      values:
+        Backend: { chat: 0.15, code: 0.85 }
+        Frontend: { chat: 0.20, code: 0.80 }
+        Mobile: { chat: 0.18, code: 0.82 }
+        DevOps: { chat: 0.25, code: 0.75 }
+        ML/AI: { chat: 0.30, code: 0.70 }
+        Design: { chat: 0.40, code: 0.60 }
+        default: { chat: 0.20, code: 0.80 }
+    
+    - name: preferred_models
+      type: array
+      description: "Preferred AI models based on activity level"
+      parent: activity_level
+      values:
+        low: ["cursor-small"]
+        medium: ["cursor-small", "gpt-4-turbo"]
+        high: ["gpt-4-turbo", "claude-3-sonnet", "gpt-4o"]
+        power_user: ["claude-3-opus", "gpt-4o", "claude-3.5-sonnet"]
+
+    # ==========================================================================
+    # NEW: PR Behavior Parameters (for Research Framework)
+    # ==========================================================================
+    
+    - name: pr_behavior
+      type: object
+      description: "PR creation and review behavior parameters"
+      parent: seniority
+      values:
+        junior:
+          prs_per_week: { mean: 2.5, std: 1.2 }
+          avg_pr_size_loc: { mean: 80, std: 50 }
+          avg_files_per_pr: { mean: 3, std: 2 }
+          review_thoroughness: 0.6  # How carefully they review others
+          iteration_tolerance: 4    # Max iterations before frustration
+        mid:
+          prs_per_week: { mean: 4.0, std: 1.5 }
+          avg_pr_size_loc: { mean: 150, std: 80 }
+          avg_files_per_pr: { mean: 5, std: 3 }
+          review_thoroughness: 0.75
+          iteration_tolerance: 3
+        senior:
+          prs_per_week: { mean: 5.0, std: 2.0 }
+          avg_pr_size_loc: { mean: 200, std: 100 }
+          avg_files_per_pr: { mean: 6, std: 4 }
+          review_thoroughness: 0.85
+          iteration_tolerance: 2
+        staff:
+          prs_per_week: { mean: 3.5, std: 1.5 }
+          avg_pr_size_loc: { mean: 250, std: 120 }
+          avg_files_per_pr: { mean: 8, std: 5 }
+          review_thoroughness: 0.90
+          iteration_tolerance: 2
+        principal:
+          prs_per_week: { mean: 2.0, std: 1.0 }
+          avg_pr_size_loc: { mean: 300, std: 150 }
+          avg_files_per_pr: { mean: 10, std: 6 }
+          review_thoroughness: 0.95
+          iteration_tolerance: 1
+
+    - name: coding_speed
+      type: object
+      description: "Time from first commit to PR open (hours)"
+      parent: seniority
+      values:
+        junior: { mean: 8, std: 4 }    # Takes longer to write code
+        mid: { mean: 4, std: 2 }
+        senior: { mean: 2, std: 1 }
+        staff: { mean: 3, std: 1.5 }   # More complex work
+        principal: { mean: 4, std: 2 }  # Very complex work
+
+# =============================================================================
+# Repository Catalog
+# =============================================================================
+repositories:
+  description: "Repository catalog with language and service type metadata"
+  fields:
+    - name: repo_name
+      type: string
+      generator: llm_text
+      prompt: |
+        Generate a realistic GitHub repository name for a {{ division }} team.
+        Format: organization/repo-name (e.g., acme-corp/payment-service)
+    
+    - name: primary_language
+      type: string
+      parent: team
+      values:
+        Backend: ["Python", "Go", "Java", "Rust", "Node.js"]
+        Frontend: ["TypeScript", "JavaScript"]
+        Mobile: ["Swift", "Kotlin", "React Native", "Flutter"]
+        DevOps: ["Python", "Go", "Bash", "Terraform"]
+        ML/AI: ["Python", "Julia"]
+        Data Engineering: ["Python", "Scala", "SQL"]
+        default: ["Python", "TypeScript"]
+    
+    - name: service_type
+      type: string
+      values: ["api", "web-app", "mobile-app", "library", "infrastructure", "ml-pipeline", "data-pipeline"]
+      weights: [0.30, 0.20, 0.10, 0.15, 0.10, 0.08, 0.07]
+    
+    - name: default_branch
+      type: string
+      values: ["main", "master"]
+      weights: [0.85, 0.15]
+    
+    - name: common_file_patterns
+      type: array
+      parent: primary_language
+      values:
+        Python: ["src/**/*.py", "tests/**/*.py", "app/**/*.py"]
+        TypeScript: ["src/**/*.ts", "src/**/*.tsx", "lib/**/*.ts"]
+        Go: ["**/*.go", "cmd/**/*.go", "internal/**/*.go"]
+        Java: ["src/main/java/**/*.java", "src/test/java/**/*.java"]
+        Rust: ["src/**/*.rs", "tests/**/*.rs"]
+        default: ["src/**/*"]
+
+    # ==========================================================================
+    # NEW: Repository Maturity (Research Control Variable)
+    # ==========================================================================
+    
+    - name: maturity
+      type: object
+      description: "Repository age and maturity characteristics"
+      fields:
+        age_days:
+          type: integer
+          distribution: lognormal
+          params: { mean: 400, std: 300, min: 30, max: 2000 }
+        total_commits:
+          type: integer
+          correlated_with: age_days
+          formula: "age_days * random.uniform(0.5, 2.0)"
+        total_prs:
+          type: integer
+          correlated_with: total_commits
+          formula: "total_commits * random.uniform(0.3, 0.6)"
+        total_contributors:
+          type: integer
+          correlated_with: total_commits
+          formula: "min(50, max(3, total_commits / 100))"
+        size_bytes:
+          type: integer
+          distribution: lognormal
+          params: { mean: 500000, std: 1000000 }
+
+    - name: code_quality_baseline
+      type: object
+      description: "Baseline code quality characteristics"
+      fields:
+        avg_file_age_days:
+          type: integer
+          correlated_with: maturity.age_days
+          formula: "maturity.age_days * random.uniform(0.3, 0.7)"
+        greenfield_file_ratio:
+          type: float
+          description: "% of files < 30 days old"
+          distribution: beta
+          params: { a: 2, b: 5 }  # Skewed toward lower values (mature repos)
+        revert_rate_baseline:
+          type: float
+          distribution: beta
+          params: { a: 1, b: 40 }  # Very low baseline ~2-3%
+        hotfix_rate_baseline:
+          type: float
+          distribution: beta
+          params: { a: 2, b: 20 }  # ~8-10% baseline
+
+# =============================================================================
+# Text Templates (LLM-Generated)
+# =============================================================================
+text_templates:
+  description: "Templates for LLM-generated text fields"
+  
+  commit_messages:
+    description: "Realistic commit messages by category"
+    categories:
+      feature:
+        - "Add {{ feature_name }} to {{ component }}"
+        - "Implement {{ functionality }} for {{ use_case }}"
+        - "Create {{ component }} component"
+      bugfix:
+        - "Fix {{ issue }} in {{ component }}"
+        - "Resolve {{ error_type }} error in {{ file }}"
+        - "Handle edge case for {{ scenario }}"
+      refactor:
+        - "Refactor {{ component }} for {{ improvement }}"
+        - "Extract {{ pattern }} from {{ source }}"
+        - "Simplify {{ logic }} in {{ file }}"
+      chore:
+        - "Update dependencies"
+        - "Configure {{ tool }}"
+        - "Add {{ type }} tests for {{ component }}"
+    
+    llm_prompt: |
+      Generate a realistic git commit message for a {{ category }} change.
+      Repository: {{ repo_name }}
+      Language: {{ primary_language }}
+      Developer seniority: {{ seniority }}
+      
+      The message should:
+      - Be 50-72 characters for the subject line
+      - Use imperative mood ("Add" not "Added")
+      - Be specific but concise
+      
+      Generate only the commit message, nothing else:
+  
+  pr_titles:
+    llm_prompt: |
+      Generate a realistic pull request title for a {{ category }} change.
+      Repository: {{ repo_name }}
+      Team: {{ team }}
+      
+      The title should be clear and follow conventional PR naming.
+      Generate only the title:
+  
+  pr_descriptions:
+    llm_prompt: |
+      Generate a realistic pull request description.
+      Title: {{ pr_title }}
+      Category: {{ category }}
+      Files changed: {{ files_changed }}
+      Lines added: {{ lines_added }}
+      
+      Include:
+      - Brief summary of changes
+      - Testing notes (if applicable)
+      
+      Generate only the description:
+  
+  review_comments:
+    categories:
+      style: ["Consider using const here", "This could be more descriptive", "Formatting nit"]
+      logic: ["What happens if X is null?", "This might cause a race condition", "Edge case: what about empty input?"]
+      suggestion: ["Could we extract this into a helper?", "Have you considered using X pattern?", "This might be cleaner with Y"]
+      approval: ["LGTM!", "Nice work!", "Looks good, just minor nits"]
+    
+    llm_prompt: |
+      Generate a realistic code review comment for a {{ review_type }} review.
+      Code context: {{ code_context }}
+      Reviewer seniority: {{ reviewer_seniority }}
+      
+      Generate only the comment:
+  
+  chat_prompt_themes:
+    description: "Themes for chat interactions (not raw prompts)"
+    categories:
+      code_generation: ["implement function", "create class", "add API endpoint", "write test"]
+      debugging: ["fix error", "resolve issue", "investigate bug", "troubleshoot"]
+      refactoring: ["improve code", "optimize performance", "clean up", "restructure"]
+      explanation: ["explain code", "document function", "clarify logic"]
+      learning: ["how to", "best practice", "pattern for", "approach to"]
+
+# =============================================================================
+# PR Lifecycle Correlations (NEW - Research Framework)
+# =============================================================================
+pr_lifecycle:
+  description: "Correlations for PR lifecycle simulation"
+  
+  # Time distributions (in hours)
+  cycle_times:
+    coding_lead_time:
+      description: "Time from first commit to PR open"
+      base_distribution: lognormal
+      params: { mean: 4, std: 3 }
+      modifiers:
+        by_seniority:
+          junior: 1.5    # Takes 50% longer
+          mid: 1.0
+          senior: 0.7
+          staff: 0.9     # Complex work takes time
+          principal: 1.1
+        by_pr_size:
+          small: 0.5     # < 50 LoC
+          medium: 1.0    # 50-200 LoC
+          large: 1.8     # 200-500 LoC
+          xlarge: 3.0    # > 500 LoC
+    
+    pickup_time:
+      description: "Time from PR open to first review"
+      base_distribution: lognormal
+      params: { mean: 6, std: 4 }
+      modifiers:
+        by_day_of_week:
+          monday: 0.8    # Fresh week, quick pickup
+          tuesday: 0.9
+          wednesday: 1.0
+          thursday: 1.1
+          friday: 1.5    # End of week, slower
+        by_time_of_day:
+          morning: 0.8   # Morning PRs get quick pickup
+          afternoon: 1.0
+          evening: 1.5   # EOD PRs wait until tomorrow
+    
+    review_lead_time:
+      description: "Time from first review to merge"
+      base_distribution: lognormal
+      params: { mean: 8, std: 6 }
+      modifiers:
+        by_iterations:
+          1: 0.5         # Single approval, fast merge
+          2: 1.0
+          3: 1.8
+          4+: 3.0        # Many iterations = prolonged review
+        by_ai_ratio:
+          high: 1.3      # AI code may need more scrutiny
+          medium: 1.0
+          low: 0.9
+  
+  # Review behavior
+  review_patterns:
+    comments_per_100_loc:
+      description: "Review comment density"
+      base: 2.5
+      modifiers:
+        by_reviewer_seniority:
+          junior: 1.5    # Junior reviewers less thorough
+          mid: 2.0
+          senior: 3.0
+          staff: 4.0     # Senior folks find more issues
+          principal: 5.0
+        by_ai_ratio:
+          high: 1.4      # AI code gets more scrutiny
+          medium: 1.0
+          low: 0.8
+    
+    iterations:
+      description: "Number of review → commit cycles"
+      base_distribution: poisson
+      params: { lambda: 1.5 }
+      modifiers:
+        by_author_seniority:
+          junior: 1.8    # More back-and-forth
+          mid: 1.2
+          senior: 0.8
+          staff: 0.7
+          principal: 0.6
+        by_ai_ratio:
+          high: 1.3      # AI code may need more iterations
+          medium: 1.0
+          low: 0.9
+    
+    reviewer_count:
+      description: "Number of unique reviewers"
+      base: 1.8
+      modifiers:
+        by_pr_size:
+          small: 1.0
+          medium: 1.5
+          large: 2.0
+          xlarge: 2.5
+  
+  # Quality outcomes
+  quality_outcomes:
+    revert_probability:
+      description: "Probability of PR being reverted within 7 days"
+      base: 0.02  # 2% baseline
+      modifiers:
+        by_author_seniority:
+          junior: 2.0    # 4% for juniors
+          mid: 1.2
+          senior: 0.7
+          staff: 0.5
+          principal: 0.4
+        by_ai_ratio:
+          high: 1.5      # Higher AI = higher revert risk
+          medium: 1.0
+          low: 0.8
+        by_review_iterations:
+          0: 3.0         # No review = high risk
+          1: 1.5
+          2: 1.0
+          3+: 0.7        # Thorough review = lower risk
+    
+    hotfix_probability:
+      description: "Probability of fix-PR within 48h"
+      base: 0.08  # 8% baseline
+      modifiers:
+        by_author_seniority:
+          junior: 1.8
+          mid: 1.2
+          senior: 0.8
+          staff: 0.7
+          principal: 0.6
+        by_ai_ratio:
+          high: 1.4
+          medium: 1.0
+          low: 0.85
+    
+    code_survival_30d:
+      description: "% of lines still present after 30 days"
+      base: 0.85  # 85% baseline
+      modifiers:
+        by_author_seniority:
+          junior: 0.92   # More churn for junior code
+          mid: 0.96
+          senior: 1.02
+          staff: 1.04
+          principal: 1.05
+        by_ai_ratio:
+          high: 0.95     # AI code may be refactored more
+          medium: 1.0
+          low: 1.02
+  
+  # Scope changes during review
+  scope_creep:
+    description: "How much PRs grow during review"
+    base_ratio: 0.12  # 12% growth on average
+    modifiers:
+      by_author_seniority:
+        junior: 1.5    # Juniors miss more requirements
+        mid: 1.1
+        senior: 0.8
+        staff: 0.7
+        principal: 0.6
+      by_review_iterations:
+        1: 0.5         # Quick reviews = less scope change
+        2: 1.0
+        3: 1.5
+        4+: 2.0
+
+  # Rework during review
+  rework_ratio:
+    description: "LoC changed during review / initial LoC"
+    base_ratio: 0.15  # 15% rework on average
+    modifiers:
+      by_author_seniority:
+        junior: 1.8
+        mid: 1.2
+        senior: 0.8
+        staff: 0.7
+        principal: 0.6
+      by_ai_ratio:
+        high: 1.4      # AI code may need more rework
+        medium: 1.0
+        low: 0.9
+
+# =============================================================================
+# Static Correlations (Pre-computed Parameters)
+# =============================================================================
+correlations:
+  description: "Pre-computed correlation parameters for cursor-sim"
+  
+  seniority_to_behavior:
+    junior:
+      events_per_day: { mean: 80, std: 30 }
+      tab_to_composer_ratio: 0.85
+      accepts_per_session: { mean: 8, std: 4 }
+    mid:
+      events_per_day: { mean: 120, std: 40 }
+      tab_to_composer_ratio: 0.75
+      accepts_per_session: { mean: 12, std: 5 }
+    senior:
+      events_per_day: { mean: 150, std: 50 }
+      tab_to_composer_ratio: 0.65
+      accepts_per_session: { mean: 15, std: 6 }
+    staff:
+      events_per_day: { mean: 130, std: 45 }
+      tab_to_composer_ratio: 0.55
+      accepts_per_session: { mean: 18, std: 7 }
+    principal:
+      events_per_day: { mean: 100, std: 40 }
+      tab_to_composer_ratio: 0.50
+      accepts_per_session: { mean: 20, std: 8 }
+  
+  region_to_activity:
+    US:
+      weekday_weight: 1.0
+      weekend_weight: 0.15
+      peak_hours: [10, 11, 14, 15, 16]
+    EU:
+      weekday_weight: 1.0
+      weekend_weight: 0.08
+      peak_hours: [9, 10, 11, 14, 15]
+    APAC:
+      weekday_weight: 1.0
+      weekend_weight: 0.12
+      peak_hours: [10, 11, 15, 16, 17]
+  
+  lines_per_change:
+    TAB:
+      added: { mean: 3, std: 2, max: 25 }
+      deleted: { mean: 0.5, std: 0.8, max: 10 }
+    COMPOSER:
+      added: { mean: 15, std: 10, max: 100 }
+      deleted: { mean: 4, std: 3, max: 30 }
+  
+  # AI ratio classification thresholds
+  ai_ratio_bands:
+    low: { max: 0.3 }      # < 30% AI-generated
+    medium: { min: 0.3, max: 0.6 }
+    high: { min: 0.6 }     # > 60% AI-generated
+
