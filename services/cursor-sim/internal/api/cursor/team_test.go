@@ -143,9 +143,43 @@ func TestTeamDAU_Success(t *testing.T) {
 	assert.NotNil(t, response.Data)
 }
 
-// Stub endpoints - return empty/placeholder data
-func TestTeamModels_Stub(t *testing.T) {
+func TestTeamModels(t *testing.T) {
 	store := storage.NewMemoryStore()
+
+	// Add model usage events
+	now := time.Now()
+	events := []models.ModelUsageEvent{
+		{
+			UserID:    "user_001",
+			UserEmail: "alice@example.com",
+			ModelName: "claude-sonnet-4.5",
+			UsageType: "code",
+			Timestamp: now.Add(-48 * time.Hour),
+			EventDate: now.Add(-48 * time.Hour).Format("2006-01-02"),
+		},
+		{
+			UserID:    "user_001",
+			UserEmail: "alice@example.com",
+			ModelName: "claude-sonnet-4.5",
+			UsageType: "chat",
+			Timestamp: now.Add(-47 * time.Hour),
+			EventDate: now.Add(-47 * time.Hour).Format("2006-01-02"),
+		},
+		{
+			UserID:    "user_002",
+			UserEmail: "bob@example.com",
+			ModelName: "gpt-4o",
+			UsageType: "code",
+			Timestamp: now.Add(-46 * time.Hour),
+			EventDate: now.Add(-46 * time.Hour).Format("2006-01-02"),
+		},
+	}
+
+	for _, event := range events {
+		err := store.AddModelUsage(event)
+		require.NoError(t, err)
+	}
+
 	handler := TeamModels(store)
 
 	req := httptest.NewRequest("GET", "/analytics/team/models", nil)
@@ -154,6 +188,20 @@ func TestTeamModels_Stub(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
+
+	// Parse response
+	var response struct {
+		Data []models.ModelUsageDay `json:"data"`
+	}
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should have model usage data
+	assert.NotNil(t, response.Data)
+	// Should have at least one day with model breakdown
+	if len(response.Data) > 0 {
+		assert.NotEmpty(t, response.Data[0].ModelBreakdown)
+	}
 }
 
 func TestTeamClientVersions_Stub(t *testing.T) {

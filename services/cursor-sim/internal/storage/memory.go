@@ -36,6 +36,9 @@ type MemoryStore struct {
 
 	// ReviewComment data
 	reviewComments map[string]map[int][]*models.ReviewComment // repo -> pr_number -> comments
+
+	// Model usage data
+	modelUsage []*models.ModelUsageEvent // time-sorted for range queries
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -50,6 +53,7 @@ func NewMemoryStore() *MemoryStore {
 		prsByRepo:       make(map[string]map[int]*models.PullRequest),
 		prsByAuthor:     make(map[string][]*models.PullRequest),
 		reviewComments:  make(map[string]map[int][]*models.ReviewComment),
+		modelUsage:      make([]*models.ModelUsageEvent, 0, 1000),
 	}
 }
 
@@ -418,6 +422,36 @@ func (m *MemoryStore) GetReviewComments(repoName string, prNumber int) []models.
 	for _, c := range prComments {
 		result = append(result, *c)
 	}
+
+	return result
+}
+
+// AddModelUsage stores a model usage event.
+func (m *MemoryStore) AddModelUsage(usage models.ModelUsageEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.modelUsage = append(m.modelUsage, &usage)
+	return nil
+}
+
+// GetModelUsageByTimeRange retrieves all model usage events within a time range.
+// Returns events sorted by timestamp.
+func (m *MemoryStore) GetModelUsageByTimeRange(from, to time.Time) []models.ModelUsageEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	result := make([]models.ModelUsageEvent, 0)
+	for _, usage := range m.modelUsage {
+		if !usage.Timestamp.Before(from) && usage.Timestamp.Before(to) {
+			result = append(result, *usage)
+		}
+	}
+
+	// Sort by timestamp
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
 
 	return result
 }

@@ -36,4 +36,8 @@ type Store interface {
 	// Review comment operations
 	AddReviewComment(comment models.ReviewComment) error
 	GetReviewComments(repoName string, prNumber int) []models.ReviewComment
+
+	// Model usage operations
+	AddModelUsage(usage models.ModelUsageEvent) error
+	GetModelUsageByTimeRange(from, to time.Time) []models.ModelUsageEvent
 }

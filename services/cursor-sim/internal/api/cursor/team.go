@@ -104,11 +104,72 @@ func TeamDAU(store storage.Store) http.Handler {
 	})
 }
 
-// Stub endpoints - return empty data for metrics we don't track yet
-
+// TeamModels returns handler for GET /analytics/team/models.
+// Aggregates model usage by day with breakdown by model.
 func TeamModels(store storage.Store) http.Handler {
-	return stubHandler("models")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Parse query parameters
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Parse date range
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		// Get model usage events in range
+		events := store.GetModelUsageByTimeRange(from, to)
+
+		// Aggregate by date and model
+		dayMap := make(map[string]map[string]map[string]bool) // date -> model -> users
+
+		for _, event := range events {
+			date := event.EventDate
+			if _, exists := dayMap[date]; !exists {
+				dayMap[date] = make(map[string]map[string]bool)
+			}
+			if _, exists := dayMap[date][event.ModelName]; !exists {
+				dayMap[date][event.ModelName] = make(map[string]bool)
+			}
+			dayMap[date][event.ModelName][event.UserID] = true
+		}
+
+		// Count messages per model per day (approximate: 1 event = 1 message)
+		messageCountMap := make(map[string]map[string]int) // date -> model -> count
+		for _, event := range events {
+			date := event.EventDate
+			if _, exists := messageCountMap[date]; !exists {
+				messageCountMap[date] = make(map[string]int)
+			}
+			messageCountMap[date][event.ModelName]++
+		}
+
+		// Build response
+		result := make([]models.ModelUsageDay, 0, len(dayMap))
+		for date, modelData := range dayMap {
+			breakdown := make(map[string]models.ModelBreakdownItem)
+			for model, users := range modelData {
+				breakdown[model] = models.ModelBreakdownItem{
+					Messages: messageCountMap[date][model],
+					Users:    len(users),
+				}
+			}
+			result = append(result, models.ModelUsageDay{
+				Date:           date,
+				ModelBreakdown: breakdown,
+			})
+		}
+
+		// Build response using Analytics API format
+		response := api.BuildAnalyticsTeamResponse(result, "models", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
+
+// Stub endpoints - return empty data for metrics we don't track yet
 
 func TeamClientVersions(store storage.Store) http.Handler {
 	return stubHandler("client-versions")
