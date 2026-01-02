@@ -5,7 +5,7 @@
 **Feature**: cursor-sim v2 - Cursor API Simulator
 **Total Estimated Hours**: 44.5
 **Number of Steps**: 16
-**Current Step**: 06 (Complete) - Next: 07
+**Current Step**: 08 (Complete) - Next: 09
 
 ## Progress Tracker
 
@@ -17,8 +17,8 @@
 | 04 | CLI v2 flags | 2.0 | DONE | 0.5 |
 | 05 | Cursor data models | 3.0 | DONE | 0.5 |
 | 06 | Commit generation engine | 5.0 | DONE | 1.25 |
-| 07 | In-memory storage v2 | 4.0 | NOT_STARTED | - |
-| 08 | API infrastructure | 2.0 | NOT_STARTED | - |
+| 07 | In-memory storage v2 | 4.0 | DONE | 1.0 |
+| 08 | API infrastructure | 2.0 | DONE | 0.75 |
 | 09 | /teams/members endpoint | 1.5 | NOT_STARTED | - |
 | 10 | /ai-code/commits endpoint | 2.0 | NOT_STARTED | - |
 | 11 | /ai-code/commits.csv endpoint | 1.0 | NOT_STARTED | - |
@@ -92,10 +92,10 @@ Each step has a detailed implementation file:
 | Category | Estimated | Actual | Delta |
 |----------|-----------|--------|-------|
 | Foundation (01-05) | 11.0h | 2.5h | -77% ✅ |
-| Generation (06-07) | 9.0h | 1.25h (partial) | - |
-| Endpoints (08-13) | 16.5h | - | - |
+| Generation (06-07) | 9.0h | 2.25h | -75% ✅ |
+| Endpoints (08-13) | 16.5h | 0.75h (partial) | - |
 | Integration (14-16) | 8.0h | - | - |
-| **Total** | **44.5h** | **3.75h** | **-92% (so far)** ✅ |
+| **Total** | **44.5h** | **5.5h** | **-88% (so far)** ✅ |
 
 **Note**: Actual time is significantly lower due to:
 
