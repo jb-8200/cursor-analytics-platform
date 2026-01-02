@@ -198,36 +198,60 @@ Tests Pass → Stage → Commit → Update Progress → Next Task
 
 ---
 
-## Hook Limitations in Claude Code
+## Claude Code Hooks
 
-### What Hooks Were Designed For
+Claude Code **does** support hooks - they're shell commands configured via `/hooks` or `settings.json`.
 
-The `.claude/hooks/` files describe automation that **does not execute** in Claude Code:
+### How Hooks Work
 
-| Hook File | Intended Purpose | Status |
-|-----------|-----------------|--------|
-| `pre_prompt.py` | Inject context before each prompt | **Not Executed** |
-| `pre_commit.py` | Run tests before git commit | **Not Executed** |
-| `pre_patch.py` | Lint Markdown before patch | **Not Executed** |
+| Component | Description |
+|-----------|-------------|
+| **Events** | PreToolUse, PostToolUse, Stop, Notification, etc. |
+| **Matchers** | Filter which tools trigger the hook (e.g., `Bash`, `Edit|Write`) |
+| **Commands** | Shell commands that receive JSON stdin, control via exit codes |
 
-### Claude Code Alternatives
+### Our Project Hooks
 
-| Hook Intent | Alternative Implementation |
-|-------------|---------------------------|
-| Context injection | Read `DEVELOPMENT.md` at session start |
-| Test enforcement | `sdd-checklist` skill + manual discipline |
-| Lint enforcement | Run linters before commit manually |
+| Hook | Event | Matcher | Purpose |
+|------|-------|---------|---------|
+| `pre_commit.py` | PreToolUse | Bash | Reminds about SDD checklist on git commit |
+| `markdown_formatter.py` | PostToolUse | Edit\|Write | Auto-formats markdown files |
+| `sdd_reminder.py` | Stop | (all) | Reminds about post-task workflow |
 
-### TodoWrite as Workflow Enforcement
+### Setup
 
-Use TodoWrite to track mandatory steps:
+Run `/hooks` command to configure, or add to `.claude/settings.local.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": "python3 .claude/hooks/pre_commit.py"}]
+      }
+    ]
+  }
+}
+```
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success, continue |
+| 2 | Block with feedback (stdout shown to Claude) |
+
+### Backup: TodoWrite Enforcement
+
+Use TodoWrite to track workflow steps:
 
 ```javascript
 [
   {"content": "Complete Step B01 implementation", "status": "completed"},
   {"content": "Run tests", "status": "completed"},
-  {"content": "Commit B01 changes", "status": "completed"},      // Required
-  {"content": "Update task.md progress", "status": "completed"}, // Required
+  {"content": "Commit B01 changes", "status": "completed"},
+  {"content": "Update task.md progress", "status": "completed"},
   {"content": "Start Step B02", "status": "in_progress"}
 ]
 ```
