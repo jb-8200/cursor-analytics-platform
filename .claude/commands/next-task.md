@@ -2,13 +2,15 @@ Read .claude/DEVELOPMENT.md and docs/TASKS.md to determine what task I should wo
 
 Consider:
 - Current project phase from DEVELOPMENT.md
-- Dependencies between tasks in TASKS.md
+- Active work item from `.claude/plans/active` symlink
+- Current task status in `.work-items/{feature}/task.md`
+- Dependencies between tasks
 - What's already completed
-- P0 status
 
 Show me:
-1. The next task ID and name
+1. The next task/step ID and name
 2. Brief description
 3. Which service it belongs to
-4. Recommended model (from .claude/skills/model-selection-guide.md)
+4. Recommended model (from `.claude/skills/operational/model-selection-guide.md`)
 5. Key files to read (SPEC.md sections)
+6. Estimated hours

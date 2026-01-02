@@ -127,11 +127,24 @@ Or override:
 
 ## Integration with Skills
 
-Commands automatically use skills in `.claude/skills/`:
-- `cursor-api-patterns.md` - API patterns
+Commands automatically use skills in `.claude/skills/` (categorized):
+
+**Process** (`.claude/skills/process/`):
+- `spec-process-core.md` - Core SDD principles
+- `spec-process-dev.md` - TDD workflow
+
+**Standards** (`.claude/skills/standards/`):
+- `spec-user-story.md` - User story format
+- `spec-design.md` - Design doc format
+- `spec-tasks.md` - Task breakdown format
+
+**Guidelines** (`.claude/skills/guidelines/`):
 - `go-best-practices.md` - Go standards
+- `cursor-api-patterns.md` - API patterns
+
+**Operational** (`.claude/skills/operational/`):
+- `sdd-checklist.md` - **CRITICAL**: Post-task commit enforcement
 - `model-selection-guide.md` - Model recommendations
-- `spec-driven-development.md` - TDD workflow
 
 ---
 
