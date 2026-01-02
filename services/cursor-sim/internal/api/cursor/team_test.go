@@ -387,8 +387,8 @@ func TestTeamAskMode_Stub(t *testing.T) {
 	assert.Equal(t, 200, rec.Code)
 }
 
-func TestTeamLeaderboard_Stub(t *testing.T) {
-	store := storage.NewMemoryStore()
+func TestTeamLeaderboard_Success(t *testing.T) {
+	store := setupTeamTestStore()
 	handler := TeamLeaderboard(store)
 
 	req := httptest.NewRequest("GET", "/analytics/team/leaderboard", nil)
@@ -397,4 +397,204 @@ func TestTeamLeaderboard_Stub(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
+
+	var response models.LeaderboardResponseWrapper
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Check tab leaderboard
+	assert.NotNil(t, response.Data.TabLeaderboard)
+	assert.Greater(t, len(response.Data.TabLeaderboard.Data), 0, "tab leaderboard should have entries")
+	assert.Greater(t, response.Data.TabLeaderboard.TotalUsers, 0, "tab leaderboard should have total users")
+
+	// Check agent leaderboard
+	assert.NotNil(t, response.Data.AgentLeaderboard)
+	assert.Greater(t, len(response.Data.AgentLeaderboard.Data), 0, "agent leaderboard should have entries")
+	assert.Greater(t, response.Data.AgentLeaderboard.TotalUsers, 0, "agent leaderboard should have total users")
+
+	// Check pagination
+	assert.Greater(t, response.Pagination.TotalPages, 0)
+	assert.Equal(t, 1, response.Pagination.Page)
+
+	// Check params
+	assert.Equal(t, "leaderboard", response.Params.Metric)
+}
+
+func TestTeamLeaderboard_TabMetrics(t *testing.T) {
+	store := storage.NewMemoryStore()
+
+	developers := []seed.Developer{
+		{UserID: "user_001", Email: "alice@example.com", Name: "Alice"},
+		{UserID: "user_002", Email: "bob@example.com", Name: "Bob"},
+	}
+	store.LoadDevelopers(developers)
+
+	now := time.Now()
+	// Alice: 100 + 80 = 180 tab lines
+	// Bob: 40 + 50 = 90 tab lines
+	store.AddCommit(models.Commit{
+		CommitHash:    "c1",
+		UserID:        "user_001",
+		UserEmail:     "alice@example.com",
+		TabLinesAdded: 100,
+		CommitTs:      now.Add(-24 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:    "c2",
+		UserID:        "user_001",
+		UserEmail:     "alice@example.com",
+		TabLinesAdded: 80,
+		CommitTs:      now.Add(-12 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:    "c3",
+		UserID:        "user_002",
+		UserEmail:     "bob@example.com",
+		TabLinesAdded: 40,
+		CommitTs:      now.Add(-24 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:    "c4",
+		UserID:        "user_002",
+		UserEmail:     "bob@example.com",
+		TabLinesAdded: 50,
+		CommitTs:      now.Add(-12 * time.Hour),
+	})
+
+	handler := TeamLeaderboard(store)
+	req := httptest.NewRequest("GET", "/analytics/team/leaderboard", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	var response models.LeaderboardResponseWrapper
+	json.Unmarshal(rec.Body.Bytes(), &response)
+
+	// Check tab leaderboard ranking
+	tabData := response.Data.TabLeaderboard.Data
+	assert.Equal(t, 2, len(tabData), "should have 2 users in tab leaderboard")
+
+	// Alice (180) should be ranked 1st
+	assert.Equal(t, "alice@example.com", tabData[0].Email)
+	assert.Equal(t, 180, tabData[0].TotalAccepts)
+	assert.Equal(t, 180, tabData[0].TotalLinesAccepted)
+	assert.Equal(t, 180, tabData[0].TotalLinesSuggested)
+	assert.Equal(t, 1, tabData[0].Rank)
+
+	// Bob (90) should be ranked 2nd
+	assert.Equal(t, "bob@example.com", tabData[1].Email)
+	assert.Equal(t, 90, tabData[1].TotalAccepts)
+	assert.Equal(t, 2, tabData[1].Rank)
+}
+
+func TestTeamLeaderboard_AgentMetrics(t *testing.T) {
+	store := storage.NewMemoryStore()
+
+	developers := []seed.Developer{
+		{UserID: "user_001", Email: "alice@example.com", Name: "Alice"},
+		{UserID: "user_002", Email: "bob@example.com", Name: "Bob"},
+	}
+	store.LoadDevelopers(developers)
+
+	now := time.Now()
+	// Alice: 50 + 40 = 90 agent lines
+	// Bob: 30 + 20 = 50 agent lines
+	store.AddCommit(models.Commit{
+		CommitHash:         "c1",
+		UserID:             "user_001",
+		UserEmail:          "alice@example.com",
+		ComposerLinesAdded: 50,
+		CommitTs:           now.Add(-24 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:         "c2",
+		UserID:             "user_001",
+		UserEmail:          "alice@example.com",
+		ComposerLinesAdded: 40,
+		CommitTs:           now.Add(-12 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:         "c3",
+		UserID:             "user_002",
+		UserEmail:          "bob@example.com",
+		ComposerLinesAdded: 30,
+		CommitTs:           now.Add(-24 * time.Hour),
+	})
+	store.AddCommit(models.Commit{
+		CommitHash:         "c4",
+		UserID:             "user_002",
+		UserEmail:          "bob@example.com",
+		ComposerLinesAdded: 20,
+		CommitTs:           now.Add(-12 * time.Hour),
+	})
+
+	handler := TeamLeaderboard(store)
+	req := httptest.NewRequest("GET", "/analytics/team/leaderboard", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	var response models.LeaderboardResponseWrapper
+	json.Unmarshal(rec.Body.Bytes(), &response)
+
+	// Check agent leaderboard ranking
+	agentData := response.Data.AgentLeaderboard.Data
+	assert.Equal(t, 2, len(agentData), "should have 2 users in agent leaderboard")
+
+	// Alice (90) should be ranked 1st
+	assert.Equal(t, "alice@example.com", agentData[0].Email)
+	assert.Equal(t, 90, agentData[0].TotalAccepts)
+	assert.Equal(t, 1, agentData[0].Rank)
+
+	// Bob (50) should be ranked 2nd
+	assert.Equal(t, "bob@example.com", agentData[1].Email)
+	assert.Equal(t, 50, agentData[1].TotalAccepts)
+	assert.Equal(t, 2, agentData[1].Rank)
+}
+
+func TestTeamLeaderboard_Pagination(t *testing.T) {
+	store := storage.NewMemoryStore()
+
+	// Create 15 developers
+	developers := make([]seed.Developer, 15)
+	for i := 0; i < 15; i++ {
+		developers[i] = seed.Developer{
+			UserID: "user_" + string(rune(48+i)),
+			Email:  "user" + string(rune(48+i)) + "@example.com",
+			Name:   "User " + string(rune(48+i)),
+		}
+	}
+	store.LoadDevelopers(developers)
+
+	now := time.Now()
+	// Add commits for each user
+	for i := 0; i < 15; i++ {
+		store.AddCommit(models.Commit{
+			CommitHash:    "c" + string(rune(48+i)),
+			UserID:        "user_" + string(rune(48+i)),
+			UserEmail:     "user" + string(rune(48+i)) + "@example.com",
+			TabLinesAdded: (i + 1) * 10,
+			CommitTs:      now.Add(-24 * time.Hour),
+		})
+	}
+
+	handler := TeamLeaderboard(store)
+	req := httptest.NewRequest("GET", "/analytics/team/leaderboard?page=1&pageSize=10", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	var response models.LeaderboardResponseWrapper
+	json.Unmarshal(rec.Body.Bytes(), &response)
+
+	// Check pagination
+	assert.Equal(t, 1, response.Pagination.Page)
+	assert.Equal(t, 10, response.Pagination.PageSize)
+	assert.Equal(t, 15, response.Pagination.TotalUsers)
+	assert.Equal(t, 2, response.Pagination.TotalPages)
+	assert.True(t, response.Pagination.HasNextPage)
+	assert.False(t, response.Pagination.HasPreviousPage)
+
+	// Should return 10 entries on first page
+	assert.Equal(t, 10, len(response.Data.TabLeaderboard.Data))
 }

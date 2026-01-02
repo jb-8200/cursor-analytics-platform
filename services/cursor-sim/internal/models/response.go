@@ -132,6 +132,18 @@ type AnalyticsParams struct {
 }
 
 // ===========================================================================
+// Leaderboard Wrapper Types (for /analytics/team/leaderboard HTTP response)
+// ===========================================================================
+
+// LeaderboardResponseWrapper is the HTTP response wrapper for /analytics/team/leaderboard.
+// Wraps the LeaderboardResponse data (from team_stats.go) with pagination and params.
+type LeaderboardResponseWrapper struct {
+	Data       LeaderboardResponse `json:"data"`
+	Pagination Pagination          `json:"pagination"`
+	Params     AnalyticsParams     `json:"params"`
+}
+
+// ===========================================================================
 // Common Types
 // ===========================================================================
 

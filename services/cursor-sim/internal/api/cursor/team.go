@@ -2,6 +2,7 @@ package cursor
 
 import (
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api"
@@ -489,7 +490,203 @@ func splitKey(key string) []string {
 }
 
 func TeamLeaderboard(store storage.Store) http.Handler {
-	return stubHandler("leaderboard")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Parse query parameters
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Parse date range from validated params
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+
+		// Extend to include full day
+		to = to.Add(24*time.Hour - time.Second)
+
+		// Get commits in range
+		commits := store.GetCommitsByTimeRange(from, to)
+
+		// Aggregate by user for both leaderboards
+		tabLeaderboard := aggregateTabLeaderboard(commits)
+		agentLeaderboard := aggregateAgentLeaderboard(commits)
+
+		// Apply sorting and ranking
+		sortedTab := rankLeaderboard(tabLeaderboard)
+		sortedAgent := rankLeaderboard(agentLeaderboard)
+
+		// Get pagination parameters
+		page := params.Page
+		pageSize := params.PageSize
+		if page < 1 {
+			page = 1
+		}
+		if pageSize < 1 || pageSize > 100 {
+			pageSize = 10
+		}
+
+		// Calculate pagination for leaderboards
+		totalUsers := len(commits)
+		if totalUsers == 0 {
+			// Count unique users from seed if no commits
+			developers := store.ListDevelopers()
+			totalUsers = len(developers)
+		}
+
+		totalPages := (totalUsers + pageSize - 1) / pageSize
+		if totalPages < 1 {
+			totalPages = 1
+		}
+
+		// Apply pagination to both leaderboards
+		tabPaginated := paginateLeaderboard(sortedTab, page, pageSize)
+		agentPaginated := paginateLeaderboard(sortedAgent, page, pageSize)
+
+		// Build response
+		response := models.LeaderboardResponseWrapper{
+			Data: models.LeaderboardResponse{
+				TabLeaderboard: models.LeaderboardSection{
+					Data:       tabPaginated,
+					TotalUsers: totalUsers,
+				},
+				AgentLeaderboard: models.LeaderboardSection{
+					Data:       agentPaginated,
+					TotalUsers: totalUsers,
+				},
+			},
+			Pagination: models.Pagination{
+				Page:            page,
+				PageSize:        pageSize,
+				TotalUsers:      totalUsers,
+				TotalPages:      totalPages,
+				HasNextPage:     page < totalPages,
+				HasPreviousPage: page > 1,
+			},
+			Params: models.AnalyticsParams{
+				Metric:    "leaderboard",
+				StartDate: params.StartDate,
+				EndDate:   params.EndDate,
+				Users:     params.User,
+				Page:      page,
+				PageSize:  pageSize,
+			},
+		}
+
+		// Send JSON response
+		api.RespondJSON(w, http.StatusOK, response)
+	})
+}
+
+// aggregateTabLeaderboard aggregates tab metrics by user from commits.
+// Returns a map of email -> aggregated tab metrics.
+func aggregateTabLeaderboard(commits []models.Commit) map[string]*models.LeaderboardEntry {
+	result := make(map[string]*models.LeaderboardEntry)
+
+	for _, commit := range commits {
+		email := commit.UserEmail
+		if email == "" {
+			continue
+		}
+
+		if _, exists := result[email]; !exists {
+			result[email] = &models.LeaderboardEntry{
+				Email:  email,
+				UserID: commit.UserID,
+			}
+		}
+
+		// Accumulate tab metrics
+		result[email].TotalLinesSuggested += commit.TabLinesAdded
+		result[email].TotalLinesAccepted += commit.TabLinesAdded // Lines accepted = lines added by AI
+		result[email].TotalAccepts += commit.TabLinesAdded
+	}
+
+	return result
+}
+
+// aggregateAgentLeaderboard aggregates agent/composer metrics by user from commits.
+// Returns a map of email -> aggregated agent metrics.
+func aggregateAgentLeaderboard(commits []models.Commit) map[string]*models.LeaderboardEntry {
+	result := make(map[string]*models.LeaderboardEntry)
+
+	for _, commit := range commits {
+		email := commit.UserEmail
+		if email == "" {
+			continue
+		}
+
+		if _, exists := result[email]; !exists {
+			result[email] = &models.LeaderboardEntry{
+				Email:  email,
+				UserID: commit.UserID,
+			}
+		}
+
+		// Accumulate agent metrics
+		result[email].TotalLinesSuggested += commit.ComposerLinesAdded
+		result[email].TotalLinesAccepted += commit.ComposerLinesAdded
+		result[email].TotalAccepts += commit.ComposerLinesAdded
+	}
+
+	return result
+}
+
+// rankLeaderboard converts aggregated metrics to ranked entries and sorts them.
+// Sorting is by total_accepts descending, then total_lines_accepted descending.
+func rankLeaderboard(entries map[string]*models.LeaderboardEntry) []models.LeaderboardEntry {
+	var result []models.LeaderboardEntry
+
+	for _, entry := range entries {
+		// Calculate acceptance ratios
+		if entry.TotalLinesSuggested > 0 {
+			entry.LineAcceptanceRatio = float64(entry.TotalLinesAccepted) / float64(entry.TotalLinesSuggested)
+		} else {
+			entry.LineAcceptanceRatio = 0.0
+		}
+
+		if entry.TotalAccepts > 0 {
+			entry.AcceptRatio = float64(entry.TotalAccepts) / float64(entry.TotalAccepts) // Always 1.0 since accepted=suggested for now
+		} else {
+			entry.AcceptRatio = 0.0
+		}
+
+		result = append(result, *entry)
+	}
+
+	// Sort by total_accepts descending, then by total_lines_accepted descending
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].TotalAccepts != result[j].TotalAccepts {
+			return result[i].TotalAccepts > result[j].TotalAccepts
+		}
+		return result[i].TotalLinesAccepted > result[j].TotalLinesAccepted
+	})
+
+	// Assign ranks
+	for i := range result {
+		result[i].Rank = i + 1
+	}
+
+	return result
+}
+
+// paginateLeaderboard applies pagination to a ranked leaderboard.
+func paginateLeaderboard(entries []models.LeaderboardEntry, page, pageSize int) []models.LeaderboardEntry {
+	if len(entries) == 0 {
+		return []models.LeaderboardEntry{}
+	}
+
+	start := (page - 1) * pageSize
+	if start >= len(entries) {
+		start = len(entries) - 1
+	}
+
+	end := start + pageSize
+	if end > len(entries) {
+		end = len(entries)
+	}
+
+	return entries[start:end]
 }
 
 // Helper functions

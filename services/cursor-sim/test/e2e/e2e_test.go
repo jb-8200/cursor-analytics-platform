@@ -193,7 +193,13 @@ func TestE2E_TeamAnalytics(t *testing.T) {
 			// Reference: docs/api-reference/cursor_analytics.md (Team-Level Endpoints)
 			assert.Contains(t, result, "data")
 			assert.Contains(t, result, "params")
-			assert.NotContains(t, result, "pagination", "team-level endpoints should not have pagination wrapper")
+
+			// Leaderboard endpoint includes pagination (special case for ranking)
+			if endpoint == "/analytics/team/leaderboard" {
+				assert.Contains(t, result, "pagination", "leaderboard endpoint should have pagination")
+			} else {
+				assert.NotContains(t, result, "pagination", "team-level endpoints should not have pagination wrapper")
+			}
 		})
 	}
 }
