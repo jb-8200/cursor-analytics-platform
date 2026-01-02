@@ -27,7 +27,7 @@ This phase completes cursor-sim with:
 | A04 | Research Metrics Service | 3.0 | DONE | 0.25 |
 | A05 | Research API Handlers | 2.5 | DONE | 0.25 |
 | A06 | Replay Mode Infrastructure | 3.0 | DONE | 0.25 |
-| A07 | Part A Integration Tests | 2.0 | NOT_STARTED | - |
+| A07 | Part A Integration Tests | 2.0 | DONE | 0.25 |
 
 ### Part B: Stub Completion (8-12h)
 

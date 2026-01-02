@@ -94,7 +94,7 @@ func (m *MemoryStore) GetDeveloperByEmail(email string) (*seed.Developer, error)
 	return dev, nil
 }
 
-// ListDevelopers returns all developers.
+// ListDevelopers returns all developers sorted by UserID.
 func (m *MemoryStore) ListDevelopers() []seed.Developer {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -103,6 +103,11 @@ func (m *MemoryStore) ListDevelopers() []seed.Developer {
 	for _, dev := range m.developers {
 		result = append(result, *dev)
 	}
+
+	// Sort by UserID for deterministic ordering
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].UserID < result[j].UserID
+	})
 
 	return result
 }
