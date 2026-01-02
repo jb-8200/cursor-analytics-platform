@@ -1,0 +1,283 @@
+type: collection.insomnia.rest/5.0
+name: cursor-sim
+meta:
+  id: wrk_70cbbd4b6ac141a89121f8f8bf8db53e
+  created: 1767346177678
+  modified: 1767346177678
+  description: ""
+collection:
+  - url: http://localhost:8080/teams/members
+    name: members
+    meta:
+      id: req_5e9b500b6b4c481186d2d91e39642b9f
+      created: 1767346189260
+      modified: 1767346804876
+      isPrivate: false
+      description: ""
+      sortKey: -1767346748652
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.0.0
+    authentication:
+      type: basic
+      useISO88591: false
+      disabled: false
+      username: cursor-sim-dev-key
+      password: ""
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/health
+    name: health
+    meta:
+      id: req_aaa559804952420b907f86c36395ebf0
+      created: 1767346268767
+      modified: 1767346802366
+      isPrivate: false
+      description: ""
+      sortKey: -1767346748702
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.0.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/analytics/ai-code/commits
+    name: commits
+    meta:
+      id: req_8da1b5ead89c4399a22aeb8c4e25fc3d
+      created: 1767346290940
+      modified: 1767347707418
+      isPrivate: false
+      description: ""
+      sortKey: -1767346748627
+    method: GET
+    body:
+      mimeType: application/json
+      text: ""
+    parameters:
+      - id: pair_ca1589b7f2f2412e8e1f6bf92f43984d
+        name: params
+        value: |-
+          from=2025-12-26 (YYYY-MM-DD)
+          to=2026-01-02 (YYYY-MM-DD)
+          page=1
+          page_size=10
+          user_id=<email>
+          repo_name=<repo>
+        description: ""
+        disabled: true
+        type: text
+        multiline: true
+      - id: pair_99c8a301f9ed49a797ecfc54b9f52a6a
+        name: from
+        value: 2025-12-26
+        description: ""
+        disabled: false
+      - id: pair_fb1f871e8aa24a32b99d961531f50802
+        name: to
+        value: 2026-01-02
+        description: ""
+        disabled: false
+      - id: pair_d3f8d3465b164b4f9b05c43faa1fab0e
+        name: page
+        value: "1"
+        description: ""
+        disabled: false
+      - id: pair_76df6c89347341feb857dd209aa4e6bf
+        name: page_size
+        value: "10"
+        description: ""
+        disabled: false
+      - id: pair_cecda8707a9740c78bce3ff9d0fa1a4c
+        name: user_id
+        value: user_001
+        description: ""
+        disabled: false
+      - id: pair_053db3c560ff49859d194c88bd3973e0
+        name: repo_name
+        value: ""
+        description: ""
+        disabled: false
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.0.0
+    authentication:
+      type: basic
+      useISO88591: false
+      disabled: false
+      username: cursor-sim-dev-key
+      password: ""
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/analytics/ai-code/commits.csv
+    name: commits csv
+    meta:
+      id: req_8b148df0f52042b7bfb45899ca08e09e
+      created: 1767346748602
+      modified: 1767346795738
+      isPrivate: false
+      description: ""
+      sortKey: -1767346748602
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.0.0
+    authentication:
+      type: basic
+      useISO88591: false
+      disabled: false
+      username: cursor-sim-dev-key
+      password: ""
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - name: team analytics
+    meta:
+      id: fld_b987459aa47b4a058b3c0c7820bdf25a
+      created: 1767346848532
+      modified: 1767347114449
+      sortKey: -1767346848532
+      description: ""
+    children:
+      - url: http://localhost:8080/analytics/team/agent-edits?from=2025-12-26&to=2026-01-02
+        name: agent-edits
+        meta:
+          id: req_109fc5a8831e43189e9c5ebcce9344ad
+          created: 1767346853675
+          modified: 1767347172067
+          isPrivate: false
+          description: ""
+          sortKey: -1767346861569
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/analytics/team/tabs?from=2025-12-26&to=2026-01-02
+        name: tabs
+        meta:
+          id: req_38e852dc105c44029132100d040790a3
+          created: 1767347386870
+          modified: 1767347410109
+          isPrivate: false
+          description: ""
+          sortKey: -1767346861669
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/analytics/team/dau
+        name: dau
+        meta:
+          id: req_fb8f2b237ea44e4194ecb6dd2f993370
+          created: 1767347430865
+          modified: 1767347512562
+          isPrivate: false
+          description: ""
+          sortKey: -1767347430865
+        method: GET
+        parameters:
+          - id: pair_50189f37f6b14e439159a14c9958252c
+            name: from
+            value: 2025-12-26
+            description: ""
+            disabled: false
+          - id: pair_a4af20f75e5544f68139634d74c3614f
+            name: to
+            value: 2026-01-02
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/analytics/by-user/agent-edits
+        name: by-user-edits
+        meta:
+          id: req_6e5ee35b8092492db1e230868bce6671
+          created: 1767347752121
+          modified: 1767347771855
+          isPrivate: false
+          description: ""
+          sortKey: -1767347430965
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      disabled: false
+      username: cursor-sim-dev-key
+      password: ""
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_52fbc84e4ad3ee90b455609a3c8092fdddd937c1
+    created: 1767346177680
+    modified: 1767346177680
+environments:
+  name: Base Environment
+  meta:
+    id: env_52fbc84e4ad3ee90b455609a3c8092fdddd937c1
+    created: 1767346177679
+    modified: 1767346980130
+    isPrivate: false
+  data:
+    "": ""
