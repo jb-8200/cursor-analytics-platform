@@ -1,0 +1,275 @@
+package cursor
+
+import (
+	"encoding/json"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/models"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func setupTestStore() *storage.MemoryStore {
+	store := storage.NewMemoryStore()
+
+	// Load developers
+	developers := []seed.Developer{
+		{UserID: "user_001", Email: "alice@example.com", Name: "Alice"},
+		{UserID: "user_002", Email: "bob@example.com", Name: "Bob"},
+	}
+	store.LoadDevelopers(developers)
+
+	// Add commits
+	now := time.Now()
+	commits := []models.Commit{
+		{
+			CommitHash:         "commit1",
+			UserID:             "user_001",
+			UserEmail:          "alice@example.com",
+			RepoName:           "acme/api",
+			TotalLinesAdded:    100,
+			TabLinesAdded:      60,
+			ComposerLinesAdded: 20,
+			NonAILinesAdded:    20,
+			CommitTs:           now.Add(-2 * time.Hour),
+			CreatedAt:          now,
+		},
+		{
+			CommitHash:         "commit2",
+			UserID:             "user_002",
+			UserEmail:          "bob@example.com",
+			RepoName:           "acme/web",
+			TotalLinesAdded:    50,
+			TabLinesAdded:      30,
+			ComposerLinesAdded: 10,
+			NonAILinesAdded:    10,
+			CommitTs:           now.Add(-1 * time.Hour),
+			CreatedAt:          now,
+		},
+		{
+			CommitHash:         "commit3",
+			UserID:             "user_001",
+			UserEmail:          "alice@example.com",
+			RepoName:           "acme/api",
+			TotalLinesAdded:    200,
+			TabLinesAdded:      120,
+			ComposerLinesAdded: 40,
+			NonAILinesAdded:    40,
+			CommitTs:           now.Add(-10 * time.Hour), // Older
+			CreatedAt:          now,
+		},
+	}
+
+	for _, c := range commits {
+		store.AddCommit(c)
+	}
+
+	return store
+}
+
+func TestAICodeCommits_Success(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+	assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should return all commits (default 30 days range)
+	commits := response.Data.([]interface{})
+	assert.GreaterOrEqual(t, len(commits), 2)
+}
+
+func TestAICodeCommits_WithDateRange(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	// Request last 3 hours
+	from := time.Now().Add(-3 * time.Hour).Format("2006-01-02")
+	to := time.Now().Format("2006-01-02")
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?from="+from+"&to="+to, nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should return commits within range
+	assert.NotNil(t, response.Data)
+	assert.NotNil(t, response.Pagination)
+}
+
+func TestAICodeCommits_WithUserFilter(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?userId=user_001", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// All commits should be from user_001
+	data, _ := json.Marshal(response.Data)
+	var commits []models.Commit
+	json.Unmarshal(data, &commits)
+
+	for _, c := range commits {
+		assert.Equal(t, "user_001", c.UserID)
+	}
+}
+
+func TestAICodeCommits_WithPagination(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?page=1&pageSize=2", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, response.Pagination.Page)
+	assert.Equal(t, 2, response.Pagination.PageSize)
+}
+
+func TestAICodeCommits_EmptyStore(t *testing.T) {
+	store := storage.NewMemoryStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should return empty array
+	data, _ := json.Marshal(response.Data)
+	var commits []models.Commit
+	json.Unmarshal(data, &commits)
+	assert.Len(t, commits, 0)
+}
+
+func TestAICodeCommits_InvalidDateFormat(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?from=invalid-date", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	// Should return error
+	assert.Equal(t, 400, rec.Code)
+
+	var errorResp map[string]string
+	err := json.Unmarshal(rec.Body.Bytes(), &errorResp)
+	require.NoError(t, err)
+	assert.Contains(t, errorResp["error"], "from")
+}
+
+func TestAICodeCommits_InvalidPagination(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits?page=0", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	// Should return error
+	assert.Equal(t, 400, rec.Code)
+}
+
+func TestAICodeCommits_ResponseStructure(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Verify structure
+	assert.NotNil(t, response.Data)
+	assert.NotNil(t, response.Pagination)
+	assert.NotNil(t, response.Params)
+
+	// Verify pagination fields
+	assert.Greater(t, response.Pagination.Page, 0)
+	assert.Greater(t, response.Pagination.PageSize, 0)
+	assert.GreaterOrEqual(t, response.Pagination.TotalPages, 0)
+}
+
+func TestAICodeCommits_CommitFields(t *testing.T) {
+	store := setupTestStore()
+	handler := AICodeCommits(store)
+
+	req := httptest.NewRequest("GET", "/analytics/ai-code/commits", nil)
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	assert.Equal(t, 200, rec.Code)
+
+	var response models.PaginatedResponse
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Extract commits
+	data, _ := json.Marshal(response.Data)
+	var commits []models.Commit
+	json.Unmarshal(data, &commits)
+
+	if len(commits) > 0 {
+		commit := commits[0]
+		// Verify required fields
+		assert.NotEmpty(t, commit.CommitHash)
+		assert.NotEmpty(t, commit.UserID)
+		assert.NotEmpty(t, commit.UserEmail)
+		assert.NotEmpty(t, commit.RepoName)
+		assert.GreaterOrEqual(t, commit.TotalLinesAdded, 0)
+		assert.GreaterOrEqual(t, commit.TabLinesAdded, 0)
+		assert.GreaterOrEqual(t, commit.ComposerLinesAdded, 0)
+		assert.GreaterOrEqual(t, commit.NonAILinesAdded, 0)
+		assert.False(t, commit.CommitTs.IsZero())
+	}
+}
