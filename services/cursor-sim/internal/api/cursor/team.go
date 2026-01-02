@@ -238,11 +238,88 @@ func TeamClientVersions(store storage.Store) http.Handler {
 	})
 }
 
-// Stub endpoints - return empty data for metrics we don't track yet
-
+// TeamTopFileExtensions returns handler for GET /analytics/team/top-file-extensions.
+// Aggregates file extension usage by day, showing top 5 by suggestion volume.
 func TeamTopFileExtensions(store storage.Store) http.Handler {
-	return stubHandler("top-file-extensions")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Parse query parameters
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		// Parse date range
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		// Get file extension events in range
+		events := store.GetFileExtensionsByTimeRange(from, to)
+
+		// Aggregate by date and extension
+		// Map: date -> extension -> aggregated stats
+		dayExtStats := make(map[string]map[string]*models.FileExtensionDay)
+
+		for _, event := range events {
+			date := event.EventDate
+			if _, exists := dayExtStats[date]; !exists {
+				dayExtStats[date] = make(map[string]*models.FileExtensionDay)
+			}
+
+			if _, exists := dayExtStats[date][event.FileExtension]; !exists {
+				dayExtStats[date][event.FileExtension] = &models.FileExtensionDay{
+					EventDate:     date,
+					FileExtension: event.FileExtension,
+				}
+			}
+
+			// Aggregate stats
+			stat := dayExtStats[date][event.FileExtension]
+			stat.TotalFiles++
+			stat.TotalAccepts += event.LinesAccepted
+			stat.TotalRejects += event.LinesRejected
+			stat.TotalLinesSuggested += event.LinesSuggested
+			stat.TotalLinesAccepted += event.LinesAccepted
+			stat.TotalLinesRejected += event.LinesRejected
+		}
+
+		// Build response: top 5 extensions per day by suggestion volume
+		result := make([]models.FileExtensionDay, 0)
+		for _, extStats := range dayExtStats {
+			// Sort by total lines suggested (descending)
+			var extensions []*models.FileExtensionDay
+			for _, stat := range extStats {
+				extensions = append(extensions, stat)
+			}
+
+			// Sort by lines suggested
+			for i := 0; i < len(extensions); i++ {
+				for j := i + 1; j < len(extensions); j++ {
+					if extensions[j].TotalLinesSuggested > extensions[i].TotalLinesSuggested {
+						extensions[i], extensions[j] = extensions[j], extensions[i]
+					}
+				}
+			}
+
+			// Take top 5
+			limit := 5
+			if len(extensions) < limit {
+				limit = len(extensions)
+			}
+
+			for i := 0; i < limit; i++ {
+				result = append(result, *extensions[i])
+			}
+		}
+
+		// Build response using Analytics API format
+		response := api.BuildAnalyticsTeamResponse(result, "top-file-extensions", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
+
+// Stub endpoints - return empty data for metrics we don't track yet
 
 func TeamMCP(store storage.Store) http.Handler {
 	return stubHandler("mcp")

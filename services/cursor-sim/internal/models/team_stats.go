@@ -188,6 +188,20 @@ type ClientVersionEvent struct {
 	EventDate     string    `json:"event_date"` // YYYY-MM-DD format
 }
 
+// FileExtensionEvent represents a file extension usage event.
+// Tracks AI suggestions (accepts/rejects) per file extension.
+type FileExtensionEvent struct {
+	UserID            string    `json:"user_id"`
+	UserEmail         string    `json:"user_email"`
+	FileExtension     string    `json:"file_extension"` // e.g., "tsx", "go", "py"
+	LinesSuggested    int       `json:"lines_suggested"`
+	LinesAccepted     int       `json:"lines_accepted"`
+	LinesRejected     int       `json:"lines_rejected"`
+	WasAccepted       bool      `json:"was_accepted"` // True if suggestion was accepted
+	Timestamp         time.Time `json:"timestamp"`
+	EventDate         string    `json:"event_date"` // YYYY-MM-DD format
+}
+
 // ===========================================================================
 // Legacy Type Aliases (for backwards compatibility during migration)
 // ===========================================================================

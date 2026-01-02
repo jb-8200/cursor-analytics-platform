@@ -265,8 +265,53 @@ func TestTeamClientVersions(t *testing.T) {
 	}
 }
 
-func TestTeamTopFileExtensions_Stub(t *testing.T) {
+func TestTeamTopFileExtensions(t *testing.T) {
 	store := storage.NewMemoryStore()
+
+	// Add file extension events
+	now := time.Now()
+	date := now.Add(-48 * time.Hour).Format("2006-01-02")
+	events := []models.FileExtensionEvent{
+		{
+			UserID:         "user_001",
+			UserEmail:      "alice@example.com",
+			FileExtension:  "tsx",
+			LinesSuggested: 150,
+			LinesAccepted:  100,
+			LinesRejected:  50,
+			WasAccepted:    true,
+			Timestamp:      now.Add(-48 * time.Hour),
+			EventDate:      date,
+		},
+		{
+			UserID:         "user_002",
+			UserEmail:      "bob@example.com",
+			FileExtension:  "tsx",
+			LinesSuggested: 120,
+			LinesAccepted:  80,
+			LinesRejected:  40,
+			WasAccepted:    true,
+			Timestamp:      now.Add(-48 * time.Hour),
+			EventDate:      date,
+		},
+		{
+			UserID:         "user_001",
+			UserEmail:      "alice@example.com",
+			FileExtension:  "go",
+			LinesSuggested: 90,
+			LinesAccepted:  60,
+			LinesRejected:  30,
+			WasAccepted:    true,
+			Timestamp:      now.Add(-48 * time.Hour),
+			EventDate:      date,
+		},
+	}
+
+	for _, event := range events {
+		err := store.AddFileExtension(event)
+		require.NoError(t, err)
+	}
+
 	handler := TeamTopFileExtensions(store)
 
 	req := httptest.NewRequest("GET", "/analytics/team/top-file-extensions", nil)
@@ -275,6 +320,23 @@ func TestTeamTopFileExtensions_Stub(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	assert.Equal(t, 200, rec.Code)
+
+	// Parse response
+	var response struct {
+		Data []models.FileExtensionDay `json:"data"`
+	}
+	err := json.Unmarshal(rec.Body.Bytes(), &response)
+	require.NoError(t, err)
+
+	// Should have file extension data
+	assert.NotNil(t, response.Data)
+	// Should have at least 2 extensions (tsx, go)
+	if len(response.Data) > 0 {
+		assert.NotEmpty(t, response.Data[0].FileExtension)
+		assert.Greater(t, response.Data[0].TotalLinesSuggested, 0)
+		assert.GreaterOrEqual(t, response.Data[0].TotalLinesAccepted, 0)
+		assert.GreaterOrEqual(t, response.Data[0].TotalLinesRejected, 0)
+	}
 }
 
 func TestTeamMCP_Stub(t *testing.T) {

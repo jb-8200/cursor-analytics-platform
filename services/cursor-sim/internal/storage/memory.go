@@ -42,6 +42,9 @@ type MemoryStore struct {
 
 	// Client version data
 	clientVersions []*models.ClientVersionEvent // time-sorted for range queries
+
+	// File extension data
+	fileExtensions []*models.FileExtensionEvent // time-sorted for range queries
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -58,6 +61,7 @@ func NewMemoryStore() *MemoryStore {
 		reviewComments:  make(map[string]map[int][]*models.ReviewComment),
 		modelUsage:      make([]*models.ModelUsageEvent, 0, 1000),
 		clientVersions:  make([]*models.ClientVersionEvent, 0, 1000),
+		fileExtensions:  make([]*models.FileExtensionEvent, 0, 5000), // Higher capacity for file events
 	}
 }
 
@@ -477,6 +481,35 @@ func (m *MemoryStore) GetClientVersionsByTimeRange(from, to time.Time) []models.
 
 	result := make([]models.ClientVersionEvent, 0)
 	for _, event := range m.clientVersions {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
+		}
+	}
+
+	// Sort by timestamp
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+
+	return result
+}
+// AddFileExtension stores a file extension event.
+func (m *MemoryStore) AddFileExtension(event models.FileExtensionEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.fileExtensions = append(m.fileExtensions, &event)
+	return nil
+}
+
+// GetFileExtensionsByTimeRange retrieves all file extension events within a time range.
+// Returns events sorted by timestamp.
+func (m *MemoryStore) GetFileExtensionsByTimeRange(from, to time.Time) []models.FileExtensionEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	result := make([]models.FileExtensionEvent, 0)
+	for _, event := range m.fileExtensions {
 		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
 			result = append(result, *event)
 		}

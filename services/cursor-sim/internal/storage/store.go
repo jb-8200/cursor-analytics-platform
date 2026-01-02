@@ -44,4 +44,8 @@ type Store interface {
 	// Client version operations
 	AddClientVersion(event models.ClientVersionEvent) error
 	GetClientVersionsByTimeRange(from, to time.Time) []models.ClientVersionEvent
+
+	// File extension operations
+	AddFileExtension(event models.FileExtensionEvent) error
+	GetFileExtensionsByTimeRange(from, to time.Time) []models.FileExtensionEvent
 }
