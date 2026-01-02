@@ -71,10 +71,10 @@ func TestCommitGenerator_GenerateCommits(t *testing.T) {
 	}
 
 	store := &MockStore{}
-	gen := NewCommitGenerator(seedData, store, "low") // Use low velocity for faster tests
+	gen := NewCommitGeneratorWithSeed(seedData, store, "medium", 42) // Use deterministic seed
 
 	ctx := context.Background()
-	err := gen.GenerateCommits(ctx, 3) // Generate 3 days of history
+	err := gen.GenerateCommits(ctx, 7) // Generate 7 days of history for reliable commits
 
 	require.NoError(t, err)
 	commits := store.GetCommits()

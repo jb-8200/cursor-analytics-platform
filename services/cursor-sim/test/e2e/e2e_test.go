@@ -325,3 +325,165 @@ func TestE2E_NotFound(t *testing.T) {
 
 	assert.Equal(t, 404, resp.StatusCode)
 }
+
+// PR Lifecycle E2E Tests (Phase 2)
+
+func TestE2E_PRLifecycle(t *testing.T) {
+	// Load test seed data
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+
+	// Initialize storage
+	store := storage.NewMemoryStore()
+	err = store.LoadDevelopers(seedData.Developers)
+	require.NoError(t, err)
+
+	// Generate commits
+	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
+	ctx := context.Background()
+	err = commitGen.GenerateCommits(ctx, 7)
+	require.NoError(t, err)
+
+	// Verify commits were generated
+	commits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
+	require.Greater(t, len(commits), 0, "should have commits")
+
+	// Generate PRs from commits
+	prGen := generator.NewPRGeneratorWithSeed(seedData, store, 42)
+	err = prGen.GeneratePRsFromCommits(time.Now().Add(-7*24*time.Hour), time.Now())
+	require.NoError(t, err)
+
+	// Verify PRs were generated
+	repos := store.ListRepositories()
+	totalPRs := 0
+	for _, repo := range repos {
+		prs := store.GetPRsByRepo(repo)
+		totalPRs += len(prs)
+	}
+	require.Greater(t, totalPRs, 0, "should have PRs")
+
+	// Generate reviews for PRs
+	reviewGen := generator.NewReviewGeneratorWithSeed(seedData, store, 42)
+	for _, repo := range repos {
+		_, err = reviewGen.GenerateReviewsForRepo(repo)
+		require.NoError(t, err)
+	}
+
+	// Verify reviews were generated
+	totalReviews := 0
+	for _, repo := range repos {
+		prs := store.GetPRsByRepo(repo)
+		for _, pr := range prs {
+			reviews := store.GetReviewComments(repo, pr.Number)
+			totalReviews += len(reviews)
+		}
+	}
+	assert.Greater(t, totalReviews, 0, "should have reviews")
+
+	// Apply quality outcomes
+	qualGen := generator.NewQualityGeneratorWithSeed(seedData, store, 42)
+	for _, repo := range repos {
+		err = qualGen.ApplyQualityOutcomes(repo)
+		require.NoError(t, err)
+	}
+
+	t.Logf("PR Lifecycle complete: %d commits, %d PRs, %d reviews", len(commits), totalPRs, totalReviews)
+}
+
+func TestE2E_PRMetricsAggregation(t *testing.T) {
+	// Load test seed data
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+
+	store := storage.NewMemoryStore()
+	err = store.LoadDevelopers(seedData.Developers)
+	require.NoError(t, err)
+
+	// Generate commits with known AI metrics
+	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
+	ctx := context.Background()
+	err = commitGen.GenerateCommits(ctx, 7)
+	require.NoError(t, err)
+
+	// Generate PRs
+	prGen := generator.NewPRGeneratorWithSeed(seedData, store, 42)
+	err = prGen.GeneratePRsFromCommits(time.Now().Add(-7*24*time.Hour), time.Now())
+	require.NoError(t, err)
+
+	// Verify AI metrics are properly aggregated in PRs
+	repos := store.ListRepositories()
+	for _, repo := range repos {
+		prs := store.GetPRsByRepo(repo)
+		for _, pr := range prs {
+			// AI ratio should be between 0 and 1
+			assert.GreaterOrEqual(t, pr.AIRatio, 0.0, "AI ratio should be >= 0")
+			assert.LessOrEqual(t, pr.AIRatio, 1.0, "AI ratio should be <= 1")
+
+			// Tab + Composer lines should not exceed total additions
+			assert.LessOrEqual(t, pr.TabLines+pr.ComposerLines, pr.Additions,
+				"AI lines should not exceed additions")
+		}
+	}
+}
+
+func TestE2E_QualityOutcomeCorrelations(t *testing.T) {
+	// Load test seed data
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+
+	store := storage.NewMemoryStore()
+	err = store.LoadDevelopers(seedData.Developers)
+	require.NoError(t, err)
+
+	// Generate large sample for statistical significance
+	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "high", 42)
+	ctx := context.Background()
+	err = commitGen.GenerateCommits(ctx, 14) // 2 weeks
+	require.NoError(t, err)
+
+	prGen := generator.NewPRGeneratorWithSeed(seedData, store, 42)
+	err = prGen.GeneratePRsFromCommits(time.Now().Add(-14*24*time.Hour), time.Now())
+	require.NoError(t, err)
+
+	qualGen := generator.NewQualityGeneratorWithSeed(seedData, store, 42)
+	repos := store.ListRepositories()
+	for _, repo := range repos {
+		err = qualGen.ApplyQualityOutcomes(repo)
+		require.NoError(t, err)
+	}
+
+	// Count reverts by AI ratio category
+	var lowAIReverts, highAIReverts int
+	var lowAITotal, highAITotal int
+
+	for _, repo := range repos {
+		prs := store.GetPRsByRepo(repo)
+		for _, pr := range prs {
+			if pr.State != "merged" {
+				continue
+			}
+
+			if pr.AIRatio < 0.3 {
+				lowAITotal++
+				if pr.WasReverted {
+					lowAIReverts++
+				}
+			} else if pr.AIRatio > 0.7 {
+				highAITotal++
+				if pr.WasReverted {
+					highAIReverts++
+				}
+			}
+		}
+	}
+
+	// Log results (we can't assert exact rates due to randomness)
+	if lowAITotal > 0 {
+		lowRate := float64(lowAIReverts) / float64(lowAITotal)
+		t.Logf("Low AI ratio revert rate: %.2f%% (%d/%d)", lowRate*100, lowAIReverts, lowAITotal)
+	}
+	if highAITotal > 0 {
+		highRate := float64(highAIReverts) / float64(highAITotal)
+		t.Logf("High AI ratio revert rate: %.2f%% (%d/%d)", highRate*100, highAIReverts, highAITotal)
+	}
+}

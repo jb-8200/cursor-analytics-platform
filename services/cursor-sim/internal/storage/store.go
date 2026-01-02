@@ -22,4 +22,18 @@ type Store interface {
 	GetCommitsByTimeRange(from, to time.Time) []models.Commit
 	GetCommitsByUser(userID string, from, to time.Time) []models.Commit
 	GetCommitsByRepo(repoName string, from, to time.Time) []models.Commit
+
+	// PR operations
+	AddPR(pr models.PullRequest) error
+	UpdatePR(pr models.PullRequest) error
+	GetPR(repoName string, number int) (*models.PullRequest, error)
+	GetPRsByRepo(repoName string) []models.PullRequest
+	GetPRsByRepoAndState(repoName string, state models.PRState) []models.PullRequest
+	GetPRsByAuthor(authorID string) []models.PullRequest
+	GetNextPRNumber(repoName string) int
+	ListRepositories() []string
+
+	// Review comment operations
+	AddReviewComment(comment models.ReviewComment) error
+	GetReviewComments(repoName string, prNumber int) []models.ReviewComment
 }
