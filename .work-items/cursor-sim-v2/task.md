@@ -5,14 +5,14 @@
 **Feature**: cursor-sim v2 - Cursor API Simulator
 **Total Estimated Hours**: 44.5
 **Number of Steps**: 16
-**Current Step**: 01 (Complete)
+**Current Step**: 02 (Complete)
 
 ## Progress Tracker
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
 | 01 | Project structure | 1.0 | DONE | 0.25 |
-| 02 | Seed schema types | 2.0 | NOT_STARTED | - |
+| 02 | Seed schema types | 2.0 | DONE | 0.5 |
 | 03 | Seed loader + validation | 3.0 | NOT_STARTED | - |
 | 04 | CLI v2 flags | 2.0 | NOT_STARTED | - |
 | 05 | Cursor data models | 3.0 | NOT_STARTED | - |
