@@ -48,4 +48,20 @@ type Store interface {
 	// File extension operations
 	AddFileExtension(event models.FileExtensionEvent) error
 	GetFileExtensionsByTimeRange(from, to time.Time) []models.FileExtensionEvent
+
+	// MCP tool operations
+	AddMCPTool(event models.MCPToolEvent) error
+	GetMCPToolsByTimeRange(from, to time.Time) []models.MCPToolEvent
+
+	// Command operations
+	AddCommand(event models.CommandEvent) error
+	GetCommandsByTimeRange(from, to time.Time) []models.CommandEvent
+
+	// Plan operations
+	AddPlan(event models.PlanEvent) error
+	GetPlansByTimeRange(from, to time.Time) []models.PlanEvent
+
+	// Ask mode operations
+	AddAskMode(event models.AskModeEvent) error
+	GetAskModeByTimeRange(from, to time.Time) []models.AskModeEvent
 }

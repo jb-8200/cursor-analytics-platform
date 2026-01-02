@@ -319,22 +319,173 @@ func TeamTopFileExtensions(store storage.Store) http.Handler {
 	})
 }
 
-// Stub endpoints - return empty data for metrics we don't track yet
-
+// TeamMCP returns handler for GET /analytics/team/mcp.
+// Aggregates MCP tool usage by day.
 func TeamMCP(store storage.Store) http.Handler {
-	return stubHandler("mcp")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		events := store.GetMCPToolsByTimeRange(from, to)
+		dayToolUsage := make(map[string]map[string]int) // date -> (toolName + server) -> count
+
+		for _, event := range events {
+			key := event.ToolName + ":" + event.MCPServerName
+			if _, exists := dayToolUsage[event.EventDate]; !exists {
+				dayToolUsage[event.EventDate] = make(map[string]int)
+			}
+			dayToolUsage[event.EventDate][key]++
+		}
+
+		result := make([]models.MCPUsageDay, 0)
+		for date, tools := range dayToolUsage {
+			for key, usage := range tools {
+				parts := splitKey(key)
+				result = append(result, models.MCPUsageDay{
+					EventDate:     date,
+					ToolName:      parts[0],
+					MCPServerName: parts[1],
+					Usage:         usage,
+				})
+			}
+		}
+
+		response := api.BuildAnalyticsTeamResponse(result, "mcp", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
 
+// TeamCommands returns handler for GET /analytics/team/commands.
+// Aggregates command usage by day.
 func TeamCommands(store storage.Store) http.Handler {
-	return stubHandler("commands")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		events := store.GetCommandsByTimeRange(from, to)
+		dayCommandUsage := make(map[string]map[string]int) // date -> command -> count
+
+		for _, event := range events {
+			if _, exists := dayCommandUsage[event.EventDate]; !exists {
+				dayCommandUsage[event.EventDate] = make(map[string]int)
+			}
+			dayCommandUsage[event.EventDate][event.CommandName]++
+		}
+
+		result := make([]models.CommandUsageDay, 0)
+		for date, commands := range dayCommandUsage {
+			for cmd, usage := range commands {
+				result = append(result, models.CommandUsageDay{
+					EventDate:   date,
+					CommandName: cmd,
+					Usage:       usage,
+				})
+			}
+		}
+
+		response := api.BuildAnalyticsTeamResponse(result, "commands", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
 
+// TeamPlans returns handler for GET /analytics/team/plans.
+// Aggregates plan usage by day and model.
 func TeamPlans(store storage.Store) http.Handler {
-	return stubHandler("plans")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		events := store.GetPlansByTimeRange(from, to)
+		dayModelUsage := make(map[string]map[string]int) // date -> model -> count
+
+		for _, event := range events {
+			if _, exists := dayModelUsage[event.EventDate]; !exists {
+				dayModelUsage[event.EventDate] = make(map[string]int)
+			}
+			dayModelUsage[event.EventDate][event.Model]++
+		}
+
+		result := make([]models.PlanUsageDay, 0)
+		for date, modelUsage := range dayModelUsage {
+			for model, usage := range modelUsage {
+				result = append(result, models.PlanUsageDay{
+					EventDate: date,
+					Model:     model,
+					Usage:     usage,
+				})
+			}
+		}
+
+		response := api.BuildAnalyticsTeamResponse(result, "plans", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
 }
 
+// TeamAskMode returns handler for GET /analytics/team/ask-mode.
+// Aggregates ask mode usage by day and model.
 func TeamAskMode(store storage.Store) http.Handler {
-	return stubHandler("ask-mode")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params, err := api.ParseQueryParams(r)
+		if err != nil {
+			api.RespondError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		from, _ := time.Parse("2006-01-02", params.StartDate)
+		to, _ := time.Parse("2006-01-02", params.EndDate)
+		to = to.Add(24*time.Hour - time.Second)
+
+		events := store.GetAskModeByTimeRange(from, to)
+		dayModelUsage := make(map[string]map[string]int) // date -> model -> count
+
+		for _, event := range events {
+			if _, exists := dayModelUsage[event.EventDate]; !exists {
+				dayModelUsage[event.EventDate] = make(map[string]int)
+			}
+			dayModelUsage[event.EventDate][event.Model]++
+		}
+
+		result := make([]models.AskModeDay, 0)
+		for date, modelUsage := range dayModelUsage {
+			for model, usage := range modelUsage {
+				result = append(result, models.AskModeDay{
+					EventDate: date,
+					Model:     model,
+					Usage:     usage,
+				})
+			}
+		}
+
+		response := api.BuildAnalyticsTeamResponse(result, "ask-mode", params)
+		api.RespondJSON(w, http.StatusOK, response)
+	})
+}
+
+// Helper function to split key in format "tool:server"
+func splitKey(key string) []string {
+	for i := 0; i < len(key); i++ {
+		if key[i] == ':' {
+			return []string{key[:i], key[i+1:]}
+		}
+	}
+	return []string{key, ""}
 }
 
 func TeamLeaderboard(store storage.Store) http.Handler {

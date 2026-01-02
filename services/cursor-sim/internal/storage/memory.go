@@ -45,6 +45,12 @@ type MemoryStore struct {
 
 	// File extension data
 	fileExtensions []*models.FileExtensionEvent // time-sorted for range queries
+
+	// Feature usage data
+	mcpTools  []*models.MCPToolEvent   // MCP tool usage events
+	commands  []*models.CommandEvent   // Command usage events
+	plans     []*models.PlanEvent      // Plan usage events
+	askModes  []*models.AskModeEvent   // Ask mode usage events
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -62,6 +68,10 @@ func NewMemoryStore() *MemoryStore {
 		modelUsage:      make([]*models.ModelUsageEvent, 0, 1000),
 		clientVersions:  make([]*models.ClientVersionEvent, 0, 1000),
 		fileExtensions:  make([]*models.FileExtensionEvent, 0, 5000), // Higher capacity for file events
+		mcpTools:        make([]*models.MCPToolEvent, 0, 2000),
+		commands:        make([]*models.CommandEvent, 0, 2000),
+		plans:           make([]*models.PlanEvent, 0, 1500),
+		askModes:        make([]*models.AskModeEvent, 0, 1500),
 	}
 }
 
@@ -520,5 +530,101 @@ func (m *MemoryStore) GetFileExtensionsByTimeRange(from, to time.Time) []models.
 		return result[i].Timestamp.Before(result[j].Timestamp)
 	})
 
+	return result
+}
+
+// AddMCPTool stores an MCP tool event.
+func (m *MemoryStore) AddMCPTool(event models.MCPToolEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.mcpTools = append(m.mcpTools, &event)
+	return nil
+}
+
+// GetMCPToolsByTimeRange retrieves all MCP tool events within a time range.
+func (m *MemoryStore) GetMCPToolsByTimeRange(from, to time.Time) []models.MCPToolEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]models.MCPToolEvent, 0)
+	for _, event := range m.mcpTools {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+	return result
+}
+
+// AddCommand stores a command event.
+func (m *MemoryStore) AddCommand(event models.CommandEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.commands = append(m.commands, &event)
+	return nil
+}
+
+// GetCommandsByTimeRange retrieves all command events within a time range.
+func (m *MemoryStore) GetCommandsByTimeRange(from, to time.Time) []models.CommandEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]models.CommandEvent, 0)
+	for _, event := range m.commands {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+	return result
+}
+
+// AddPlan stores a plan event.
+func (m *MemoryStore) AddPlan(event models.PlanEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.plans = append(m.plans, &event)
+	return nil
+}
+
+// GetPlansByTimeRange retrieves all plan events within a time range.
+func (m *MemoryStore) GetPlansByTimeRange(from, to time.Time) []models.PlanEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]models.PlanEvent, 0)
+	for _, event := range m.plans {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
+	return result
+}
+
+// AddAskMode stores an ask mode event.
+func (m *MemoryStore) AddAskMode(event models.AskModeEvent) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.askModes = append(m.askModes, &event)
+	return nil
+}
+
+// GetAskModeByTimeRange retrieves all ask mode events within a time range.
+func (m *MemoryStore) GetAskModeByTimeRange(from, to time.Time) []models.AskModeEvent {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]models.AskModeEvent, 0)
+	for _, event := range m.askModes {
+		if !event.Timestamp.Before(from) && event.Timestamp.Before(to) {
+			result = append(result, *event)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Timestamp.Before(result[j].Timestamp)
+	})
 	return result
 }

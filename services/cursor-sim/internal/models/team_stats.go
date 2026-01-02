@@ -202,6 +202,43 @@ type FileExtensionEvent struct {
 	EventDate         string    `json:"event_date"` // YYYY-MM-DD format
 }
 
+// MCPToolEvent represents a single MCP tool usage event.
+type MCPToolEvent struct {
+	UserID        string    `json:"user_id"`
+	UserEmail     string    `json:"user_email"`
+	ToolName      string    `json:"tool_name"`         // e.g., "read_file", "search_web"
+	MCPServerName string    `json:"mcp_server_name"`   // e.g., "filesystem", "web_search"
+	Timestamp     time.Time `json:"timestamp"`
+	EventDate     string    `json:"event_date"` // YYYY-MM-DD format
+}
+
+// CommandEvent represents a single command usage event.
+type CommandEvent struct {
+	UserID      string    `json:"user_id"`
+	UserEmail   string    `json:"user_email"`
+	CommandName string    `json:"command_name"` // e.g., "explain", "refactor", "fix"
+	Timestamp   time.Time `json:"timestamp"`
+	EventDate   string    `json:"event_date"` // YYYY-MM-DD format
+}
+
+// PlanEvent represents a single AI plan generation event.
+type PlanEvent struct {
+	UserID    string    `json:"user_id"`
+	UserEmail string    `json:"user_email"`
+	Model     string    `json:"model"` // AI model used (from developer preferences)
+	Timestamp time.Time `json:"timestamp"`
+	EventDate string    `json:"event_date"` // YYYY-MM-DD format
+}
+
+// AskModeEvent represents a single ask mode usage event.
+type AskModeEvent struct {
+	UserID    string    `json:"user_id"`
+	UserEmail string    `json:"user_email"`
+	Model     string    `json:"model"` // AI model used (from developer preferences)
+	Timestamp time.Time `json:"timestamp"`
+	EventDate string    `json:"event_date"` // YYYY-MM-DD format
+}
+
 // ===========================================================================
 // Legacy Type Aliases (for backwards compatibility during migration)
 // ===========================================================================
