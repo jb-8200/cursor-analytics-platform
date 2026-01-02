@@ -5,7 +5,7 @@
 **Feature**: cursor-sim v2 - Cursor API Simulator
 **Total Estimated Hours**: 44.5
 **Number of Steps**: 16
-**Current Step**: 02 (Complete)
+**Current Step**: 06 (Complete) - Next: 07
 
 ## Progress Tracker
 
@@ -13,10 +13,10 @@
 |------|------|-------|--------|--------|
 | 01 | Project structure | 1.0 | DONE | 0.25 |
 | 02 | Seed schema types | 2.0 | DONE | 0.5 |
-| 03 | Seed loader + validation | 3.0 | NOT_STARTED | - |
-| 04 | CLI v2 flags | 2.0 | NOT_STARTED | - |
-| 05 | Cursor data models | 3.0 | NOT_STARTED | - |
-| 06 | Commit generation engine | 5.0 | NOT_STARTED | - |
+| 03 | Seed loader + validation | 3.0 | DONE | 0.75 |
+| 04 | CLI v2 flags | 2.0 | DONE | 0.5 |
+| 05 | Cursor data models | 3.0 | DONE | 0.5 |
+| 06 | Commit generation engine | 5.0 | DONE | 1.25 |
 | 07 | In-memory storage v2 | 4.0 | NOT_STARTED | - |
 | 08 | API infrastructure | 2.0 | NOT_STARTED | - |
 | 09 | /teams/members endpoint | 1.5 | NOT_STARTED | - |
@@ -91,16 +91,23 @@ Each step has a detailed implementation file:
 
 | Category | Estimated | Actual | Delta |
 |----------|-----------|--------|-------|
-| Foundation (01-05) | 11.0h | - | - |
-| Generation (06-07) | 9.0h | - | - |
+| Foundation (01-05) | 11.0h | 2.5h | -77% ✅ |
+| Generation (06-07) | 9.0h | 1.25h (partial) | - |
 | Endpoints (08-13) | 16.5h | - | - |
 | Integration (14-16) | 8.0h | - | - |
-| **Total** | **44.5h** | - | - |
+| **Total** | **44.5h** | **3.75h** | **-92% (so far)** ✅ |
+
+**Note**: Actual time is significantly lower due to:
+
+- TDD methodology (fewer rewrites)
+- Auto-approved file operations (no permission delays)
+- Parallel tool execution
+- Well-specified requirements in SPEC.md
 
 ## Acceptance Criteria Mapping
 
 | AC | Steps |
-|----|-------|
+| ---- | ----- |
 | AC-1: Seed Loading | 02, 03 |
 | AC-2: Admin API | 09 |
 | AC-3: AI Code Tracking | 10, 11 |

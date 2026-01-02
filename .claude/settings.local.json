@@ -26,7 +26,8 @@
       "Bash(rm:*)",
       "Bash(ln:*)",
       "Bash(go build:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(go tool cover:*)"
     ],
     "deny": [],
     "ask": []

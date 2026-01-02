@@ -1,0 +1,9 @@
+{
+  "version": "1.0",
+  "developers": [
+    {
+      "user_id": "user_001"
+      "email": "missing comma here"
+    }
+  ]
+}

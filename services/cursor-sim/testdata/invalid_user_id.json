@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "developers": [
+    {
+      "user_id": "invalid_prefix_001",
+      "email": "alice@example.com",
+      "name": "Alice",
+      "org": "acme-corp",
+      "seniority": "senior",
+      "acceptance_rate": 0.85
+    }
+  ],
+  "repositories": [],
+  "text_templates": {
+    "commit_messages": {"feature": [], "bugfix": [], "refactor": [], "chore": []},
+    "pr_titles": [],
+    "pr_descriptions": [],
+    "review_comments": {"style": [], "logic": [], "suggestion": [], "approval": []},
+    "chat_prompt_themes": {"code_generation": [], "debugging": [], "refactoring": [], "explanation": [], "learning": []}
+  },
+  "correlations": {
+    "seniority_to_behavior": {},
+    "region_to_activity": {},
+    "lines_per_change": {},
+    "ai_ratio_bands": {"low": {}, "medium": {}, "high": {}}
+  },
+  "pr_lifecycle": {
+    "cycle_times": {
+      "coding_lead_time": {"base_distribution": "", "params": {}, "modifiers": {}},
+      "pickup_time": {"base_distribution": "", "params": {}, "modifiers": {}},
+      "review_lead_time": {"base_distribution": "", "params": {}, "modifiers": {}}
+    },
+    "review_patterns": {
+      "comments_per_100_loc": {"base": 0, "modifiers": {}},
+      "iterations": {"base_distribution": "", "params": {}, "modifiers": {}},
+      "reviewer_count": {"base": 0, "modifiers": {}}
+    },
+    "quality_outcomes": {
+      "revert_probability": {"base": 0, "modifiers": {}},
+      "hotfix_probability": {"base": 0, "modifiers": {}},
+      "code_survival_30d": {"base": 0, "modifiers": {}}
+    },
+    "scope_creep": {"base_ratio": 0, "modifiers": {}},
+    "rework_ratio": {"base_ratio": 0, "modifiers": {}}
+  }
+}
