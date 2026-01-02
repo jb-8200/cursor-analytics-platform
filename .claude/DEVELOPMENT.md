@@ -1,8 +1,8 @@
 # Development Session Context
 
 **Last Updated**: January 2, 2026
-**Current Phase**: Phase 1 Complete - Deciding Next Steps
-**Primary Focus**: cursor-sim v2 Phase 2 OR cursor-analytics-core
+**Current Phase**: Phase 2 Active
+**Primary Focus**: cursor-sim v2 Phase 2 (GitHub PR Simulation)
 
 ---
 
@@ -13,11 +13,11 @@
 | Component | Status | Notes |
 |-----------|--------|-------|
 | **cursor-sim v2 Phase 1** | **COMPLETE** ✅ | 16 tasks, 10.75h actual vs 44.5h estimated |
-| cursor-sim v2 Phase 2 | NOT_STARTED | GitHub PR simulation |
+| **cursor-sim v2 Phase 2** | **ACTIVE** 🔄 | GitHub PR simulation |
 | cursor-sim v2 Phase 3 | NOT_STARTED | Replay mode, research export |
 | cursor-analytics-core | NOT_STARTED | GraphQL aggregator |
 | cursor-viz-spa | NOT_STARTED | React dashboard |
-| Documentation Cleanup | IN_PROGRESS | SDD alignment |
+| Documentation Cleanup | COMPLETE ✅ | SDD alignment done |
 
 ### cursor-sim v2 Phase 1 Completion Summary
 
@@ -50,12 +50,10 @@ SDD alignment complete. Documentation structure now complies with SDD methodolog
 ### Active Symlink
 
 ```
-.claude/plans/active -> (none - no feature currently active)
+.claude/plans/active -> ../../.work-items/cursor-sim-phase2/task.md
 ```
 
-To start a new feature, run `/start-feature <feature-name>` where feature-name is one of:
-- `cursor-sim-phase2` - GitHub PR simulation
-- `cursor-analytics-core` - GraphQL aggregator
+**Currently working on**: cursor-sim Phase 2 (GitHub PR Simulation)
 
 ---
 
@@ -110,11 +108,14 @@ docs/                           ← Project-level overview (REFERENCE ONLY)
 
 ### Recommendation
 
-Start **cursor-analytics-core** to complete the ETL pipeline:
+Start **cursor-sim Phase 2** to complete the simulator before moving downstream:
 ```
-cursor-sim (8080) → cursor-analytics-core (4000) → cursor-viz-spa (3000)
-     ✅ DONE              Next                      After
+cursor-sim Phase 1 (MVP)     → cursor-sim Phase 2      → cursor-analytics-core
+     ✅ DONE                      Next                      After
+     (29 endpoints)               (GitHub PR sim)           (ETL pipeline)
 ```
+
+Phase 1 only provides basic commit data. Phase 2 adds PR lifecycle, reviews, and quality outcomes needed for meaningful SDLC research.
 
 ---
 
