@@ -84,18 +84,51 @@ make test-coverage
 
 ## Development Workflow
 
+### Documentation Hierarchy (SDD Compliant)
+
+**Source of Truth** (in priority order):
+
+| Location | Purpose | When to Update |
+|----------|---------|----------------|
+| `services/{service}/SPEC.md` | Technical specification | When API/behavior changes |
+| `.work-items/{feature}/` | Active work tracking | During feature development |
+| `.claude/DEVELOPMENT.md` | Session context | Each session start/end |
+| `.claude/plans/active` | Symlink to current task | When switching features |
+
+**Reference Documents** (read-only context):
+
+| Location | Purpose |
+|----------|---------|
+| `docs/DESIGN.md` | System architecture overview |
+| `docs/FEATURES.md` | Feature breakdown |
+| `docs/TASKS.md` | Task overview |
+| `docs/USER_STORIES.md` | User story reference |
+
+### Work Items Structure
+
+Each feature has a dedicated work-items directory:
+
+```
+.work-items/{feature}/
+├── user-story.md      # Requirements and acceptance criteria
+├── design.md          # Technical design decisions
+├── task.md            # Task breakdown with status tracking
+└── {NN}_step.md       # (optional) Detailed step files
+```
+
 ### Spec-Driven Development Process
-1. **Read the spec**: Check `specs/` for feature specifications
-2. **Write tests first**: Follow TDD - tests define the contract
-3. **Implement minimally**: Write just enough code to pass tests
-4. **Refactor**: Clean up while keeping tests green
-5. **Document**: Update specs if behavior changes
+1. **Read the spec**: Check `services/{service}/SPEC.md` first
+2. **Check work items**: Review `.work-items/{feature}/task.md` for current status
+3. **Write tests first**: Follow TDD - tests define the contract
+4. **Implement minimally**: Write just enough code to pass tests
+5. **Refactor**: Clean up while keeping tests green
+6. **Update status**: Mark tasks complete in task.md
 
 ### Before Implementing Any Feature
-1. Read the relevant `SPEC.md` in the service directory
-2. Check `docs/USER_STORIES.md` for acceptance criteria
-3. Review `docs/TASKS.md` for implementation checklist
-4. Write failing tests based on the spec
+1. Read `services/{service}/SPEC.md` for technical specification
+2. Check `.work-items/{feature}/task.md` for implementation status
+3. Review `.work-items/{feature}/design.md` for architecture decisions
+4. Write failing tests based on acceptance criteria
 5. Implement to make tests pass
 
 ### Claude Code Integration
@@ -125,26 +158,31 @@ See `.claude/README.md` for complete usage guide.
 
 ## Key Documentation Files
 
-### Project Documentation
+### Source of Truth (Read First!)
 | File | Purpose |
 |------|---------|
 | `.claude/DEVELOPMENT.md` | **START HERE** - Current session context, active work, next steps |
-| `docs/DESIGN.md` | System architecture and technical decisions |
-| `docs/FEATURES.md` | Feature breakdown by service |
-| `docs/USER_STORIES.md` | User stories with acceptance criteria (712 lines) |
-| `docs/TASKS.md` | Implementation tasks and checklists (895 lines) |
-| `docs/TESTING_STRATEGY.md` | TDD approach and testing guidelines |
-| `docs/API_REFERENCE.md` | Cursor Business API documentation |
-| `PROJECT_REVIEW.md` | Comprehensive gap analysis and project status |
-| `P0_MAKERUNNABLE.md` | 8 tasks to make repo runnable (MVP scaffolding) |
+| `services/cursor-sim/SPEC.md` | cursor-sim v2 specification (Phase 1 Complete) |
+| `.work-items/cursor-sim-v2/task.md` | Phase 1 task tracking (COMPLETE) |
+| `.work-items/cursor-sim-phase2/task.md` | Phase 2 task tracking (NOT_STARTED) |
+| `.work-items/cursor-analytics-core/task.md` | Aggregator task tracking (NOT_STARTED) |
 
 ### Service Specifications
 | File | Purpose |
 |------|---------|
-| `services/cursor-sim/SPEC.md` | Complete cursor-sim specification (v2.0.0, 1018 lines) |
+| `services/cursor-sim/SPEC.md` | Complete cursor-sim specification (v2.0.0) |
 | `services/cursor-analytics-core/SPEC.md` | Aggregator service spec (pending) |
 | `services/cursor-viz-spa/SPEC.md` | Frontend dashboard spec (pending) |
-| `specs/api/graphql-schema.graphql` | GraphQL schema contract (392 lines) |
+| `specs/api/graphql-schema.graphql` | GraphQL schema contract |
+
+### Reference Documents (Background Context)
+| File | Purpose |
+|------|---------|
+| `docs/DESIGN.md` | System architecture overview |
+| `docs/FEATURES.md` | Feature breakdown by service |
+| `docs/USER_STORIES.md` | User stories reference |
+| `docs/TASKS.md` | Task overview reference |
+| `docs/TESTING_STRATEGY.md` | TDD approach and testing guidelines |
 
 ### Claude Code Integration
 | File | Purpose |

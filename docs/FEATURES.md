@@ -1,5 +1,9 @@
 # Feature Breakdown: Cursor Usage Analytics Platform
 
+> **📚 REFERENCE DOCUMENT**
+> This is a project-level feature overview for orientation purposes.
+> **Source of truth**: `services/{service}/SPEC.md` for feature details, `.work-items/` for implementation status.
+
 **Version**: 2.0.0
 **Last Updated**: January 2026
 

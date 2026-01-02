@@ -1,5 +1,9 @@
 # System Design Document: Cursor Usage Analytics Platform
 
+> **📚 REFERENCE DOCUMENT**
+> This is a project-level overview for orientation purposes.
+> **Source of truth**: `services/{service}/SPEC.md` for technical specs, `.work-items/` for active work.
+
 **Version**: 2.0.0
 **Last Updated**: January 2026
 **Status**: Active - Major Revision

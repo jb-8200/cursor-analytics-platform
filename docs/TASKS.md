@@ -1,5 +1,9 @@
 # Implementation Tasks: Cursor Usage Analytics Platform
 
+> **📚 REFERENCE DOCUMENT**
+> This is a project-level task overview for orientation purposes.
+> **Source of truth**: `.work-items/{feature}/task.md` for active task tracking and progress.
+
 **Version**: 2.0.0
 **Last Updated**: January 2026
 

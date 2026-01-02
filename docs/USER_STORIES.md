@@ -1,7 +1,11 @@
 # User Stories: Cursor Usage Analytics Platform
 
-**Version**: 1.0.0  
-**Last Updated**: January 2026  
+> **📚 REFERENCE DOCUMENT**
+> This is a project-level user story overview for orientation purposes.
+> **Source of truth**: `.work-items/{feature}/user-story.md` for active feature requirements.
+
+**Version**: 1.0.0
+**Last Updated**: January 2026
 
 This document contains user stories organized by service and feature area. Each story follows the standard format and includes detailed acceptance criteria that serve as the basis for test cases in our TDD workflow.
 

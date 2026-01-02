@@ -1,8 +1,8 @@
 # Development Session Context
 
-**Last Updated**: January 2026
-**Current Phase**: Phase 1 - Complete Cursor API (v2.0)
-**Primary Focus**: cursor-sim v2 (Major Rewrite)
+**Last Updated**: January 2, 2026
+**Current Phase**: Phase 1 Complete - Deciding Next Steps
+**Primary Focus**: cursor-sim v2 Phase 2 OR cursor-analytics-core
 
 ---
 
@@ -12,245 +12,206 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Documentation | COMPLETE | DESIGN.md, FEATURES.md, TASKS.md updated for v2 |
-| cursor-sim v1 | ARCHIVED | To be moved to `services/cursor-sim-v1/` |
-| cursor-sim v2 | NOT_STARTED | 16 tasks, ~45 hours estimated |
-| cursor-analytics-core | NOT_STARTED | Unchanged from v1 plan |
-| cursor-viz-spa | NOT_STARTED | Unchanged from v1 plan |
-| OpenAPI Specs | PENDING | To be copied from research zip |
-| DataDesigner | PENDING | To be set up in `tools/data-designer/` |
+| **cursor-sim v2 Phase 1** | **COMPLETE** ✅ | 16 tasks, 10.75h actual vs 44.5h estimated |
+| cursor-sim v2 Phase 2 | NOT_STARTED | GitHub PR simulation |
+| cursor-sim v2 Phase 3 | NOT_STARTED | Replay mode, research export |
+| cursor-analytics-core | NOT_STARTED | GraphQL aggregator |
+| cursor-viz-spa | NOT_STARTED | React dashboard |
+| Documentation Cleanup | IN_PROGRESS | SDD alignment |
 
-### Major Revision: v1.0 → v2.0
+### cursor-sim v2 Phase 1 Completion Summary
 
-The project underwent a major architectural revision:
+**Time Efficiency**: 10.75h actual / 44.5h estimated = **76% faster than planned**
 
-| Area | v1.0 | v2.0 |
-|------|------|------|
-| Data Generation | Internal random | Seed-based from DataDesigner |
-| API Surface | Generic (~5 endpoints) | Exact Cursor + GitHub (49 endpoints) |
-| Research Support | None | Full SDLC framework |
-| Operation Modes | Single | Runtime + Replay |
+| Category | Estimated | Actual | Delta |
+|----------|-----------|--------|-------|
+| Foundation (01-05) | 11.0h | 2.5h | -77% |
+| Generation (06-07) | 9.0h | 2.25h | -75% |
+| Endpoints (08-13) | 16.5h | 4.25h | -74% |
+| Integration (14-16) | 8.0h | 1.75h | -78% |
 
-### What Was Preserved from v1
-
-- Poisson distribution timing (proven, tested)
-- Go project structure patterns
-- TDD workflow and test infrastructure
-- Makefile and Docker configuration
-
-### What Was Replaced
-
-- Developer generation → loads from seed.json
-- Event models → Cursor-exact schema with camelCase
-- API handlers → all 29 Cursor endpoints
-- CLI flags → new --mode, --seed, --corpus flags
+**Test Coverage**: 90.3% average across all packages
 
 ---
 
-## Active Work: Pre-Implementation Setup
+## Active Work Items
 
-Before beginning TASK-R001, complete these setup tasks:
+### Current Focus: Ready for Next Feature
 
-### Setup Checklist
+SDD alignment complete. Documentation structure now complies with SDD methodology:
 
-- [ ] Archive v1: `mv services/cursor-sim services/cursor-sim-v1`
-- [ ] Copy OpenAPI specs to `specs/openapi/`
-- [ ] Copy DataDesigner to `tools/data-designer/`
-- [ ] Create sample seed.json for testing
-- [ ] Validate SDD structure still works
+- [x] Created `services/cursor-sim/SPEC.md`
+- [x] Updated `.claude/DEVELOPMENT.md` (this file)
+- [x] Marked `docs/` as reference-only
+- [x] Created `.work-items/cursor-sim-phase2/`
+- [x] Created `.work-items/cursor-analytics-core/`
+- [x] Updated `CLAUDE.md` with hierarchy
 
----
-
-## Phase 1: Complete Cursor API (MVP)
-
-**Goal**: Working cursor-sim that exactly matches Cursor Business API
-
-### Tasks Overview (16 total)
-
-| Task | Description | Hours | Model | Status |
-|------|-------------|-------|-------|--------|
-| TASK-R001 | Project structure | 1 | Haiku | NOT_STARTED |
-| TASK-R002 | Seed schema types | 2 | Haiku | NOT_STARTED |
-| TASK-R003 | Seed loader + validation | 3 | Sonnet | NOT_STARTED |
-| TASK-R004 | CLI v2 flags | 2 | Haiku | NOT_STARTED |
-| TASK-R005 | Cursor data models | 3 | Haiku | NOT_STARTED |
-| TASK-R006 | Commit generation | 5 | Sonnet | NOT_STARTED |
-| TASK-R007 | Storage v2 | 4 | Sonnet | NOT_STARTED |
-| TASK-R008 | API infrastructure | 2 | Haiku | NOT_STARTED |
-| TASK-R009 | /teams/members | 1.5 | Haiku | NOT_STARTED |
-| TASK-R010 | /ai-code/commits | 2 | Sonnet | NOT_STARTED |
-| TASK-R011 | /ai-code/commits.csv | 1 | Haiku | NOT_STARTED |
-| TASK-R012 | /team/* (11 endpoints) | 6 | Sonnet | NOT_STARTED |
-| TASK-R013 | /by-user/* (9 endpoints) | 4 | Sonnet | NOT_STARTED |
-| TASK-R014 | Router | 2 | Haiku | NOT_STARTED |
-| TASK-R015 | Main application | 2 | Haiku | NOT_STARTED |
-| TASK-R016 | E2E tests | 4 | Sonnet | NOT_STARTED |
-
-**Total**: 44.5 hours
-
-### Critical Path
+### Active Symlink
 
 ```
-R001 → R002 → R003 → R006 → R007 → Endpoints → R014 → R015 → R016
+.claude/plans/active -> (none - no feature currently active)
+```
+
+To start a new feature, run `/start-feature <feature-name>` where feature-name is one of:
+- `cursor-sim-phase2` - GitHub PR simulation
+- `cursor-analytics-core` - GraphQL aggregator
+
+---
+
+## Documentation Hierarchy (SDD Compliant)
+
+### Source of Truth
+
+```
+services/{service}/SPEC.md      ← Technical specification
+.work-items/{feature}/          ← Active work tracking
+├── user-story.md
+├── design.md
+├── task.md
+└── {NN}_step.md
+.claude/plans/active            ← Symlink to current work
+```
+
+### Reference Documents
+
+```
+docs/                           ← Project-level overview (REFERENCE ONLY)
+├── DESIGN.md                   ← System architecture
+├── FEATURES.md                 ← Feature breakdown
+├── TASKS.md                    ← Task overview
+└── USER_STORIES.md             ← User stories
 ```
 
 ---
 
-## Cursor API Surface (29 endpoints)
+## Next Steps (Choose One)
 
-### Admin API (4)
-```
-GET  /teams/members
-POST /teams/daily-usage-data
-POST /teams/filtered-usage-events
-POST /teams/spend
-```
+### Option A: cursor-sim Phase 2 (GitHub PR Simulation)
 
-### AI Code Tracking (4)
-```
-GET /analytics/ai-code/commits
-GET /analytics/ai-code/commits.csv
-GET /analytics/ai-code/changes
-GET /analytics/ai-code/changes.csv
-```
+**Scope**: SIM-R009 through SIM-R012
+- PR generation pipeline
+- Review simulation
+- GitHub Repos/PRs API
+- Quality outcomes
 
-### Team Analytics (11)
-```
-GET /analytics/team/agent-edits
-GET /analytics/team/tabs
-GET /analytics/team/dau
-GET /analytics/team/client-versions
-GET /analytics/team/models
-GET /analytics/team/top-file-extensions
-GET /analytics/team/mcp
-GET /analytics/team/commands
-GET /analytics/team/plans
-GET /analytics/team/ask-mode
-GET /analytics/team/leaderboard
-```
+**Estimated**: 20-25 hours
 
-### By-User Analytics (9)
-```
-GET /analytics/by-user/agent-edits
-GET /analytics/by-user/tabs
-GET /analytics/by-user/models
-GET /analytics/by-user/top-file-extensions
-GET /analytics/by-user/client-versions
-GET /analytics/by-user/mcp
-GET /analytics/by-user/commands
-GET /analytics/by-user/plans
-GET /analytics/by-user/ask-mode
-```
+### Option B: cursor-analytics-core
 
-### Health (1)
+**Scope**: CORE-001 through CORE-005
+- Data ingestion worker
+- PostgreSQL schema
+- GraphQL API server
+- Metric calculations
+- Developer queries
+
+**Estimated**: 25-30 hours
+
+### Recommendation
+
+Start **cursor-analytics-core** to complete the ETL pipeline:
 ```
-GET /health
+cursor-sim (8080) → cursor-analytics-core (4000) → cursor-viz-spa (3000)
+     ✅ DONE              Next                      After
 ```
 
 ---
 
-## Key Documentation Files
+## cursor-sim v2 Quick Reference
 
-### v2.0 Documentation
+### Running the Simulator
 
-| File | Purpose | Status |
-|------|---------|--------|
-| docs/DESIGN.md | System architecture v2.0 | COMPLETE |
-| docs/FEATURES.md | Feature breakdown v2.0 | COMPLETE |
-| docs/TASKS.md | Implementation tasks v2.0 | COMPLETE |
-| .claude/DEVELOPMENT.md | Session context (this file) | COMPLETE |
+```bash
+cd services/cursor-sim
 
-### Specifications
+# Build
+go build -o bin/cursor-sim ./cmd/simulator
 
-| File | Purpose | Status |
-|------|---------|--------|
-| specs/openapi/cursor-api.yaml | Cursor API schema | PENDING |
-| specs/openapi/github-sim-api.yaml | GitHub simulation API | PENDING |
-| tools/data-designer/seed_schema.yaml | Seed file schema | PENDING |
+# Run
+./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json -port 8080 -days 90
 
-### Claude Code Integration
+# Test endpoints
+curl http://localhost:8080/health
+curl -u cursor-sim-dev-key: http://localhost:8080/analytics/ai-code/commits
+```
 
-| File | Purpose |
-|------|---------|
-| CLAUDE.md | Project instructions |
-| .claude/skills/cursor-api-patterns.md | API implementation guide |
-| .claude/skills/go-best-practices.md | Go coding standards |
-| .claude/skills/model-selection-guide.md | Task-to-model mapping |
-| .claude/commands/implement.md | /implement command |
-| .claude/commands/next-task.md | /next-task command |
+### API Endpoints (29 total)
 
----
-
-## TDD Workflow
-
-### Red-Green-Refactor Cycle
-
-1. **RED**: Write failing test
-   ```bash
-   go test ./... -v
-   # Test should FAIL
-   ```
-
-2. **GREEN**: Write minimal code to pass
-   ```bash
-   go test ./... -v
-   # Test should PASS
-   ```
-
-3. **REFACTOR**: Clean up while green
-   ```bash
-   go test ./... -v
-   gofmt -s -w .
-   golangci-lint run
-   ```
-
-### Coverage Target
-- **Minimum**: 80%
-- **Check**: `go test ./... -cover`
+| Group | Endpoints | Status |
+|-------|-----------|--------|
+| Health | 1 | ✅ Implemented |
+| Admin | 1 | ✅ Implemented |
+| AI Code | 2 | ✅ Implemented |
+| Team Analytics | 11 | ✅ 3 functional, 8 stubs |
+| By-User Analytics | 9 | ⚡ All stubs |
 
 ---
 
 ## Development Commands
 
-### cursor-sim v2
+### cursor-sim
+
 ```bash
 cd services/cursor-sim
 
-# Tests
-go test ./... -v -cover
-make test
+# Run all tests
+go test ./... -v
 
-# Linting
-golangci-lint run
-make lint
+# Check coverage
+go test ./... -cover
+
+# Run E2E tests
+go test ./test/e2e -v
 
 # Build
-go build -o bin/cursor-sim cmd/simulator/main.go
-make build
-
-# Run (after implementation)
-./bin/cursor-sim --mode=runtime --seed=seed.json --port=8080
+go build -o bin/cursor-sim ./cmd/simulator
 ```
 
-### Docker
+### SDD Workflow
+
 ```bash
-docker-compose up -d
-docker-compose logs -f cursor-sim
-docker-compose down
+# Start a feature
+/start-feature cursor-analytics-core
+
+# Check current status
+/status
+
+# Implement a task
+/implement TASK-CORE-001
+
+# Complete a feature
+/complete-feature cursor-sim-v2
 ```
 
 ---
 
-## Model Selection Guide
+## Key Files
 
-| Task Type | Model | Rationale |
-|-----------|-------|-----------|
-| Type definitions | Haiku | Well-specified, low complexity |
-| Validation logic | Sonnet | Requires careful edge case handling |
-| Generation engine | Sonnet | Complex Poisson/statistical logic |
-| Simple endpoints | Haiku | Straightforward CRUD |
-| Complex aggregations | Sonnet | Multiple transformations |
-| E2E tests | Sonnet | Integration complexity |
+### Specifications
+
+| File | Description |
+|------|-------------|
+| `services/cursor-sim/SPEC.md` | cursor-sim technical spec |
+| `services/cursor-analytics-core/SPEC.md` | analytics-core spec |
+| `services/cursor-viz-spa/SPEC.md` | dashboard spec |
+
+### Work Items
+
+| Directory | Description |
+|-----------|-------------|
+| `.work-items/cursor-sim-v2/` | Phase 1 work (COMPLETE) |
+| `.work-items/cursor-sim-phase2/` | Phase 2 work (TODO) |
+| `.work-items/cursor-analytics-core/` | Aggregator work (TODO) |
+
+### Claude Integration
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Project instructions |
+| `.claude/DEVELOPMENT.md` | This file - session context |
+| `.claude/skills/` | Skill definitions |
+| `.claude/commands/` | Command definitions |
 
 ---
 
@@ -258,47 +219,27 @@ docker-compose down
 
 When starting a new session:
 
-1. [ ] Read this file (DEVELOPMENT.md)
-2. [ ] Check current task status in docs/TASKS.md
-3. [ ] Identify next task to implement
-4. [ ] Select appropriate model per guide
-5. [ ] Follow TDD workflow
-6. [ ] Update task status when complete
+1. [x] Read DEVELOPMENT.md (this file)
+2. [ ] Check active work: `ls -la .claude/plans/active`
+3. [ ] Review current work item in `.work-items/`
+4. [ ] Continue with next task or start new feature
+5. [ ] Follow TDD: RED → GREEN → REFACTOR
+6. [ ] Commit after each task
 
 ---
 
-## Reference Links
+## Architecture Overview
 
-### External
-- [Cursor Analytics API](https://cursor.com/docs/account/teams/analytics-api)
-- [Cursor AI Code Tracking](https://docs.cursor.com/business/api-reference/ai-code-tracking)
-
-### Internal
-- docs/DESIGN.md - Architecture
-- docs/FEATURES.md - Feature specs
-- docs/TASKS.md - Task breakdown
-
----
-
-## Notes
-
-### Architecture Decisions
-
-1. **Seed-based generation**: DataDesigner generates dimension data, cursor-sim generates time-series events
-
-2. **Exact API matching**: Response schemas match Cursor documentation exactly for drop-in replacement
-
-3. **Two operation modes**:
-   - Runtime: Generate from seed.json
-   - Replay: Serve from pre-generated Parquet
-
-4. **JOIN key consistency**: All APIs share commit_sha, user_email, repo_name keys
-
-### Open Items
-
-1. NVIDIA API access for DataDesigner (scipy/faker fallback available)
-2. Parquet library selection for replay mode (Phase 3)
-3. PostgreSQL schema for cursor-analytics-core (unchanged)
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────────┐
+│   cursor-sim    │────▶│ cursor-analytics-core│────▶│  cursor-viz-spa │
+│   (Go + REST)   │     │   (TS + GraphQL)     │     │  (React + Vite) │
+│   Port: 8080    │     │   Port: 4000         │     │   Port: 3000    │
+│   ✅ COMPLETE   │     │   ⏳ NOT_STARTED     │     │   ⏳ NOT_STARTED │
+└─────────────────┘     └──────────────────────┘     └─────────────────┘
+     Simulator              Aggregator                  Dashboard
+     (Extract)              (Transform)                  (Load/View)
+```
 
 ---
 
