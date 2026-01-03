@@ -64,7 +64,8 @@
       "Bash(PORT=8081 DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
       "Bash(REBUILD=true PORT=8081 DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
       "Bash(PORT=8082 DAYS=30 VELOCITY=high DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
-      "Bash(npm run lint:fix:*)"
+      "Bash(npm run lint:fix:*)",
+      "Bash(xargs git status:*)"
     ],
     "deny": [],
     "ask": []
