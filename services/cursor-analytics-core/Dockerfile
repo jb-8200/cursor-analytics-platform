@@ -32,9 +32,12 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm ci --production
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema
 COPY --from=builder /build/prisma ./prisma
+
+# Copy generated Prisma client to both locations for compatibility
 COPY --from=builder /build/src/generated ./src/generated
+COPY --from=builder /build/src/generated ./dist/generated
 
 # Copy built files from builder
 COPY --from=builder /build/dist ./dist

@@ -8,7 +8,6 @@ services:
       POSTGRES_USER: cursor
       POSTGRES_PASSWORD: cursor_dev
       POSTGRES_DB: cursor_analytics
-      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
@@ -18,6 +17,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - analytics-network
+
+  graphql:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cursor-analytics-graphql
+    environment:
+      DATABASE_URL: postgresql://cursor:cursor_dev@postgres:5432/cursor_analytics?schema=public
+      NODE_ENV: production
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - analytics-network
 
 volumes:
   postgres-data:
+
+networks:
+  analytics-network:
+    driver: bridge
