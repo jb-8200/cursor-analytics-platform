@@ -108,12 +108,16 @@ func TestE2E_CSVExportFormat(t *testing.T) {
 
 	header := records[0]
 	assert.Equal(t, "commit_hash", header[0])
-	assert.Equal(t, "ai_ratio", header[4])
+	assert.Equal(t, "author_email", header[3])
+	assert.Equal(t, "ai_ratio", header[5])
 
 	// Verify data row
 	row := records[1]
 	assert.Equal(t, "abc123", row[0])
-	assert.Contains(t, row[4], "0.65") // ai_ratio
+	assert.Contains(t, row[5], "0.65") // ai_ratio
+
+	// Verify we have all 38 columns
+	assert.Len(t, header, 38, "Expected 38 columns in CSV export")
 
 	t.Logf("CSV export validated: %d columns, %d rows", len(header), len(records)-1)
 }

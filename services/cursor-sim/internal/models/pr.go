@@ -28,10 +28,11 @@ type PullRequest struct {
 	Labels      []string `json:"labels"`
 
 	// Line metrics
-	Additions    int `json:"additions"`
-	Deletions    int `json:"deletions"`
-	ChangedFiles int `json:"changed_files"`
-	CommitCount  int `json:"commit_count"`
+	Additions        int `json:"additions"`
+	Deletions        int `json:"deletions"`
+	InitialAdditions int `json:"initial_additions"` // LoC at first commit (for scope creep / rework tracking)
+	ChangedFiles     int `json:"changed_files"`
+	CommitCount      int `json:"commit_count"`
 
 	// AI metrics (aggregated from commits)
 	AIRatio       float64 `json:"ai_ratio"`
@@ -39,10 +40,13 @@ type PullRequest struct {
 	ComposerLines int     `json:"composer_lines"`
 
 	// Timestamps
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	MergedAt  *time.Time `json:"merged_at,omitempty"`
-	ClosedAt  *time.Time `json:"closed_at,omitempty"`
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+	MergedAt       *time.Time `json:"merged_at,omitempty"`
+	ClosedAt       *time.Time `json:"closed_at,omitempty"`
+	FirstReviewAt  *time.Time `json:"first_review_at,omitempty"`  // Time of first review comment
+	FirstCommitAt  *time.Time `json:"first_commit_at,omitempty"`  // Time of first commit in PR
+	LastCommitAt   *time.Time `json:"last_commit_at,omitempty"`   // Time of last commit in PR
 
 	// Quality signals
 	WasReverted bool `json:"was_reverted"`

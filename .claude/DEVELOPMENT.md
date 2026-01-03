@@ -122,14 +122,25 @@
 - Time window filtering with 48-hour default
 - All tests passing (15/15 packages, 10 new tests: 6 unit + 4 E2E)
 - Files: `quality.go`, `hotfixes.go`, `hotfixes_test.go`, `analysis.go`, `analysis_test.go`, `router.go`
+- Commit: 3502b5c
+
+**C05 Complete** ✅ (2.5h estimated / 2.5h actual)
+- Added 17 new fields to ResearchDataPoint model (38 total columns)
+- Implemented calculation methods: greenfield_index, pickup_time, review_density, rework_ratio, scope_creep, reviewer_count, has_hotfix_followup, survival_rate_30d
+- Created export package with CSV and JSON exporters
+- CSV export with all 38 columns including new research metrics
+- Added missing PR fields: FirstReviewAt, InitialAdditions, FirstCommitAt, LastCommitAt
+- Enhanced research generator with comprehensive field population
+- All tests passing (15/15 packages)
+- Files: `research.go`, `pr.go`, `research_generator.go`, `csv.go`, `json.go`, `research_test.go`
 - Commit: TBD
 
-**Next Task**: C05 - Research Dataset Enhancement
+**Next Task**: C06 - Part C Integration Tests
 - Estimated: 2.5h
 - Status: Ready to start
-- Add missing fields to ResearchDataPoint
-- Implement JOIN key validation
-- Enhance CSV export with all 20+ columns
+- E2E tests for GitHub and Research endpoints
+- Hypothesis validation tests
+- Statistical correlation testing
 
 ### Active Symlink
 

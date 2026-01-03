@@ -33,35 +33,55 @@ func (sw SurvivalWindow) Days() int {
 // Uses snake_case JSON tags for compatibility with data science tools (pandas, R).
 type ResearchDataPoint struct {
 	// Identifiers
-	CommitHash string `json:"commit_hash"`
-	PRNumber   int    `json:"pr_number"`
-	AuthorID   string `json:"author_id"`
-	RepoName   string `json:"repo_name"`
+	CommitHash  string `json:"commit_hash"`
+	PRNumber    int    `json:"pr_number"`
+	AuthorID    string `json:"author_id"`
+	AuthorEmail string `json:"author_email"` // JOIN key for cross-API queries
+	RepoName    string `json:"repo_name"`
 
 	// AI Metrics (Independent Variables)
-	AIRatio       float64 `json:"ai_ratio"`
-	TabLines      int     `json:"tab_lines"`
-	ComposerLines int     `json:"composer_lines"`
+	AIRatio         float64 `json:"ai_ratio"`
+	AILinesAdded    int     `json:"ai_lines_added"`
+	AILinesDeleted  int     `json:"ai_lines_deleted"`
+	NonAILinesAdded int     `json:"non_ai_lines_added"`
+	TabLines        int     `json:"tab_lines"`      // Legacy field, kept for backwards compatibility
+	ComposerLines   int     `json:"composer_lines"` // Legacy field, kept for backwards compatibility
 
-	// PR Metrics
-	Additions    int `json:"additions"`
-	Deletions    int `json:"deletions"`
-	FilesChanged int `json:"files_changed"`
+	// PR Metrics (Controls)
+	PRVolume       int     `json:"pr_volume"`        // additions + deletions
+	PRScatter      int     `json:"pr_scatter"`       // changed_files
+	Additions      int     `json:"additions"`        // Legacy field, kept for backwards compatibility
+	Deletions      int     `json:"deletions"`        // Legacy field, kept for backwards compatibility
+	FilesChanged   int     `json:"files_changed"`    // Legacy field, kept for backwards compatibility
+	GreenfieldIndex float64 `json:"greenfield_index"` // % lines in files created < 30 days ago
 
-	// Cycle Times (Dependent Variables)
+	// Cycle Times (Velocity Outcomes)
 	CodingLeadTimeHours float64 `json:"coding_lead_time_hours"`
+	PickupTimeHours     float64 `json:"pickup_time_hours"`      // First review delay
 	ReviewLeadTimeHours float64 `json:"review_lead_time_hours"`
-	MergeLeadTimeHours  float64 `json:"merge_lead_time_hours"`
+	MergeLeadTimeHours  float64 `json:"merge_lead_time_hours"` // Legacy field, kept for backwards compatibility
 
-	// Quality Outcomes (Dependent Variables)
-	WasReverted      bool `json:"was_reverted"`
-	RequiredHotfix   bool `json:"required_hotfix"`
-	ReviewIterations int  `json:"review_iterations"`
+	// Review Costs (Outcomes)
+	ReviewDensity    float64 `json:"review_density"`     // comments per LoC
+	IterationCount   int     `json:"iteration_count"`    // review cycles
+	ReworkRatio      float64 `json:"rework_ratio"`       // LoC changed during review / initial LoC
+	ScopeCreep       float64 `json:"scope_creep"`        // (final LoC - initial LoC) / final LoC
+	ReviewerCount    int     `json:"reviewer_count"`     // unique reviewers
+	ReviewIterations int     `json:"review_iterations"`  // Legacy field, kept for backwards compatibility
+
+	// Quality Outcomes
+	IsReverted        bool    `json:"is_reverted"`
+	HasHotfixFollowup bool    `json:"has_hotfix_followup"`
+	SurvivalRate30d   float64 `json:"survival_rate_30d"`
+	WasReverted       bool    `json:"was_reverted"`    // Legacy field, kept for backwards compatibility
+	RequiredHotfix    bool    `json:"required_hotfix"` // Legacy field, kept for backwards compatibility
 
 	// Control Variables
 	AuthorSeniority string `json:"author_seniority"`
 	RepoMaturity    string `json:"repo_maturity"`
-	IsGreenfield    bool   `json:"is_greenfield"`
+	RepoAgeDays     int    `json:"repo_age_days"`
+	PrimaryLanguage string `json:"primary_language"`
+	IsGreenfield    bool   `json:"is_greenfield"` // Legacy field, kept for backwards compatibility
 
 	Timestamp time.Time `json:"timestamp"`
 }
