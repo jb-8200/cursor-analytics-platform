@@ -88,7 +88,7 @@
 - Files: `commits.go`, `commits_test.go`, `files.go`, `files_test.go`, `router.go`
 - Commit: 68a81aa
 
-**C02 Complete** ✅ (3.0h estimated / actual TBD)
+**C02 Complete** ✅ (3.0h estimated / 3.0h actual)
 - FileSurvival model with file lifecycle tracking
 - SurvivalService with cohort-based survival calculation
 - GET /repos/{owner}/{repo}/analysis/survival endpoint
@@ -98,7 +98,8 @@
 - Reproducible results with seeded RNG
 - All tests passing (15/15 packages, 9 new tests)
 - Files: `quality.go`, `survival.go`, `survival_test.go`, `analysis.go`, `analysis_test.go`
-- Commit: (pending)
+- Commit: 77e5025
+- **SDD Violation**: Fixed task.md update (commit e8f4a31)
 
 **Next Task**: C03 - Revert Chain Analysis
 - Estimated: 2.5h

@@ -5,7 +5,7 @@
 **Feature**: cursor-sim v2 Phase 3
 **Total Estimated Hours**: 35-45
 **Number of Steps**: 18
-**Current Step**: B02 - Model Usage Generator & Handler
+**Current Step**: C03 - Revert Chain Analysis
 
 This phase completes cursor-sim with:
 - **Part A**: Research Framework (SIM-R013 → SIM-R015) - COMPLETE
@@ -47,9 +47,9 @@ This phase completes cursor-sim with:
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
-| C00 | PR Generation Pipeline | 4.0 | NOT_STARTED | - |
-| C01 | Wire GitHub/Research Routes | 2.0 | NOT_STARTED | - |
-| C02 | Code Survival Calculator | 3.0 | NOT_STARTED | - |
+| C00 | PR Generation Pipeline | 4.0 | DONE | 4.0 |
+| C01 | Wire GitHub/Research Routes | 2.0 | DONE | 2.0 |
+| C02 | Code Survival Calculator | 3.0 | DONE | 3.0 |
 | C03 | Revert Chain Analysis | 2.5 | NOT_STARTED | - |
 | C04 | Hotfix Tracking | 2.0 | NOT_STARTED | - |
 | C05 | Research Dataset Enhancement | 2.5 | NOT_STARTED | - |
