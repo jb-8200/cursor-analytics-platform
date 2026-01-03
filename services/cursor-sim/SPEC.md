@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 1 Complete, Phase 2 Planned
-**Last Updated**: January 2026
+**Status**: Phase 3 Mostly Complete (Parts A, B, C Done)
+**Last Updated**: January 3, 2026
 
 ## Overview
 
@@ -17,8 +17,9 @@ cursor-sim is a high-fidelity Cursor Business API simulator that generates synth
 | Phase | Features | Status |
 |-------|----------|--------|
 | Phase 1 (P0) | Seed loading, CLI, 29 API endpoints, commit generation | **COMPLETE** ✅ |
-| Phase 2 (P1) | GitHub PR simulation, review cycles, quality outcomes | NOT_STARTED |
-| Phase 3 (P2) | Replay mode, research export, code survival tracking | NOT_STARTED |
+| Phase 2 (P1) | GitHub PR simulation, review cycles, quality outcomes | **COMPLETE** ✅ |
+| Phase 3 (P2) | Research export, code survival, quality analysis | **MOSTLY COMPLETE** ✅ |
+| Phase 3D (Deferred) | Replay mode from corpus files | DEFERRED |
 
 ---
 
@@ -118,33 +119,33 @@ curl -u API_KEY: http://localhost:8080/teams/members
 
 | Method | Path | Auth | Status |
 |--------|------|------|--------|
-| GET | `/analytics/team/agent-edits` | Yes | ✅ Functional |
-| GET | `/analytics/team/tabs` | Yes | ✅ Functional |
-| GET | `/analytics/team/dau` | Yes | ✅ Functional |
-| GET | `/analytics/team/models` | Yes | ⚡ Stub |
-| GET | `/analytics/team/client-versions` | Yes | ⚡ Stub |
-| GET | `/analytics/team/top-file-extensions` | Yes | ⚡ Stub |
-| GET | `/analytics/team/mcp` | Yes | ⚡ Stub |
-| GET | `/analytics/team/commands` | Yes | ⚡ Stub |
-| GET | `/analytics/team/plans` | Yes | ⚡ Stub |
-| GET | `/analytics/team/ask-mode` | Yes | ⚡ Stub |
-| GET | `/analytics/team/leaderboard` | Yes | ⚡ Stub |
+| GET | `/analytics/team/agent-edits` | Yes | ✅ Implemented |
+| GET | `/analytics/team/tabs` | Yes | ✅ Implemented |
+| GET | `/analytics/team/dau` | Yes | ✅ Implemented |
+| GET | `/analytics/team/models` | Yes | ✅ Implemented |
+| GET | `/analytics/team/client-versions` | Yes | ✅ Implemented |
+| GET | `/analytics/team/top-file-extensions` | Yes | ✅ Implemented |
+| GET | `/analytics/team/mcp` | Yes | ✅ Implemented |
+| GET | `/analytics/team/commands` | Yes | ✅ Implemented |
+| GET | `/analytics/team/plans` | Yes | ✅ Implemented |
+| GET | `/analytics/team/ask-mode` | Yes | ✅ Implemented |
+| GET | `/analytics/team/leaderboard` | Yes | ✅ Implemented |
 
 #### By-User Analytics API (9 endpoints)
 
 | Method | Path | Auth | Status |
 |--------|------|------|--------|
-| GET | `/analytics/by-user/agent-edits` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/tabs` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/models` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/client-versions` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/top-file-extensions` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/mcp` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/commands` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/plans` | Yes | ⚡ Stub |
-| GET | `/analytics/by-user/ask-mode` | Yes | ⚡ Stub |
+| GET | `/analytics/by-user/agent-edits` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/tabs` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/models` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/client-versions` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/top-file-extensions` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/mcp` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/commands` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/plans` | Yes | ✅ Implemented |
+| GET | `/analytics/by-user/ask-mode` | Yes | ✅ Implemented |
 
-**Legend**: ✅ Fully implemented | ⚡ Stub (returns empty data with correct schema)
+**Legend**: ✅ Fully implemented
 
 ---
 
@@ -305,12 +306,16 @@ services/cursor-sim/
 ├── internal/
 │   ├── config/           # CLI flags, env vars
 │   ├── seed/             # Seed loading and validation
-│   ├── models/           # Cursor API types
-│   ├── generator/        # Commit generation logic
+│   ├── models/           # Cursor API types (13 files)
+│   ├── generator/        # Event generation (25 files: commits, PRs, reviews, quality)
 │   ├── storage/          # In-memory storage
 │   ├── api/              # Middleware, response helpers
-│   │   └── cursor/       # Cursor API handlers
-│   └── server/           # HTTP router
+│   │   ├── cursor/       # Cursor API handlers
+│   │   └── github/       # GitHub API handlers
+│   ├── server/           # HTTP router
+│   ├── services/         # Business logic (code survival, hotfix, revert analysis)
+│   ├── export/           # Research data export (Parquet, CSV)
+│   └── replay/           # Replay mode infrastructure (deferred)
 ├── test/e2e/             # End-to-end tests
 ├── testdata/             # Test seed files
 ├── bin/                  # Build output
@@ -374,47 +379,56 @@ rng := rand.New(rand.NewSource(12345))
 
 ---
 
-## Phase 2 Features (Planned)
+## Phase 2 Features (Implemented) ✅
 
-### SIM-R009: PR Generation Pipeline
-- Generate full PR lifecycle from commits
-- Link commits to PRs with proper foreign keys
-- Track PR state (open, review, merged, closed)
+### SIM-R009: PR Generation Pipeline ✅
+- Generates full PR lifecycle from commits
+- Links commits to PRs with proper foreign keys
+- Tracks PR state (open, review, merged, closed)
+- Implements realistic PR timelines and scatter patterns
 
-### SIM-R010: Review Simulation
-- Generate review comments from templates
-- Simulate review iterations
-- Track approval/rejection cycles
+### SIM-R010: Review Simulation ✅
+- Generates review comments from templates
+- Simulates review iterations based on correlations
+- Tracks approval/rejection cycles
+- Models reviewer assignment and thoroughness
 
-### SIM-R011: GitHub Repos/PRs API
+### SIM-R011: GitHub Repos/PRs API ✅
 - `GET /repos` - List repositories
 - `GET /repos/{owner}/{repo}/pulls` - List PRs
 - `GET /repos/{owner}/{repo}/pulls/{number}` - PR details
 - `GET /repos/{owner}/{repo}/pulls/{number}/commits` - PR commits
+- `GET /repos/{owner}/{repo}/analysis/reverts` - Revert analysis
+- `GET /repos/{owner}/{repo}/analysis/hotfixes` - Hotfix detection
 
-### SIM-R012: Quality Outcomes
-- Revert tracking
-- Bug-fix commits
-- Code survival metrics
+### SIM-R012: Quality Outcomes ✅
+- Revert tracking with chain analysis
+- Hotfix detection (48-hour window)
+- Code survival metrics (7, 14, 30 day tracking)
+- Risk scoring for revert chains
 
 ---
 
-## Phase 3 Features (Planned)
+## Phase 3 Features (Mostly Complete) ✅
 
-### SIM-R013: Research Dataset Export
-- Export to Parquet format
-- Pre-joined research tables
+### SIM-R013: Research Dataset Export ✅
+- Exports to Parquet and CSV formats
+- Pre-joined research tables with 38 columns
 - Proper JOIN keys for SDLC analysis
+- Includes: velocity metrics, review costs, quality outcomes
+- API: `GET /research/dataset?format=parquet|csv`
 
-### SIM-R014: Code Survival Tracking
-- Track AI code through refactoring
-- Measure long-term code retention
-- Generate survival curves
+### SIM-R014: Code Survival Tracking ✅
+- Tracks AI code through refactoring
+- Measures code retention at 7, 14, 30 days
+- Generates survival rate metrics
+- Integrated into research dataset
 
-### SIM-R015: Replay Mode
-- Load events from corpus file
-- Replay historical data
-- Time-scaling support
+### SIM-R015: Replay Mode ⏸️
+- **Status**: DEFERRED to Phase 3D
+- Infrastructure created in `internal/replay/`
+- Will support loading events from corpus files
+- Future: Replay historical data with time-scaling
 
 ---
 
@@ -426,13 +440,21 @@ rng := rand.New(rand.NewSource(12345))
 | Jan 2026 | Exact Cursor API match | Drop-in replacement for testing |
 | Jan 2026 | In-memory storage | MVP simplicity, acceptable for simulator |
 | Jan 2026 | Go 1.21+ | Team expertise, proven Poisson implementation |
-| Jan 2026 | Stub pattern for Phase 2 | Complete API surface quickly, upgrade later |
+| Jan 2026 | Stub pattern for Phase 1 | Complete API surface quickly, upgrade later |
+| Jan 2026 | Full endpoint implementation (Phase 3 Part B) | All 29 endpoints now production-ready |
+| Jan 2026 | Revert chain analysis | Track cascading reverts for quality research |
+| Jan 2026 | Hotfix detection (48h window) | Identify urgent fixes following merges |
+| Jan 2026 | 38-column research dataset | Comprehensive SDLC metrics for analysis |
+| Jan 2026 | Defer replay mode | Focus on generation quality first |
 
 ---
 
 ## Related Documentation
 
-- `.work-items/cursor-sim-v2/` - Active work tracking
+- `.work-items/cursor-sim-v2/` - v2 implementation tracking
+- `.work-items/cursor-sim-phase2/` - PR lifecycle implementation
+- `.work-items/cursor-sim-phase3/` - Research framework & quality analysis (CURRENT)
 - `docs/FEATURES.md` - Project-level feature overview
-- `docs/API_REFERENCE.md` - Cursor API documentation
+- `docs/TASKS.md` - Implementation task breakdown
 - `.claude/skills/cursor-api-patterns.md` - API implementation patterns
+- `.claude/skills/go-best-practices.md` - Go coding standards
