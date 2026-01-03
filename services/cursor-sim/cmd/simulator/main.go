@@ -117,6 +117,14 @@ func run(ctx context.Context, cfg *config.Config) error {
 	}
 	log.Printf("Generated file extension events\n")
 
+	// Generate feature events (MCP, Commands, Plans, AskMode)
+	log.Printf("Generating feature events...\n")
+	featureGen := generator.NewFeatureGenerator(seedData, store, cfg.Velocity)
+	if err := featureGen.GenerateFeatures(ctx, cfg.Days); err != nil {
+		return fmt.Errorf("failed to generate features: %w", err)
+	}
+	log.Printf("Generated feature events\n")
+
 	// Create HTTP router
 	router := server.NewRouter(store, seedData, DefaultAPIKey)
 
