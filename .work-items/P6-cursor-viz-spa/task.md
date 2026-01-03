@@ -20,14 +20,14 @@
 | Task ID | Task | Hours | Status | Actual |
 |---------|------|-------|--------|--------|
 | TASK01 | Project Setup (Dependencies, Tailwind, ESLint, Vitest) | 3.0 | DONE | 2.5 |
-| TASK02 | Apollo Client Configuration & GraphQL Setup | 3.0 | NOT_STARTED | - |
+| TASK02 | Apollo Client Configuration & GraphQL Setup | 3.0 | DONE | 2.0 |
 | TASK03 | Core Layout Components & Routing | 3.5 | NOT_STARTED | - |
 | TASK04 | Chart Components (Heatmap, Radar, Table) | 5.0 | NOT_STARTED | - |
 | TASK05 | Filter Controls & Date Picker | 3.0 | NOT_STARTED | - |
 | TASK06 | GraphQL Queries & Custom Hooks | 4.0 | NOT_STARTED | - |
 | TASK07 | Testing Setup & Initial Tests | 2.5 | NOT_STARTED | - |
 
-**Current Task**: TASK01
+**Current Task**: TASK02 (Complete)
 
 ---
 
@@ -81,8 +81,8 @@
 ### TASK02: Apollo Client Configuration & GraphQL Setup
 
 **Estimated**: 3.0h
-**Status**: NOT_STARTED
-**Actual**: -
+**Status**: DONE
+**Actual**: 2.0h
 
 **Objective**: Set up Apollo Client for GraphQL communication with cursor-analytics-core.
 
@@ -94,12 +94,12 @@
 - `services/cursor-viz-spa/codegen.yml`
 
 **Tasks**:
-- [ ] Create Apollo Client instance with cache policies
-- [ ] Define initial GraphQL query stubs
-- [ ] Set up GraphQL Code Generator
-- [ ] Wrap app with ApolloProvider
-- [ ] Create mock GraphQL server for testing
-- [ ] Write tests for client configuration
+- [x] Create Apollo Client instance with cache policies
+- [x] Define initial GraphQL query stubs
+- [x] Set up GraphQL Code Generator
+- [x] Wrap app with ApolloProvider
+- [x] Create mock GraphQL server for testing
+- [x] Write tests for client configuration
 
 **Acceptance Criteria**:
 - Apollo Client connects to VITE_GRAPHQL_URL

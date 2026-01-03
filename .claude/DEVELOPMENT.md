@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 1.5h / 25-30h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 4.0h / 25-30h est |
 | P6-F01 | Viz SPA | TODO | - |
 
 ---
@@ -72,6 +72,16 @@ Phase (P#) = Epic level
 ---
 
 ## Recently Completed
+
+### P5-F01 Step 02: Database Schema & Migrations (January 3, 2026)
+
+- Installed and configured Prisma ORM 6.19.1
+- Created complete database schema (developers, usage_events)
+- Implemented materialized view for daily_stats aggregation
+- Built database client wrapper with singleton pattern
+- Comprehensive seed script with 7 days of simulated data
+- Unit tests for database client
+- Time: 2.5h actual / 3.0h estimated
 
 ### P4-F01: Empty Dataset Fixes (January 3, 2026)
 

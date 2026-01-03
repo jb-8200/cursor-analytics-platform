@@ -1,5 +1,15 @@
+# GraphQL Code Generator Configuration
+#
+# This configuration generates TypeScript types from the GraphQL schema
+# once cursor-analytics-core (P5) is fully implemented.
+#
+# Usage: npm run codegen
+# Prerequisites: cursor-analytics-core running on http://localhost:4000/graphql
+
+overwrite: true
 schema: "http://localhost:4000/graphql"
 documents: "src/graphql/**/*.ts"
+
 generates:
   src/generated/graphql.ts:
     plugins:
@@ -7,6 +17,35 @@ generates:
       - typescript-operations
       - typescript-react-apollo
     config:
+      # Generate React hooks for queries and mutations
       withHooks: true
       withComponent: false
       withHOC: false
+      # Use TypeScript types for scalars
+      scalars:
+        Date: string
+        DateTime: string
+      # Use type imports for better tree-shaking
+      useTypeImports: true
+      # Add __typename to all selections
+      addTypename: true
+      # Naming conventions
+      namingConvention:
+        typeNames: pascal-case
+        enumValues: upper-case
+
+  # Generate schema introspection for IDE tooling
+  src/generated/schema.json:
+    plugins:
+      - introspection
+    config:
+      minify: true
+
+# Hooks for code generation lifecycle
+hooks:
+  afterAllFileWrite:
+    - prettier --write src/generated/*.ts
+
+# Configuration
+watch: false
+verbose: false

@@ -13,7 +13,7 @@
 | Step | Description | Status |
 |------|-------------|--------|
 | 01 | Project Setup | ✅ COMPLETE |
-| 02 | Database Schema & Migrations | NOT_STARTED |
+| 02 | Database Schema & Migrations | ✅ COMPLETE |
 | 03 | cursor-sim REST Client | NOT_STARTED |
 | 04 | Ingestion Worker | NOT_STARTED |
 | 05 | GraphQL Schema | NOT_STARTED |

@@ -1,20 +1,10 @@
-import { http, HttpResponse } from 'msw';
+import { graphqlHandlers } from './graphqlHandlers';
 
 /**
- * MSW handlers for mocking GraphQL API
- * Will be expanded as GraphQL schema is implemented in P5
+ * MSW handlers for mocking API requests
+ *
+ * GraphQL handlers are defined in graphqlHandlers.ts and provide
+ * mock responses for all GraphQL queries used in the application.
  */
 
-const GRAPHQL_URL =
-  import.meta.env.VITE_GRAPHQL_URL || 'http://localhost:4000/graphql';
-
-export const handlers = [
-  // Mock GraphQL endpoint
-  http.post(GRAPHQL_URL, () => {
-    return HttpResponse.json({
-      data: {
-        // Add mock responses as queries are defined
-      },
-    });
-  }),
-];
+export const handlers = [...graphqlHandlers];
