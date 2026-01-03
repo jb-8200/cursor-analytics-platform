@@ -11,6 +11,9 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
+    '!src/index.ts', // Entry point - integration code, tested via E2E
+    '!src/__tests__/**', // Test infrastructure
+    '!src/generated/**', // Generated Prisma client
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

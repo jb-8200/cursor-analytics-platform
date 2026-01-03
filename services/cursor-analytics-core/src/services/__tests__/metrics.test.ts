@@ -204,6 +204,23 @@ describe('MetricsService', () => {
       expect(result.to.getTime()).toBeGreaterThanOrEqual(Date.now() - 1000);
     });
 
+    it('should expand THIS_WEEK preset correctly', () => {
+      const result = metricsService.expandDateRangePreset('THIS_WEEK');
+      const now = new Date();
+      const dayOfWeek = now.getDay();
+      const expectedFrom = new Date(now);
+      expectedFrom.setDate(now.getDate() - dayOfWeek);
+      expectedFrom.setHours(0, 0, 0, 0);
+      expect(result.from.toDateString()).toBe(expectedFrom.toDateString());
+    });
+
+    it('should expand THIS_MONTH preset correctly', () => {
+      const result = metricsService.expandDateRangePreset('THIS_MONTH');
+      const now = new Date();
+      const expectedFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+      expect(result.from.toDateString()).toBe(expectedFrom.toDateString());
+    });
+
     it('should expand LAST_7_DAYS preset correctly', () => {
       const result = metricsService.expandDateRangePreset('LAST_7_DAYS');
 
@@ -211,6 +228,22 @@ describe('MetricsService', () => {
       expectedFrom.setDate(expectedFrom.getDate() - 7);
       expectedFrom.setHours(0, 0, 0, 0);
 
+      expect(result.from.toDateString()).toBe(expectedFrom.toDateString());
+    });
+
+    it('should expand LAST_30_DAYS preset correctly', () => {
+      const result = metricsService.expandDateRangePreset('LAST_30_DAYS');
+      const expectedFrom = new Date();
+      expectedFrom.setDate(expectedFrom.getDate() - 30);
+      expectedFrom.setHours(0, 0, 0, 0);
+      expect(result.from.toDateString()).toBe(expectedFrom.toDateString());
+    });
+
+    it('should expand LAST_90_DAYS preset correctly', () => {
+      const result = metricsService.expandDateRangePreset('LAST_90_DAYS');
+      const expectedFrom = new Date();
+      expectedFrom.setDate(expectedFrom.getDate() - 90);
+      expectedFrom.setHours(0, 0, 0, 0);
       expect(result.from.toDateString()).toBe(expectedFrom.toDateString());
     });
 
