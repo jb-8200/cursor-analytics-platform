@@ -1,8 +1,8 @@
 import React from 'react';
 import { useDashboard } from '../hooks/useDashboard';
-import { VelocityHeatmap } from '../components/charts/VelocityHeatmap';
-import { TeamRadarChart } from '../components/charts/TeamRadarChart';
-import { DeveloperTable } from '../components/charts/DeveloperTable';
+import VelocityHeatmap from '../components/charts/VelocityHeatmap';
+import TeamRadarChart from '../components/charts/TeamRadarChart';
+import DeveloperTable from '../components/charts/DeveloperTable';
 
 const Dashboard: React.FC = () => {
   const { data, loading, error } = useDashboard();
