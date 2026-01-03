@@ -42,7 +42,7 @@ Phase (P#) = Epic level
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 5.5h / 14.0h est |
 | P5-F01 | Analytics Core | IN PROGRESS | 18.0h / 25-30h est |
-| P6-F01 | Viz SPA | IN PROGRESS | 19.0h / 24.0h est |
+| P6-F01 | Viz SPA | COMPLETE | 24.5h / 24.0h est |
 | P7-F01 | Local Docker Deploy | TODO | 0h / 4.0h est |
 | P7-F02 | GCP Cloud Run Deploy | TODO | 0h / 4.5h est |
 
@@ -63,9 +63,9 @@ Phase (P#) = Epic level
 **Next**: Step 10 - Integration & E2E Tests (Final step)
 
 #### P6-F01: cursor-viz-spa
-**Progress**: 6/7 tasks (86%) - 19.0h / 24.0h
-**Recently Completed**: TASK06 - GraphQL Data Hooks (useDashboard, useDevelopers, useTeamStats)
-**Next**: TASK07 - Component Integration (Final task)
+**Progress**: 7/7 tasks (100%) - 24.5h / 24.0h ✅ COMPLETE
+**Recently Completed**: TASK07 - Testing Setup & Integration Tests (Final task!)
+**Status**: Feature COMPLETE - All 162 tests passing, 91.68% coverage, build successful
 
 ### Active Symlink
 
@@ -76,6 +76,32 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P6-F01 TASK07: Testing Setup & Integration Tests (January 3, 2026)
+
+**FINAL TASK FOR P6-F01 - FEATURE NOW COMPLETE!**
+
+- Enhanced test utilities with Apollo Client + React Router providers
+- Created comprehensive Dashboard integration test suite (11 new tests)
+- Set up coverage reporting with @vitest/coverage-v8
+- Achieved 91.68% test coverage (exceeds 80% threshold)
+- Fixed TypeScript errors across test files and components
+- All 162 tests passing, type check passing, build successful
+- Time: 2.5h actual / 2.5h estimated
+
+**Test Infrastructure Improvements**:
+- `renderWithProviders` utility wraps components with ApolloProvider (MSW-mocked) + MemoryRouter
+- Integration tests cover Dashboard rendering, layout, accessibility, component structure
+- Fixed SVG title attribute in VelocityHeatmap (wrapped in <g><title>)
+- Updated hook signatures for consistency (useDevelopers now takes single DeveloperQueryInput param)
+
+**Coverage Breakdown**:
+- components/charts: 94.31%
+- components/filters: 95.02%
+- components/layout: 100%
+- hooks: 93.8%
+- pages: 100%
+- graphql: 96.17%
 
 ### P4-F02 TASK-CLI-05: Integrate Replicator into Seed Loading (January 3, 2026)
 - Created LoadSeedWithReplication function to integrate replication with seed loading
