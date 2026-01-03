@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Developer profile information synced from the simulator
+model Developer {
+  id         String   @id @default(uuid()) @db.Uuid
+  externalId String   @unique @map("external_id") @db.VarChar(255)
+  name       String   @db.VarChar(255)
+  email      String   @unique @db.VarChar(255)
+  team       String   @db.VarChar(255)
+  seniority  String?  @db.VarChar(50)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  usageEvents UsageEvent[]
+
+  @@index([team], map: "idx_developers_team")
+  @@index([externalId], map: "idx_developers_external_id")
+  @@map("developers")
+}
+
+// Individual usage events ingested from the simulator
+model UsageEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  externalId     String   @unique @map("external_id") @db.VarChar(255)
+  developerId    String   @map("developer_id") @db.Uuid
+  eventType      String   @map("event_type") @db.VarChar(100)
+  eventTimestamp DateTime @map("event_timestamp") @db.Timestamptz(6)
+  linesAdded     Int      @default(0) @map("lines_added")
+  linesDeleted   Int      @default(0) @map("lines_deleted")
+  modelUsed      String?  @map("model_used") @db.VarChar(100)
+  accepted       Boolean?
+  tokensInput    Int      @default(0) @map("tokens_input")
+  tokensOutput   Int      @default(0) @map("tokens_output")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  developer Developer @relation(fields: [developerId], references: [id])
+
+  @@index([developerId], map: "idx_events_developer")
+  @@index([eventTimestamp], map: "idx_events_timestamp")
+  @@index([eventType], map: "idx_events_type")
+  @@index([developerId, eventTimestamp], map: "idx_events_developer_timestamp")
+  @@map("usage_events")
+}
+
+// Note: The daily_stats materialized view will be created via raw SQL migration
+// as Prisma doesn't support materialized views in the schema directly.
+// See migration files for the full SQL definition.

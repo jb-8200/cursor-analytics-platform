@@ -30,7 +30,13 @@ module.exports = [
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '*.js', '!eslint.config.js'],
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'src/generated/**',
+      '*.js',
+      '!eslint.config.js',
+    ],
   },
   prettierConfig,
 ];
