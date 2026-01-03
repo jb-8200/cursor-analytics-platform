@@ -38,10 +38,10 @@ This phase completes cursor-sim with:
 | B02 | Model Usage Generator & Handler | 1.5 | DONE | 1.5 |
 | B03 | Client Version Generator & Handler | 1.0 | DONE | 1.0 |
 | B04 | File Extension Analytics Handler | 1.5 | DONE | 1.2 |
-| B05 | MCP/Commands/Plans/Ask-Mode Handlers | 2.0 | NOT_STARTED | - |
-| B06 | Leaderboard Handler | 1.5 | NOT_STARTED | - |
-| B07 | By-User Endpoint Handlers | 2.5 | NOT_STARTED | - |
-| B08 | Part B Integration Tests | 2.0 | NOT_STARTED | - |
+| B05 | MCP/Commands/Plans/Ask-Mode Handlers | 2.0 | DONE | 1.5 |
+| B06 | Leaderboard Handler | 1.5 | DONE | 1.2 |
+| B07 | By-User Endpoint Handlers | 2.5 | DONE | 2.0 |
+| B08 | Part B Integration Tests | 2.0 | DONE | 1.5 |
 
 ### Part C: Code Quality Analysis (10-15h)
 
