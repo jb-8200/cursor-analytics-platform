@@ -7,15 +7,17 @@ description: Core SDD (Spec-Driven Development) process. Use when starting devel
 
 Every piece of work follows this sequence. No exceptions.
 
-## The Fundamental Sequence
+## The Fundamental Sequence (Enhanced)
 
 ```
-1. SPEC    → Define what we're building (user story, design)
-2. TEST    → Encode expectations as tests (RED phase)
-3. CODE    → Write minimal implementation (GREEN phase)
+1. SPEC     → Define what we're building (user story, design)
+2. TEST     → Encode expectations as tests (RED phase)
+3. CODE     → Write minimal implementation (GREEN phase)
 4. REFACTOR → Clean up while tests pass
-5. COMMIT  → Checkpoint with descriptive message
-6. REPEAT  → Next task in the breakdown
+5. REFLECT  → Check dependency reflections ← NEW
+6. SYNC     → Update SPEC.md if triggered ← NEW
+7. COMMIT   → Checkpoint with code + docs
+8. REPEAT   → Next task in the breakdown
 ```
 
 ## Core Principles
@@ -55,22 +57,42 @@ Each task should:
 
 **CRITICAL: Never move to the next task without committing.**
 
-The commit sequence:
+The enhanced commit sequence:
 1. Tests pass
-2. Stage changes
-3. Commit with descriptive message
-4. Update task.md progress
-5. Update DEVELOPMENT.md
-6. Proceed to next task
+2. **Check dependency reflections (use dependency-reflection skill)** ← NEW
+3. **Update SPEC.md if triggered (use spec-sync-check skill)** ← NEW
+4. Stage changes (code + SPEC.md if updated)
+5. Commit with descriptive message
+6. Update task.md progress
+7. Update DEVELOPMENT.md
+8. Proceed to next task
 
 ### 5. Documentation Stays Current
 
-**If code changes, documentation changes.**
+**SPEC.md must remain an accurate reflection of actual implementation.**
 
-When implementation reveals:
-- Spec gaps → Update spec
+**The SPEC.md Sync Rule:**
+- After completing any task that adds, modifies, or removes functionality
+- Check if SPEC.md sections need updating (use spec-sync-check)
+- Include SPEC.md updates in the same commit as code changes
+
+**High-Priority Triggers for SPEC.md Updates:**
+- Phase completion → Update Implementation Status table
+- New endpoint → Update Endpoints table
+- New service/package → Update Package Structure
+- CLI changes → Update CLI Configuration
+- Model changes → Update Response Format schemas
+
+**The Reflection Rule:**
+- After modifying any file, check if related files need updates
+- Use dependency-reflection skill to identify required updates
+- Include all synchronized updates in the same commit
+
+**When implementation reveals:**
+- Spec gaps → Update spec immediately
 - Design changes → Update design.md
 - New requirements → Update user-story.md
+- Documentation drift → Fix before committing
 
 ## When to Apply This Process
 
@@ -106,12 +128,17 @@ Stop immediately if you notice:
 | Writing code before reading spec | STOP. Read spec first. |
 | Implementing without failing test | STOP. Write test first. |
 | Moving to next task without commit | STOP. Commit first. |
-| Changing behavior without updating spec | STOP. Update spec. |
+| Changing behavior without updating spec | STOP. Update SPEC.md. |
+| **Committing code without checking reflections** | **STOP. Run dependency-reflection.** |
+| **Adding endpoint without updating SPEC.md** | **STOP. Run spec-sync-check.** |
+| **Completing phase without updating status** | **STOP. Update SPEC.md Implementation Status.** |
 
 ## Related Skills
 
-- `spec-process-dev` - Detailed development workflow
-- `sdd-checklist` - Post-task enforcement
+- `spec-process-dev` - Detailed development workflow (TDD)
+- `sdd-checklist` - Post-task enforcement (includes REFLECT/SYNC)
+- **`spec-sync-check`** - SPEC.md update trigger detection ← NEW
+- **`dependency-reflection`** - Dependency reflection checking ← NEW
 - `spec-user-story` - User story format
 - `spec-design` - Design document format
 - `spec-tasks` - Task breakdown format

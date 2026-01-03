@@ -3,11 +3,13 @@
 ## Workflow: Spec-Driven Development (SDD)
 
 ```
-1. SPEC    → Read specification before coding
-2. TEST    → Write failing tests (RED)
-3. CODE    → Minimal implementation (GREEN)
+1. SPEC     → Read specification before coding
+2. TEST     → Write failing tests (RED)
+3. CODE     → Minimal implementation (GREEN)
 4. REFACTOR → Clean up while tests pass
-5. COMMIT  → Every task = commit (CRITICAL)
+5. REFLECT  → Check dependency reflections
+6. SYNC     → Update SPEC.md if triggered
+7. COMMIT   → Every task = commit (code + docs)
 ```
 
 **Full methodology**: `docs/spec-driven-design.md`
@@ -51,12 +53,14 @@ Skills activate automatically based on your request. Available skills:
 |-------|---------|
 | `spec-process-core` | Core SDD principles |
 | `spec-process-dev` | TDD workflow |
+| `sdd-checklist` | **CRITICAL**: Post-task commit |
+| `spec-sync-check` | **NEW**: SPEC.md update triggers |
+| `dependency-reflection` | **NEW**: Dependency checking |
 | `spec-user-story` | User story format |
 | `spec-design` | Design doc format |
 | `spec-tasks` | Task breakdown format |
 | `go-best-practices` | Go patterns |
 | `cursor-api-patterns` | API implementation |
-| `sdd-checklist` | **CRITICAL**: Post-task commit |
 | `model-selection-guide` | Model optimization |
 
 Skills trigger when your request matches their description.
@@ -68,12 +72,17 @@ Skills trigger when your request matches their description.
 After **every** task, follow `sdd-checklist`:
 
 1. ✅ Tests pass
-2. ✅ Git commit
-3. ✅ Update task.md
-4. ✅ Update DEVELOPMENT.md
-5. ✅ Proceed to next task
+2. ✅ **Check reflections** (dependency-reflection)
+3. ✅ **Update SPEC.md** if needed (spec-sync-check)
+4. ✅ Git commit (code + SPEC.md if updated)
+5. ✅ Update task.md
+6. ✅ Update DEVELOPMENT.md
+7. ✅ Proceed to next task
 
-**Never** move to the next task without committing.
+**Never** move to the next task without:
+- Checking reflections
+- Syncing SPEC.md
+- Committing all changes
 
 ---
 
@@ -135,4 +144,4 @@ The `.claude/hooks/` Python files do **NOT execute** in Claude Code.
 
 ---
 
-**Spec first. Tests first. Commit always.**
+**Spec first. Tests first. Reflect before commit. SPEC.md stays current. Commit always.**
