@@ -18,7 +18,7 @@
 | cursor-sim v2 Phase 3 Part C | NEXT | Code Quality Analysis (5 steps, 10-15h est) |
 | cursor-analytics-core | NOT_STARTED | GraphQL aggregator |
 | cursor-viz-spa | NOT_STARTED | React dashboard |
-| **SDD Infrastructure** | **ENHANCED** ✅ | genai-specs model adopted for Claude Code |
+| **SDD Infrastructure** | **ENHANCED v2.1** ✅ | genai-specs model + REFLECT/SYNC workflow |
 
 ### cursor-sim v2 Phase 1 Completion Summary
 
@@ -37,9 +37,20 @@
 
 ## Active Work Items
 
-### Recently Completed (January 2, 2026)
+### Recently Completed (January 3, 2026)
 
-**SDD Infrastructure Enhancement** (Commit: 446fdad)
+**SDD Workflow Enhancement v2.1** (Commits: 465af87, 3d82d4d)
+- ✅ Enhanced SDD workflow from 5 to 7 steps (added REFLECT and SYNC)
+- ✅ Created `spec-sync-check` skill for SPEC.md update trigger detection
+- ✅ Created `dependency-reflection` skill for cascading change detection
+- ✅ Updated `sdd-checklist` skill with REFLECT/SYNC enforcement
+- ✅ Updated `spec-process-core` skill with enhanced workflow
+- ✅ Updated `CLAUDE.md` with 7-step workflow
+- ✅ Updated `docs/spec-driven-design.md` with Phase 4 (REFLECT) and Phase 5 (SYNC)
+- 📝 Purpose: Prevent documentation drift, ensure SPEC.md synchronization
+- 📝 Tagline: "Reflect always. Sync when triggered. Commit with docs."
+
+**SDD Infrastructure Enhancement v2.0** (Commit: 446fdad)
 - ✅ Adopted genai-specs model for Claude Code
 - ✅ Created `docs/spec-driven-design.md` - master methodology doc
 - ✅ Reorganized skills into 4 categories: process/standards/guidelines/operational
@@ -328,8 +339,9 @@ When starting a new session:
 2. [ ] Check active work: `ls -la .claude/plans/active`
 3. [ ] Review current work item in `.work-items/`
 4. [ ] Continue with next task or start new feature
-5. [ ] Follow TDD: RED → GREEN → REFACTOR
-6. [ ] Commit after each task
+5. [ ] Follow enhanced workflow: SPEC → TEST → CODE → REFACTOR → REFLECT → SYNC → COMMIT
+6. [ ] Check dependency reflections before committing
+7. [ ] Update SPEC.md if triggered, include in same commit
 
 ---
 
@@ -348,6 +360,8 @@ When starting a new session:
 
 ---
 
-**Remember**: Specifications → Tests → Implementation → Refactor
+**Remember**: Specifications → Tests → Implementation → Refactor → Reflect → Sync → Commit
+
+**Enhanced SDD v2.1**: Reflect always. Sync when triggered. Commit with docs.
 
 This is the way.
