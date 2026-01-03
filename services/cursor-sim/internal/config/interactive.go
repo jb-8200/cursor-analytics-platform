@@ -9,9 +9,16 @@ import (
 	"strings"
 )
 
+// GenerationParams holds the parsed generation parameters.
+type GenerationParams struct {
+	Developers int
+	Days       int
+	MaxCommits int
+}
+
 // PromptConfig holds configuration for interactive prompts.
 type PromptConfig struct {
-	reader     io.Reader
+	reader     *bufio.Reader
 	writer     io.Writer
 	maxRetries int
 }
@@ -20,7 +27,7 @@ type PromptConfig struct {
 // Uses stdin/stdout for I/O and sets maxRetries to 3.
 func NewPromptConfig() *PromptConfig {
 	return &PromptConfig{
-		reader:     os.Stdin,
+		reader:     bufio.NewReader(os.Stdin),
 		writer:     os.Stdout,
 		maxRetries: 3,
 	}
@@ -40,7 +47,6 @@ func NewPromptConfig() *PromptConfig {
 //   - User presses Enter without input
 //   - Max retries exceeded
 func (p *PromptConfig) PromptForInt(prompt string, defaultVal, min, max int) (int, error) {
-	scanner := bufio.NewScanner(p.reader)
 	attempts := 0
 
 	for attempts <= p.maxRetries {
@@ -48,15 +54,16 @@ func (p *PromptConfig) PromptForInt(prompt string, defaultVal, min, max int) (in
 		fmt.Fprintf(p.writer, "%s (default: %d): ", prompt, defaultVal)
 
 		// Read user input
-		if !scanner.Scan() {
+		line, err := p.reader.ReadString('\n')
+		if err != nil {
 			// EOF or error - use default
-			if scanner.Err() != nil {
-				return defaultVal, scanner.Err()
+			if err.Error() == "EOF" {
+				return defaultVal, nil
 			}
-			return defaultVal, nil
+			return defaultVal, err
 		}
 
-		input := strings.TrimSpace(scanner.Text())
+		input := strings.TrimSpace(line)
 
 		// Empty input - use default
 		if input == "" {
@@ -64,8 +71,8 @@ func (p *PromptConfig) PromptForInt(prompt string, defaultVal, min, max int) (in
 		}
 
 		// Parse integer
-		value, err := strconv.Atoi(input)
-		if err != nil {
+		value, parseErr := strconv.Atoi(input)
+		if parseErr != nil {
 			attempts++
 			if attempts > p.maxRetries {
 				fmt.Fprintf(p.writer, "Max retries exceeded. Using default value: %d\n", defaultVal)
@@ -92,4 +99,60 @@ func (p *PromptConfig) PromptForInt(prompt string, defaultVal, min, max int) (in
 
 	// Should not reach here, but return default as safety
 	return defaultVal, nil
+}
+
+// InteractiveConfig prompts the user for all configuration values.
+// Displays prompts for number of developers, time period (in months), and max commits.
+// Converts months to days (months * 30) and returns a validated GenerationParams struct.
+//
+// Default values:
+//   - Developers: 10 (range: 1-100)
+//   - Period: 6 months (range: 1-24 months)
+//   - MaxCommits: 500 (range: 100-2000)
+//
+// Returns the configured parameters or an error if input reading fails.
+func (p *PromptConfig) InteractiveConfig() (*GenerationParams, error) {
+	fmt.Fprintln(p.writer, "\nCursor Simulator - Interactive Configuration")
+	fmt.Fprintln(p.writer, "Press Enter to use default values")
+
+	// Prompt 1: Number of developers
+	developers, err := p.PromptForInt("Number of developers", 10, 1, 100)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read developers: %w", err)
+	}
+
+	// Prompt 2: Period in months
+	months, err := p.PromptForInt("Period in months", 6, 1, 24)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read period: %w", err)
+	}
+
+	// Prompt 3: Maximum commits per developer
+	maxCommits, err := p.PromptForInt("Maximum commits per developer", 500, 100, 2000)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read max commits: %w", err)
+	}
+
+	// Convert months to days
+	days := months * 30
+
+	// Create params
+	params := &GenerationParams{
+		Developers: developers,
+		Days:       days,
+		MaxCommits: maxCommits,
+	}
+
+	// Display configuration summary
+	p.displayConfigSummary(params, months)
+
+	return params, nil
+}
+
+// displayConfigSummary prints a formatted summary of the configuration parameters.
+func (p *PromptConfig) displayConfigSummary(params *GenerationParams, months int) {
+	fmt.Fprintln(p.writer, "\nConfiguration Summary:")
+	fmt.Fprintf(p.writer, "  Developers: %d\n", params.Developers)
+	fmt.Fprintf(p.writer, "  Period: %d months (%d days)\n", months, params.Days)
+	fmt.Fprintf(p.writer, "  Max commits: %d\n\n", params.MaxCommits)
 }
