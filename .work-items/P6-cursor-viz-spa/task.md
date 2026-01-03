@@ -19,7 +19,7 @@
 
 | Task ID | Task | Hours | Status | Actual |
 |---------|------|-------|--------|--------|
-| TASK01 | Project Setup (Dependencies, Tailwind, ESLint, Vitest) | 3.0 | IN_PROGRESS | - |
+| TASK01 | Project Setup (Dependencies, Tailwind, ESLint, Vitest) | 3.0 | DONE | 2.5 |
 | TASK02 | Apollo Client Configuration & GraphQL Setup | 3.0 | NOT_STARTED | - |
 | TASK03 | Core Layout Components & Routing | 3.5 | NOT_STARTED | - |
 | TASK04 | Chart Components (Heatmap, Radar, Table) | 5.0 | NOT_STARTED | - |
@@ -36,8 +36,8 @@
 ### TASK01: Project Setup (Dependencies, Tailwind, ESLint, Vitest)
 
 **Estimated**: 3.0h
-**Status**: IN_PROGRESS
-**Actual**: -
+**Status**: DONE
+**Actual**: 2.5h
 
 **Objective**: Complete the foundational setup for the React/Vite project with all necessary tooling.
 
