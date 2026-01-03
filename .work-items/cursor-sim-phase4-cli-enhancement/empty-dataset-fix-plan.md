@@ -206,15 +206,17 @@ router := server.NewRouter(store, seedData, DefaultAPIKey)
 **TDD Steps:**
 1. **RED**: Write E2E test for file extensions
 
-2. **GREEN**: Add `ExtensionGenerator.GenerateExtensions()` call
+2. **GREEN**: Add `ExtensionGenerator.GenerateFileExtensions()` call
 
 3. **REFACTOR**: None
 
 **Acceptance Criteria**:
 - ✅ Endpoints return data
-- ✅ Extensions match repo languages ("Go" → ".go", "TypeScript" → ".ts", ".tsx")
+- ✅ Extensions match repo languages (go, ts, tsx, py, sql, etc.)
 
 **Estimated**: 0.5h
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE (Commit: 0408b60)
 **Files**: `cmd/simulator/main.go`, `test/e2e/extension_analytics_test.go` (NEW)
 
 ---

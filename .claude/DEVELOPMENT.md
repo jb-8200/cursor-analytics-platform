@@ -181,10 +181,19 @@
 - Files: `cmd/simulator/main.go`, `test/e2e/version_analytics_test.go`
 - Commit: 7bdadca
 
-**Next Task**: TASK-FIX-04 - Generate File Extension Events
-- Estimated: 0.5h
+**TASK-FIX-04 Complete** ✅ (0.5h estimated / 0.5h actual)
+- Fixed `/analytics/team/top-file-extensions` and `/analytics/by-user/top-file-extensions` endpoints
+- Added `ExtensionGenerator.GenerateFileExtensions()` call in main.go
+- Created E2E test suite validating file extensions (go, ts, tsx, py, sql, etc.)
+- Verified extensions match repo languages
+- All tests passing (15/15 packages)
+- Files: `cmd/simulator/main.go`, `test/e2e/extension_analytics_test.go`
+- Commit: 0408b60
+
+**Next Task**: TASK-FIX-05 - Generate Feature Events (MCP, Commands, Plans, AskMode)
+- Estimated: 1.5h
 - Status: Ready to start
-- Fix `/analytics/team/top-file-extensions` and `/analytics/by-user/top-file-extensions` endpoints
+- Fix 8 endpoints (4 features × 2 modes)
 
 ### Active Symlink
 
