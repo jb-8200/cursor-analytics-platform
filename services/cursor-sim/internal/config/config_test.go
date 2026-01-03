@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -296,4 +297,108 @@ func TestConfig_String(t *testing.T) {
 		assert.NotContains(t, str, "days")
 		assert.NotContains(t, str, "velocity")
 	})
+}
+
+// TASK-CLI-03: Test interactive flag parsing
+func TestConfig_InteractiveFlag(t *testing.T) {
+	args := []string{"-interactive", "-seed=test.json"}
+
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.True(t, cfg.Interactive, "Interactive flag should be true")
+	assert.Equal(t, "test.json", cfg.SeedPath)
+}
+
+// TASK-CLI-03: Test non-interactive flags
+func TestConfig_NonInteractiveFlags(t *testing.T) {
+	args := []string{
+		"-seed=test.json",
+		"-developers=5",
+		"-months=3",
+		"-max-commits=1000",
+	}
+
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.False(t, cfg.Interactive, "Interactive should be false by default")
+	assert.Equal(t, 5, cfg.GenParams.Developers)
+	assert.Equal(t, 90, cfg.GenParams.Days, "3 months should convert to 90 days")
+	assert.Equal(t, 1000, cfg.GenParams.MaxCommits)
+}
+
+// TASK-CLI-03: Test mixed mode error (can't use both interactive and non-interactive)
+func TestConfig_MixedMode(t *testing.T) {
+	args := []string{
+		"-interactive",
+		"-seed=test.json",
+		"-developers=5",
+	}
+
+	cfg, err := parseFlagsWithArgs(args)
+	require.Error(t, err, "Should fail when mixing interactive with non-interactive flags")
+	assert.Nil(t, cfg)
+	assert.Contains(t, err.Error(), "cannot use both interactive and non-interactive")
+}
+
+// TASK-CLI-03: Test default values for non-interactive
+func TestConfig_Defaults(t *testing.T) {
+	args := []string{"-seed=test.json"}
+
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.False(t, cfg.Interactive)
+	assert.Equal(t, 0, cfg.GenParams.Developers, "Should be 0 when not specified")
+	assert.Equal(t, 0, cfg.GenParams.Days, "Should be 0 when not specified")
+	assert.Equal(t, 0, cfg.GenParams.MaxCommits, "Should be 0 when not specified")
+}
+
+// TASK-CLI-03: Test only developers flag
+func TestConfig_OnlyDevelopersFlag(t *testing.T) {
+	args := []string{
+		"-seed=test.json",
+		"-developers=10",
+	}
+
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 10, cfg.GenParams.Developers)
+	assert.Equal(t, 0, cfg.GenParams.Days)
+	assert.Equal(t, 0, cfg.GenParams.MaxCommits)
+}
+
+// TASK-CLI-03: Test months to days conversion
+func TestConfig_MonthsToDaysConversion(t *testing.T) {
+	tests := []struct {
+		name   string
+		months int
+		days   int
+	}{
+		{"1 month", 1, 30},
+		{"3 months", 3, 90},
+		{"6 months", 6, 180},
+		{"12 months", 12, 360},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			args := []string{
+				"-seed=test.json",
+				fmt.Sprintf("-months=%d", tt.months),
+			}
+
+			cfg, err := parseFlagsWithArgs(args)
+			require.NoError(t, err)
+			require.NotNil(t, cfg)
+
+			assert.Equal(t, tt.days, cfg.GenParams.Days, "Months should convert to days")
+		})
+	}
 }

@@ -13,12 +13,12 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Setup** | 1 | ✅ DONE | 0.5h | 0.5h |
-| **Feature 1: Interactive Prompts** | 3 | 🔄 IN PROGRESS | 4.0h | 1.5h |
+| **Feature 1: Interactive Prompts** | 3 | ✅ DONE | 4.0h | 3.0h |
 | **Feature 2: Developer Replication** | 3 | ⏳ TODO | 3.0h | - |
 | **Feature 3: Commit Limit** | 3 | ⏳ TODO | 2.5h | - |
 | **Feature 4: Integration** | 2 | ⏳ TODO | 2.0h | - |
 | **Feature 5: Empty Dataset Fix** | 2 | ⏳ TODO | 2.0h | - |
-| **TOTAL** | **14** | **1/14** | **14.0h** | **2.0h** |
+| **TOTAL** | **14** | **3/14** | **14.0h** | **3.5h** |
 
 ---
 
@@ -139,7 +139,8 @@ func TestInteractiveConfig_CustomValues(t *testing.T) {
 - ✅ Tests cover all scenarios
 
 **Estimated**: 1.5h
-**Status**: ⏳ TODO
+**Status**: ✅ COMPLETE
+**Actual**: 1.0h
 
 ---
 
@@ -172,11 +173,15 @@ func TestParseFlags_InteractiveMode(t *testing.T) {
 **Acceptance Criteria**:
 - ✅ `Config` struct has `Interactive` and `GenParams` fields
 - ✅ `-interactive` flag parses correctly
-- ✅ Non-interactive flags work (`-developers`, `-max-commits`)
+- ✅ Non-interactive flags work (`-developers`, `-months`, `-max-commits`)
 - ✅ Backward compatible (existing flags unchanged)
+- ✅ Mixed mode validation (can't use both interactive and non-interactive)
+- ✅ Months-to-days conversion (months * 30)
+- ✅ All tests pass
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Status**: ✅ COMPLETE
+**Actual**: 0.5h
 
 ---
 

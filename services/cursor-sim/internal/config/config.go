@@ -26,6 +26,12 @@ type Config struct {
 
 	// Velocity controls event generation rate: "low", "medium", or "high"
 	Velocity string
+
+	// Interactive enables interactive configuration mode
+	Interactive bool
+
+	// GenParams holds generation parameters for both interactive and non-interactive modes
+	GenParams GenerationParams
 }
 
 // ParseFlags parses command-line flags and environment variables to create a Config.
@@ -50,7 +56,30 @@ func parseFlagsWithArgs(args []string) (*Config, error) {
 	fs.IntVar(&cfg.Days, "days", 90, "Days of history to generate (runtime mode)")
 	fs.StringVar(&cfg.Velocity, "velocity", "medium", "Event rate: low, medium, or high")
 
+	// TASK-CLI-03: Interactive mode flags
+	fs.BoolVar(&cfg.Interactive, "interactive", false, "Enable interactive configuration")
+
+	// TASK-CLI-03: Non-interactive generation parameter flags
+	var developers int
+	var months int
+	var maxCommits int
+	fs.IntVar(&developers, "developers", 0, "Number of developers (non-interactive mode)")
+	fs.IntVar(&months, "months", 0, "Period in months (non-interactive mode)")
+	fs.IntVar(&maxCommits, "max-commits", 0, "Maximum commits per developer (non-interactive mode)")
+
 	if err := fs.Parse(args); err != nil {
+		return nil, err
+	}
+
+	// TASK-CLI-03: Build GenParams from non-interactive flags
+	cfg.GenParams = GenerationParams{
+		Developers: developers,
+		Days:       months * 30, // Convert months to days
+		MaxCommits: maxCommits,
+	}
+
+	// TASK-CLI-03: Validate that interactive and non-interactive modes are not mixed
+	if err := validateFlagModes(cfg.Interactive, developers, months, maxCommits); err != nil {
 		return nil, err
 	}
 
@@ -135,4 +164,17 @@ func (c *Config) String() string {
 	}
 	return fmt.Sprintf("mode=replay corpus=%s port=%d",
 		c.CorpusPath, c.Port)
+}
+
+// validateFlagModes ensures that interactive and non-interactive flags are not mixed.
+// Returns an error if the user specifies both -interactive and any non-interactive flags.
+func validateFlagModes(interactive bool, developers, months, maxCommits int) error {
+	if interactive {
+		// Check if any non-interactive flags were provided
+		hasNonInteractive := developers > 0 || months > 0 || maxCommits > 0
+		if hasNonInteractive {
+			return fmt.Errorf("validation failed: cannot use both interactive and non-interactive flags (-developers, -months, -max-commits)")
+		}
+	}
+	return nil
 }
