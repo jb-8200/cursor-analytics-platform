@@ -28,6 +28,7 @@ Phase (P#) = Epic level
 | **P4** | cursor-sim Enhancements | **IN PROGRESS** |
 | **P5** | cursor-analytics-core | **IN PROGRESS** |
 | **P6** | cursor-viz-spa | **IN PROGRESS** |
+| **P7** | Deployment Infrastructure | TODO |
 
 ### Feature Status
 
@@ -39,9 +40,11 @@ Phase (P#) = Epic level
 | P3-F02 | Stub Completion | COMPLETE | 11.9h / 12.5h est |
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
-| **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 3.5h / 14.0h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 12.5h / 25-30h est |
-| P6-F01 | Viz SPA | IN PROGRESS | 15.0h / 24.0h est |
+| **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 4.0h / 14.0h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 15.5h / 25-30h est |
+| P6-F01 | Viz SPA | IN PROGRESS | 19.0h / 24.0h est |
+| P7-F01 | Local Docker Deploy | TODO | 0h / 4.0h est |
+| P7-F02 | GCP Cloud Run Deploy | TODO | 0h / 4.5h est |
 
 ---
 
