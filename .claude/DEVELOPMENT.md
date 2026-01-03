@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 4.0h / 25-30h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 6.0h / 25-30h est |
 | P6-F01 | Viz SPA | IN PROGRESS | 7.5h / 24.0h est |
 
 ---
@@ -88,6 +88,18 @@ No active symlink currently set
 - Mobile-responsive navigation (Tailwind breakpoints)
 - Full test coverage: 30 tests passing
 - Time: 3.0h actual / 3.5h estimated
+
+### P5-F01 Step 03: cursor-sim REST Client (January 3, 2026)
+
+- Created TypeScript types matching cursor-sim API contract
+- Implemented CursorSimClient with getTeamMembers and getCommits
+- Basic Auth using API key
+- Pagination support with query parameters
+- Error handling with retry logic (exponential backoff, capped at 30s)
+- No retry on 4xx errors (except 429), automatic retry on 5xx and 429
+- Timeout handling with AbortController
+- Comprehensive unit tests: 19 tests, all passing
+- Time: 2.0h actual / 2.5h estimated
 
 ### P5-F01 Step 02: Database Schema & Migrations (January 3, 2026)
 

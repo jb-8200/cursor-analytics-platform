@@ -14,7 +14,7 @@
 |------|-------------|--------|
 | 01 | Project Setup | ✅ COMPLETE |
 | 02 | Database Schema & Migrations | ✅ COMPLETE |
-| 03 | cursor-sim REST Client | NOT_STARTED |
+| 03 | cursor-sim REST Client | ✅ COMPLETE |
 | 04 | Ingestion Worker | NOT_STARTED |
 | 05 | GraphQL Schema | NOT_STARTED |
 | 06 | Developer Resolvers | NOT_STARTED |

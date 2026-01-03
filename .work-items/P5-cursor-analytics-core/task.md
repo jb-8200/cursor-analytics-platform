@@ -5,7 +5,7 @@
 **Feature**: cursor-analytics-core (GraphQL Aggregator)
 **Total Estimated Hours**: 25-30
 **Number of Steps**: 10
-**Current Step**: Step 02 - COMPLETE
+**Current Step**: Step 03 - COMPLETE
 
 ## Progress Tracker
 
@@ -13,7 +13,7 @@
 |------|------|-------|--------|--------|
 | 01 | Project Setup | 2.0 | DONE | 1.5 |
 | 02 | Database Schema & Migrations | 3.0 | DONE | 2.5 |
-| 03 | cursor-sim REST Client | 2.5 | NOT_STARTED | - |
+| 03 | cursor-sim REST Client | 2.5 | DONE | 2.0 |
 | 04 | Ingestion Worker | 3.5 | NOT_STARTED | - |
 | 05 | GraphQL Schema | 2.0 | NOT_STARTED | - |
 | 06 | Developer Resolvers | 2.5 | NOT_STARTED | - |
@@ -115,26 +115,44 @@ src/db/__tests__/client.test.ts
 
 ---
 
-### Step 03: cursor-sim REST Client
+### Step 03: cursor-sim REST Client ✅ COMPLETE
+
+**Status**: DONE
+**Actual Time**: 2.0h
 
 **Tasks**:
-- [ ] Create typed client for cursor-sim API
-- [ ] Implement getCommits with pagination
-- [ ] Implement getTeamMembers
-- [ ] Handle authentication
-- [ ] Handle errors and retries
-- [ ] Unit tests with mocked responses
+- [x] Create typed client for cursor-sim API
+- [x] Implement getCommits with pagination
+- [x] Implement getTeamMembers
+- [x] Handle authentication
+- [x] Handle errors and retries
+- [x] Unit tests with mocked responses
 
-**Files to Create**:
+**Files Created**:
 ```
-src/ingestion/client.ts
-tests/unit/ingestion/client.test.ts
+src/ingestion/types.ts           # TypeScript type definitions
+src/ingestion/client.ts           # CursorSimClient implementation
+src/ingestion/__tests__/client.test.ts  # Comprehensive unit tests
 ```
 
 **Acceptance Criteria**:
-- Client correctly calls cursor-sim endpoints
-- Pagination handled correctly
-- Errors handled gracefully
+- ✅ Client correctly calls cursor-sim endpoints (/teams/members, /analytics/ai-code/commits)
+- ✅ Pagination handled correctly with query string parameters
+- ✅ Errors handled gracefully with retry logic and client error detection
+- ✅ Basic Auth implemented using API key
+- ✅ Exponential backoff for retries (capped at 30s)
+- ✅ Timeout handling with AbortController
+- ✅ All 19 unit tests passing
+- ✅ Build successful
+- ✅ Lint clean
+
+**Key Features Implemented**:
+- Typed responses matching cursor-sim API contract
+- Automatic retry on 5xx errors and 429 rate limit
+- No retry on 4xx client errors (except 429)
+- Query parameter builder for filters and pagination
+- Configurable timeout, retry attempts, and retry delay
+- Comprehensive test coverage with mocked fetch
 
 ---
 
