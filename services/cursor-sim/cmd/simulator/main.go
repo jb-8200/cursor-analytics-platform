@@ -76,6 +76,12 @@ func run(ctx context.Context, cfg *config.Config) error {
 	// Initialize storage
 	store := storage.NewMemoryStore()
 
+	// Load developers into storage
+	if err := store.LoadDevelopers(seedData.Developers); err != nil {
+		return fmt.Errorf("failed to load developers into storage: %w", err)
+	}
+	log.Printf("Loaded %d developers into storage\n", len(seedData.Developers))
+
 	// Generate commits
 	log.Printf("Generating %d days of commit history...\n", cfg.Days)
 	gen := generator.NewCommitGenerator(seedData, store, cfg.Velocity)
