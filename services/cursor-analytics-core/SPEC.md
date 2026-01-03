@@ -6,7 +6,7 @@
 **Framework**: Apollo Server 4 + Express
 **Database**: PostgreSQL 15+
 **Port**: 4000 (configurable)
-**Last Updated**: January 3, 2026 (Step 05 - GraphQL Schema complete)
+**Last Updated**: January 3, 2026 (Step 06 - Developer Resolvers complete)
 
 ## Implementation Status
 
@@ -17,7 +17,7 @@
 | 03 | cursor-sim REST Client | ✅ COMPLETE |
 | 04 | Ingestion Worker | NOT_STARTED |
 | 05 | GraphQL Schema | ✅ COMPLETE |
-| 06 | Developer Resolvers | NOT_STARTED |
+| 06 | Developer Resolvers | ✅ COMPLETE |
 | 07 | Commit Resolvers | NOT_STARTED |
 | 08 | Metrics Service | NOT_STARTED |
 | 09 | Dashboard Summary | NOT_STARTED |

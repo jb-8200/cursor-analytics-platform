@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 8.0h / 25-30h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 10.5h / 25-30h est |
 | P6-F01 | Viz SPA | IN PROGRESS | 7.5h / 24.0h est |
 
 ---
@@ -79,6 +79,18 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P5-F01 Step 06: Developer Resolvers (January 3, 2026)
+
+- Implemented developer(id) query resolver with database lookup
+- Implemented developers() list query with filtering (team, seniority) and pagination
+- Built stats field resolver with aggregation (acceptance rate, AI velocity)
+- Created dailyStats field resolver with date grouping
+- Added cursor-based pagination with hasNextPage/hasPreviousPage
+- Comprehensive test coverage: 13 new tests for developer resolvers
+- Total test count: 52 passed (6 test suites)
+- All acceptance criteria met, build and lint successful
+- Time: 2.5h actual / 2.5h estimated
 
 ### P5-F01 Step 05: GraphQL Schema (January 3, 2026)
 

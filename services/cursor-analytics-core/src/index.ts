@@ -35,17 +35,17 @@ async function startServer() {
   // Start server
   const { url } = await startStandaloneServer(server, {
     listen: { port: config.port },
-    context: () => createContext({ db, simClient }),
+    context: () => Promise.resolve(createContext({ db, simClient })),
   });
 
   console.log(`🚀 cursor-analytics-core ready at ${url}`);
   console.log(`📊 GraphQL Playground: ${url}`);
-  console.log(`✅ Step 05 (GraphQL Schema) - COMPLETE`);
+  console.log(`✅ Step 06 (Developer Resolvers) - COMPLETE`);
   console.log(`
 Available queries:
   - health          Health check for all services
-  - developer       (Step 06 - not yet implemented)
-  - developers      (Step 06 - not yet implemented)
+  - developer(id)   Get single developer by ID
+  - developers      List developers with filtering and pagination
   - teamStats       (Step 09 - not yet implemented)
   - teams           (Step 09 - not yet implemented)
   - dashboardSummary (Step 09 - not yet implemented)
