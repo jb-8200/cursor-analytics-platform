@@ -100,19 +100,20 @@ describe('useDevelopers', () => {
 
   describe('with filters', () => {
     it('should pass filters to query variables', async () => {
-      const filters = { team: 'Engineering', seniority: 'senior' };
+      const queryInput = { team: 'Engineering' };
 
       const mocks = [
         {
           request: {
             query: GET_DEVELOPERS,
-            variables: { filters },
+            variables: queryInput,
           },
           result: {
             data: {
               developers: {
                 nodes: [mockDevelopersData.developers.nodes[0]],
                 pageInfo: mockDevelopersData.developers.pageInfo,
+                totalCount: 1,
               },
             },
           },
@@ -127,7 +128,7 @@ describe('useDevelopers', () => {
         );
       };
 
-      const { result } = renderHook(() => useDevelopers(filters), { wrapper });
+      const { result } = renderHook(() => useDevelopers(queryInput), { wrapper });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -140,13 +141,13 @@ describe('useDevelopers', () => {
 
   describe('with pagination', () => {
     it('should pass pagination to query variables', async () => {
-      const pagination = { first: 10, after: 'cursor1' };
+      const queryInput = { limit: 10, offset: 0 };
 
       const mocks = [
         {
           request: {
             query: GET_DEVELOPERS,
-            variables: { pagination },
+            variables: queryInput,
           },
           result: {
             data: mockDevelopersData,
@@ -162,7 +163,7 @@ describe('useDevelopers', () => {
         );
       };
 
-      const { result } = renderHook(() => useDevelopers(pagination), { wrapper });
+      const { result } = renderHook(() => useDevelopers(queryInput), { wrapper });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

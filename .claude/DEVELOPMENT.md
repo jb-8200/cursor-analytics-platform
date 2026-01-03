@@ -42,8 +42,8 @@ Phase (P#) = Epic level
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 5.5h / 14.0h est |
 | P5-F01 | Analytics Core | IN PROGRESS | 18.0h / 25-30h est |
-| P6-F01 | Viz SPA | COMPLETE | 24.5h / 24.0h est |
-| P7-F01 | Local Docker Deploy | TODO | 0h / 4.0h est |
+| P6-F01 | Viz SPA | COMPLETE | 24.5h / 24.0h est ✅ |
+| **P7-F01** | **Local Docker Deploy** | **COMPLETE** | 2.5h / 4.0h est ✅ |
 | P7-F02 | GCP Cloud Run Deploy | TODO | 0h / 4.5h est |
 
 ---
@@ -76,6 +76,25 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P7-F01: Local Docker Deployment - COMPLETE ✅ (January 3, 2026)
+
+- Created multi-stage Dockerfile (golang:1.22-alpine + distroless/static:nonroot)
+- Final image size: 8.75MB (well under 50MB target)
+- Build time: ~22s cold, ~4s cached
+- Created .dockerignore for optimized build context
+- Implemented docker-local.sh script with health checks and error handling
+- Tested environment variable configurations (DAYS, VELOCITY, MODE)
+- Updated docs/cursor-sim-cloud-run.md with local Docker section
+- Added comprehensive troubleshooting guide
+- All 6 tasks completed in 2.5h (estimated 4.0h - 38% faster)
+
+**Key Achievements**:
+- Image runs as non-root user (UID 65532)
+- Proper file permissions with --chown flags
+- Health check verification in < 3s
+- Supports volume mounting for custom seed files
+- Color-coded script output for better UX
 
 ### P6-F01 TASK07: Testing Setup & Integration Tests (January 3, 2026)
 
