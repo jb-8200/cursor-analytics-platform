@@ -1,7 +1,7 @@
 # Spec-Driven Design (SDD) for Claude Code
 
-**Version**: 2.0
-**Last Updated**: January 2, 2026
+**Version**: 2.1
+**Last Updated**: January 3, 2026
 **Adapted from**: [genai-specs](https://github.com/betsalel-williamson/genai-specs) methodology
 
 ---
@@ -10,14 +10,23 @@
 
 Spec-Driven Design (SDD) is a development methodology where **specifications drive all implementation**. This document adapts the genai-specs model for Claude Code, leveraging Skills, Commands, and structured workflows instead of Cursor-specific features.
 
-### Core Flow
+### Core Flow (Enhanced)
 
 ```
-Specifications → Tests → Implementation → Documentation
-     ↑                                         │
-     └─────────────────────────────────────────┘
-         (Bidirectional: code informs specs)
+Specifications → Tests → Implementation → Refactor → Reflect → Sync → Commit
+     ↑                                                            │
+     └────────────────────────────────────────────────────────────┘
+         (Bidirectional: code informs specs via REFLECT/SYNC)
 ```
+
+**Enhanced 7-Step Workflow**:
+1. **SPEC** → Read specification before coding
+2. **TEST** → Write failing tests (RED)
+3. **CODE** → Minimal implementation (GREEN)
+4. **REFACTOR** → Clean up while tests pass
+5. **REFLECT** → Check dependency reflections (NEW)
+6. **SYNC** → Update SPEC.md if triggered (NEW)
+7. **COMMIT** → Checkpoint with code + docs
 
 ---
 
@@ -45,7 +54,7 @@ Loaded **when relevant** based on semantic match to your request:
 | **Process** | spec-process-core, spec-process-dev | "start feature", "implement", "TDD" |
 | **Standards** | spec-user-story, spec-design, spec-tasks | "write user story", "create design doc" |
 | **Guidelines** | go-best-practices, cursor-api-patterns | Language/tech-specific coding |
-| **Operational** | sdd-checklist, model-selection-guide | "commit", "which model" |
+| **Operational** | sdd-checklist, spec-sync-check, dependency-reflection, model-selection-guide | "commit", "update SPEC", "check reflections", "which model" |
 
 Skills activate automatically when your request matches their description. You can also reference explicitly:
 
@@ -82,11 +91,15 @@ Each skill has its own directory with a `SKILL.md` file containing YAML frontmat
 │   └── SKILL.md
 ├── cursor-api-patterns/        # Cursor API implementation
 │   └── SKILL.md
-├── sdd-checklist/              # Post-task commit enforcement
+├── sdd-checklist/              # Post-task commit enforcement (enhanced with REFLECT/SYNC)
+│   └── SKILL.md
+├── spec-sync-check/            # SPEC.md update trigger detection (NEW)
+│   └── SKILL.md
+├── dependency-reflection/      # Dependency reflection checking (NEW)
 │   └── SKILL.md
 ├── model-selection-guide/      # Model optimization
 │   └── SKILL.md
-├── spec-process-core/          # Core SDD principles
+├── spec-process-core/          # Core SDD principles (enhanced 7-step workflow)
 │   └── SKILL.md
 ├── spec-process-dev/           # TDD development workflow
 │   └── SKILL.md
@@ -140,7 +153,7 @@ description: Create or revise user stories following EARS format. Use when
 | **Process** | spec-process-core, spec-process-dev | Workflow guidance |
 | **Standards** | spec-user-story, spec-design, spec-tasks | Artifact templates |
 | **Guidelines** | go-best-practices, cursor-api-patterns | Tech-specific patterns |
-| **Operational** | sdd-checklist, model-selection-guide | Day-to-day workflow |
+| **Operational** | sdd-checklist, spec-sync-check, dependency-reflection, model-selection-guide | Day-to-day workflow, commit hygiene |
 
 ---
 
@@ -197,22 +210,137 @@ Write minimum code to pass tests:
 3. **Refactor** while keeping tests green
 4. **Update specs** if behavior differs
 
-### Phase 4: Commit (Checkpoint)
+### Phase 4: Reflect (Dependency Checking)
+
+**NEW**: Before committing, check if changes require updates to related files.
+
+**Purpose**: Detect when changes in one file require updates to related files (documentation, tests, or other code).
+
+**What to Check**:
+
+1. **Documentation Reflections**
+   - Did I modify models? → Check SPEC.md schema section
+   - Did I add/modify endpoints? → Check SPEC.md endpoints table
+   - Did I complete a phase step? → Check SPEC.md implementation status
+   - Did I add packages? → Check SPEC.md package structure
+
+2. **Code Synchronization Reflections**
+   - Did I modify models? → Check generators that create these models
+   - Did I change storage interface? → Check all handlers using storage
+   - Did I add new events? → Check generators that produce them
+   - Did I modify config? → Check CLI that consumes it
+
+3. **Test Synchronization Reflections**
+   - Did I add new code paths? → Write tests for them
+   - Did I modify behavior? → Update test assertions
+   - Did I add endpoints? → Write E2E tests
+   - Did I change models? → Update model tests
+
+**Regression Testing Protocol**:
+
+After identifying reflections, run appropriate tests:
+
+```bash
+# After model changes
+go test ./... -cover
+
+# After handler changes
+go test ./internal/api/... -v
+go test ./test/e2e/... -v
+
+# After storage interface changes
+go test ./internal/... -v -race
+
+# After major refactor
+go test ./... -v -race -count=5
+```
+
+**Skill**: Use `dependency-reflection` for detailed guidance.
+
+**Detection Matrix Example**:
+
+| Files Changed | Check These Files | Type |
+|--------------|-------------------|------|
+| `internal/models/*.go` | Generators, handlers, SPEC.md, tests | All 3 types |
+| `internal/api/**/*.go` | SPEC.md endpoints, E2E tests | Documentation + Test |
+| `internal/storage/*.go` | All handlers using storage, tests | Code + Test |
+
+### Phase 5: Sync (SPEC.md Updates)
+
+**NEW**: Update service specifications when implementation changes warrant it.
+
+**Purpose**: Keep `services/{service}/SPEC.md` synchronized with actual implementation.
+
+**Trigger Detection**:
+
+Run `spec-sync-check` to determine if SPEC.md needs updating:
+
+**High-Priority Triggers (MUST update)**:
+
+1. **Phase Completion**
+   - Completed final step of any phase (e.g., C06, B08)
+   - Update: Implementation Status table, Phase Features section
+
+2. **New Endpoint Added**
+   - Created/modified handler in `internal/api/`
+   - Update: Endpoints table with method, path, auth, status
+
+3. **New Service/Package Created**
+   - Created directory in `internal/`
+   - Update: Package Structure section
+
+4. **CLI Configuration Changes**
+   - Modified `internal/config/` or `cmd/`
+   - Update: CLI Configuration, environment variables
+
+**Medium-Priority Triggers (SHOULD update)**:
+
+1. **Model Changes**
+   - Modified struct fields in `internal/models/`
+   - Update: Response Format section, schema examples
+
+2. **Generator Changes**
+   - New/modified generators in `internal/generator/`
+   - Update: Generation Algorithm section
+
+**Update Checklist**:
+
+When updating `services/{service}/SPEC.md`:
+
+- [ ] Line 5: **Last Updated** date is today
+- [ ] Lines 17-22: **Implementation Status** reflects current phase
+- [ ] **Endpoints tables** include all new/modified endpoints
+- [ ] **Schema examples** match actual struct fields
+- [ ] **Phase features** marked as "Implemented ✅" when complete
+- [ ] **Package Structure** includes new directories
+- [ ] **Decision Log** includes significant technical decisions
+
+**Critical Rule**: If SPEC.md is updated, include it in the same commit as code changes.
+
+**Skill**: Use `spec-sync-check` for detailed guidance.
+
+### Phase 6: Commit (Checkpoint)
 
 **CRITICAL**: Every completed task requires commit before proceeding.
 
+**Enhanced Commit Sequence**:
+
 ```
-Tests Pass → Stage → Commit → Update Progress → Next Task
+Tests Pass → REFLECT → SYNC → Stage → Commit → Update Progress → Next Task
 ```
 
-**Enforcement**: Use `sdd-checklist` skill (no automated hooks).
+**Enforcement**: Use `sdd-checklist` skill.
 
-**Command**: After each task, follow the checklist:
-1. Run tests: `go test ./...`
-2. Stage changes: `git add {files}`
-3. Commit with message
-4. Update `task.md` progress
-5. Update `DEVELOPMENT.md`
+**7-Step Checklist**:
+1. ✅ **Tests pass**: `go test ./...`
+2. ✅ **Check reflections**: Run `dependency-reflection` check
+3. ✅ **Update SPEC.md**: Run `spec-sync-check` if triggered
+4. ✅ **Stage changes**: `git add {files}` (include SPEC.md if updated)
+5. ✅ **Git commit**: Descriptive message
+6. ✅ **Update task.md**: Mark step as DONE
+7. ✅ **Update DEVELOPMENT.md**: Current status
+
+**Never** move to next task before completing all 7 steps.
 
 ---
 
@@ -443,6 +571,9 @@ See `model-selection-guide` skill for detailed guidance.
 | Writing code without reading spec | STOP. Read spec first. |
 | Tests written after implementation | Reorder. Tests first. |
 | "We can add tests later" | No. Tests now. |
+| **Committing without checking reflections** | **STOP. Run dependency-reflection first.** |
+| **Adding endpoint without updating SPEC.md** | **STOP. Run spec-sync-check first.** |
+| **Completing phase without updating status** | **STOP. Update SPEC.md Implementation Status.** |
 
 ### Anti-Patterns
 
@@ -479,15 +610,17 @@ Not currently implemented. Requirements documented for future development.
 3. Review current task status
 4. Continue TDD workflow
 
-### Task Completion
+### Task Completion (Enhanced)
 
-1. Tests pass
-2. Git commit
-3. Update task.md
-4. Update DEVELOPMENT.md
-5. Next task
+1. ✅ Tests pass
+2. ✅ Check reflections (dependency-reflection)
+3. ✅ Update SPEC.md if triggered (spec-sync-check)
+4. ✅ Git commit (code + SPEC.md if updated)
+5. ✅ Update task.md
+6. ✅ Update DEVELOPMENT.md
+7. ✅ Next task
 
-### Feature Lifecycle
+### Feature Lifecycle (Enhanced)
 
 ```
 /start-feature {name}
@@ -495,10 +628,19 @@ Not currently implemented. Requirements documented for future development.
 Read user-story.md + design.md + task.md
     ↓
 For each task:
-    RED → GREEN → REFACTOR → COMMIT
+    RED → GREEN → REFACTOR → REFLECT → SYNC → COMMIT
     ↓
 /complete-feature {name}
 ```
+
+**7-Step Per-Task Cycle**:
+1. RED - Write failing test
+2. GREEN - Minimal implementation
+3. REFACTOR - Clean up code
+4. REFLECT - Check dependency reflections
+5. SYNC - Update SPEC.md if triggered
+6. COMMIT - Checkpoint with code + docs
+7. REPEAT - Next task
 
 ---
 
@@ -521,6 +663,20 @@ For each task:
 2. **Skills** provide context-appropriate guidance (process/standards/guidelines)
 3. **Discipline** (via TodoWrite + sdd-checklist) ensures commit hygiene
 
+**Enhanced 7-Step Workflow** (v2.1):
+1. SPEC → Read specification before coding
+2. TEST → Write failing tests (RED)
+3. CODE → Minimal implementation (GREEN)
+4. REFACTOR → Clean up while tests pass
+5. **REFLECT** → Check dependency reflections (NEW)
+6. **SYNC** → Update SPEC.md if triggered (NEW)
+7. COMMIT → Checkpoint with code + docs
+
 The methodology works without automated hooks by encoding expectations in skills and relying on structured workflow discipline.
 
-**Spec first. Tests first. Commit always.**
+**Key Enhancements**:
+- **REFLECT** prevents documentation drift and missing test updates
+- **SYNC** keeps SPEC.md synchronized with implementation
+- **Commit hygiene** now includes code + documentation updates together
+
+**Spec first. Tests first. Reflect always. Sync when triggered. Commit with docs.**
