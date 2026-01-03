@@ -276,6 +276,7 @@ Parallel development enabled via specialized subagents:
 | Subagent | Service | Tech Stack | Port |
 |----------|---------|------------|------|
 | `cursor-sim-cli-dev` | P4: cursor-sim CLI | Go (CLI only) | - |
+| `cursor-sim-infra-dev` | cursor-sim Infrastructure | Docker, GCP Cloud Run, Bash | - |
 | `analytics-core-dev` | P5: cursor-analytics-core | TypeScript, Apollo Server, GraphQL | 4000 |
 | `viz-spa-dev` | P6: cursor-viz-spa | React 18+, Vite, Apollo Client, Tailwind | 3000 |
 
