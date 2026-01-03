@@ -426,11 +426,13 @@ Repository Root
 ├── services/{service}/
 │   └── SPEC.md                  # Technical specification (source of truth)
 │
-├── .work-items/{feature}/       # Active work tracking
-│   ├── user-story.md            # Feature requirements
-│   ├── design.md                # Technical design
-│   ├── task.md                  # Implementation tasks
-│   └── adr-{NNN}.md             # Architecture decisions
+├── .work-items/{P#-F##-feature}/  # Active work tracking
+│   ├── user-story.md              # Feature requirements
+│   ├── design.md                  # Technical design
+│   ├── task.md                    # Implementation tasks (TASK01, TASK02...)
+│   └── adr-{NNN}.md               # Architecture decisions
+│
+│   Hierarchy: Phase (P#) → Feature (F##) → Task (TASK##)
 │
 └── .claude/
     ├── DEVELOPMENT.md           # Session context (read first)
@@ -507,16 +509,20 @@ Repository Root
 ```markdown
 # Task Breakdown: {Feature Name}
 
+**Feature ID**: P#-F##-feature-name
+**Phase**: P# (Phase Name)
+**Status**: IN PROGRESS
+
 ## Progress Tracker
 
-| Step | Task | Hours | Status | Actual |
-|------|------|-------|--------|--------|
-| 01 | {Task name} | 2.0 | DONE | 1.5 |
-| 02 | {Task name} | 1.5 | IN_PROGRESS | - |
+| Task ID | Task | Hours | Status | Actual |
+|---------|------|-------|--------|--------|
+| TASK01 | {Task name} | 2.0 | DONE | 1.5 |
+| TASK02 | {Task name} | 1.5 | IN_PROGRESS | - |
 
-## Current Step: {NN}
+## Current Task: TASK##
 
-### Step {NN}: {Task Name}
+### TASK##: {Task Name}
 
 **Estimated**: {hours}h
 **Files**: `path/to/file.go`

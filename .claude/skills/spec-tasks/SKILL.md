@@ -7,14 +7,27 @@ description: Create or revise task breakdowns for feature implementation. Use wh
 
 Task breakdowns decompose a feature into small, independently completable work units. Each task should be 1-4 hours and result in a single commit.
 
+## Hierarchy
+
+```
+Phase (P#) = Epic level
+  └── Feature (F##) = Work item directory
+       └── Task (TASK##) = Implementation step
+```
+
 ## Output Location
 
-`.work-items/{feature-name}/task.md`
+`.work-items/{P#-F##-feature-name}/task.md`
 
 ## Template
 
 ```markdown
 # Task Breakdown: {Feature Name}
+
+**Feature ID**: P#-F##-feature-name
+**Phase**: P# (Phase Name)
+**Created**: {Date}
+**Status**: IN PROGRESS
 
 ## Summary
 
@@ -27,19 +40,19 @@ Task breakdowns decompose a feature into small, independently completable work u
 
 ## Progress Tracker
 
-| Step | Task | Hours | Status | Actual |
-|------|------|-------|--------|--------|
-| 01 | {Task name} | 2.0 | DONE | 1.5 |
-| 02 | {Task name} | 1.5 | IN_PROGRESS | - |
-| 03 | {Task name} | 2.5 | NOT_STARTED | - |
+| Task ID | Task | Hours | Status | Actual |
+|---------|------|-------|--------|--------|
+| TASK01 | {Task name} | 2.0 | DONE | 1.5 |
+| TASK02 | {Task name} | 1.5 | IN_PROGRESS | - |
+| TASK03 | {Task name} | 2.5 | NOT_STARTED | - |
 
-**Current Step**: {NN}
+**Current Task**: TASK##
 
 ---
 
-## Detailed Steps
+## Task Details
 
-### Step 01: {Task Name}
+### TASK01: {Task Name}
 
 **Estimated**: {hours}h
 **Status**: {NOT_STARTED | IN_PROGRESS | DONE}
@@ -99,25 +112,6 @@ Bad:
 | `DONE` | Committed and documented |
 
 **Only ONE task should be IN_PROGRESS at a time.**
-
-## Acceptance Criteria
-
-Each task needs clear "done" criteria:
-
-Bad:
-```
-Acceptance Criteria:
-- Works correctly
-```
-
-Good:
-```
-Acceptance Criteria:
-- ResearchRow struct has all 22 fields from design.md
-- All fields have correct Parquet tags
-- JSON marshaling produces snake_case keys
-- Unit test covers serialization round-trip
-```
 
 ## Task Completion Workflow
 

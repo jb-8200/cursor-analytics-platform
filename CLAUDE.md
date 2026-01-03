@@ -37,10 +37,14 @@
 ### Work Items Structure
 
 ```
-.work-items/{feature}/
+Phase (P#) = Epic level
+  └── Feature (F##) = Work item directory
+       └── Task (TASK##) = Implementation step
+
+.work-items/{P#-F##-feature-name}/
 ├── user-story.md    # Requirements (what + why)
 ├── design.md        # Technical approach (how)
-└── task.md          # Implementation tasks (steps)
+└── task.md          # Implementation tasks (TASK01, TASK02...)
 ```
 
 ---
@@ -143,5 +147,7 @@ The `.claude/hooks/` Python files do **NOT execute** in Claude Code.
 **Alternative**: Use `sdd-checklist` skill + TodoWrite for workflow enforcement.
 
 ---
+
+**Terminology**: Phase (P#) → Feature (F##) → Task (TASK##)
 
 **Spec first. Tests first. Reflect before commit. SPEC.md stays current. Commit always.**
