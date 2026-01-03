@@ -109,6 +109,14 @@ func run(ctx context.Context, cfg *config.Config) error {
 	}
 	log.Printf("Generated client version events\n")
 
+	// Generate file extension events
+	log.Printf("Generating file extension events...\n")
+	extensionGen := generator.NewExtensionGenerator(seedData, store, cfg.Velocity)
+	if err := extensionGen.GenerateFileExtensions(ctx, cfg.Days); err != nil {
+		return fmt.Errorf("failed to generate file extensions: %w", err)
+	}
+	log.Printf("Generated file extension events\n")
+
 	// Create HTTP router
 	router := server.NewRouter(store, seedData, DefaultAPIKey)
 
