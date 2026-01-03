@@ -23,11 +23,11 @@
 | TASK02 | Apollo Client Configuration & GraphQL Setup | 3.0 | DONE | 2.0 |
 | TASK03 | Core Layout Components & Routing | 3.5 | DONE | 3.0 |
 | TASK04 | Chart Components (Heatmap, Radar, Table) | 5.0 | DONE | 4.5 |
-| TASK05 | Filter Controls & Date Picker | 3.0 | NOT_STARTED | - |
+| TASK05 | Filter Controls & Date Picker | 3.0 | DONE | 3.0 |
 | TASK06 | GraphQL Queries & Custom Hooks | 4.0 | NOT_STARTED | - |
 | TASK07 | Testing Setup & Initial Tests | 2.5 | NOT_STARTED | - |
 
-**Current Task**: TASK04 (Complete)
+**Current Task**: TASK05 (Complete)
 
 ---
 
@@ -199,33 +199,48 @@
 ### TASK05: Filter Controls & Date Picker
 
 **Estimated**: 3.0h
-**Status**: NOT_STARTED
-**Actual**: -
+**Status**: DONE
+**Actual**: 3.0h
 
 **Objective**: Build date range picker and filter controls.
 
 **Files**:
 - `services/cursor-viz-spa/src/components/filters/DateRangePicker.tsx`
+- `services/cursor-viz-spa/src/components/filters/DateRangePicker.test.tsx`
+- `services/cursor-viz-spa/src/components/filters/SearchInput.tsx`
+- `services/cursor-viz-spa/src/components/filters/SearchInput.test.tsx`
+- `services/cursor-viz-spa/src/components/filters/index.ts`
 - `services/cursor-viz-spa/src/hooks/useDateRange.ts`
+- `services/cursor-viz-spa/src/hooks/useDateRange.test.ts`
 - `services/cursor-viz-spa/src/hooks/useUrlState.ts`
+- `services/cursor-viz-spa/src/hooks/useUrlState.test.tsx`
+- `services/cursor-viz-spa/src/hooks/index.ts`
 
 **Tasks**:
-- [ ] Create DateRangePicker with presets
-- [ ] Implement useDateRange hook for state management
-- [ ] Create useUrlState hook for URL synchronization
-- [ ] Add debounced search input for table
-- [ ] Write tests for filter interactions
+- [x] Create DateRangePicker with presets
+- [x] Implement useDateRange hook for state management
+- [x] Create useUrlState hook for URL synchronization
+- [x] Add debounced search input for table
+- [x] Write tests for filter interactions
 
 **Acceptance Criteria**:
-- Date range syncs with URL query params
-- Preset selection updates all charts
-- Custom range selection works
-- Search filters developer table
+- ✅ Date range syncs with URL query params (via useUrlState)
+- ✅ Preset selection updates all charts (DateRangePicker with 6 presets)
+- ✅ Custom range selection works (with validation)
+- ✅ Search filters developer table (SearchInput with 300ms debounce)
+- ✅ All tests passing (12 + 8 + 11 + 13 = 44 new tests)
 
 **TDD Approach**:
 1. RED: Write test for useDateRange hook
 2. GREEN: Implement hook with initial state
 3. REFACTOR: Add URL persistence
+
+**Implementation Notes**:
+- **useDateRange**: State management hook with 6 presets (7d, 30d, 90d, 6m, 1y, custom). Calculates date ranges using date-fns. Formats ranges for display.
+- **useUrlState**: Generic hook for syncing any state with URL query params. Supports custom serialization/deserialization. Removes params when set to default value.
+- **DateRangePicker**: Dropdown component with preset selection and custom date inputs. Validates date ranges. Keyboard accessible. Highlights current preset.
+- **SearchInput**: Debounced input component (default 300ms). Shows search icon and clear button. Immediate clear (no debounce). Controlled component pattern.
+- All components styled with Tailwind CSS and follow accessibility best practices (WCAG 2.1 AA).
 
 ---
 

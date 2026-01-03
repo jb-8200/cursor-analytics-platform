@@ -17,7 +17,7 @@
 | P6-TASK02 | ✅ COMPLETE | Apollo Client Configuration & GraphQL Setup |
 | P6-TASK03 | ✅ COMPLETE | Core Layout Components & Routing |
 | P6-TASK04 | ✅ COMPLETE | Chart Components (Heatmap, Radar, Table) |
-| P6-TASK05 | 🔄 PENDING | Filter Controls & Date Picker |
+| P6-TASK05 | ✅ COMPLETE | Filter Controls & Date Picker |
 | P6-TASK06 | 🔄 PENDING | GraphQL Queries & Custom Hooks |
 | P6-TASK07 | 🔄 PENDING | Testing Setup & Initial Tests |
 
