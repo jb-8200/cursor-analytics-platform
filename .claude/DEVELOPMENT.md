@@ -50,19 +50,19 @@ Phase (P#) = Epic level
 ### Current Features (Parallel Development)
 
 #### P4-F02: CLI Enhancement
-**Progress**: 3/14 tasks (21%) - 3.5h / 14.0h
-**Recently Completed**: Feature 1 - Interactive Prompts (TASK-CLI-01, 02, 03)
-**Next**: TASK-CLI-04 - Developer Replication from seed file
+**Progress**: 4/14 tasks (29%) - 4.0h / 14.0h
+**Recently Completed**: TASK-CLI-04 - Developer Replicator Module
+**Next**: TASK-CLI-05 - Integrate Replicator into Seed Loading
 
 #### P5-F01: cursor-analytics-core
-**Progress**: 7/10 steps (70%) - 12.5h / 25-30h
-**Recently Completed**: Step 07 - Commit Resolvers with filtering & pagination
-**Next**: Step 08 - Metrics Service (3.0h est)
+**Progress**: 8/10 steps (80%) - 15.5h / 25-30h
+**Recently Completed**: Step 08 - Metrics Service with weighted calculations
+**Next**: Step 09 - (Next implementation step)
 
 #### P6-F01: cursor-viz-spa
-**Progress**: 5/7 tasks (71%) - 15.0h / 24.0h
-**Recently Completed**: TASK05 - Filter Controls & Date Picker with URL sync
-**Next**: TASK06 - GraphQL Queries & Custom Hooks (4.0h est)
+**Progress**: 6/7 tasks (86%) - 19.0h / 24.0h
+**Recently Completed**: TASK06 - GraphQL Data Hooks (useDashboard, useDevelopers, useTeamStats)
+**Next**: TASK07 - Component Integration (Final task)
 
 ### Active Symlink
 
@@ -73,6 +73,35 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### Parallel Development - Three Tasks Completed (January 3, 2026)
+
+#### P4-F02 TASK-CLI-04: Developer Replicator Module
+- Implemented ReplicateDevelopers function with downsample/replicate logic
+- Downsampling: Random sampling when N < seed count (deterministic with rng)
+- Replication: Clone with unique naming convention (user_001_clone1, clone1_email@example.com)
+- Comprehensive test coverage: 8 tests covering edge cases
+- Time: 0.5h actual / 0.5h estimated
+
+#### P5-F01 Step 08: Metrics Service
+- Created MetricsService class with 7 calculation methods
+- calculateAcceptanceRate/AIVelocity with 2 decimal precision
+- calculateTeamAcceptanceRate/AIVelocity using weighted averages (not simple averages)
+- getActiveDevelopers with date range filtering
+- expandDateRangePreset for 6 preset conversions (TODAY, LAST_7_DAYS, etc.)
+- filterEventsByDateRange utility
+- Comprehensive test coverage: 24 tests (all passing)
+- Time: 3.0h actual / 3.0h estimated
+
+#### P6-F01 TASK06: GraphQL Data Hooks
+- Created useDashboard hook for dashboard summary queries
+- Created useDevelopers hook with filters and pagination support
+- Created useTeamStats hook with team name and date range filtering
+- All hooks use cache-and-network fetch policy
+- Expose refetch/fetchMore for interactive updates
+- Updated hooks/index.ts with exports
+- Comprehensive test coverage: 15 new tests (23 total passing)
+- Time: 4.0h actual / 4.0h estimated
 
 ### P6 TASK05: Filter Controls & Date Picker (January 3, 2026)
 
