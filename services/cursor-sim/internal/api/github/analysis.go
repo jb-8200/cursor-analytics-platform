@@ -131,3 +131,54 @@ func RevertAnalysisHandler(store storage.Store) http.Handler {
 		respondJSON(w, http.StatusOK, analysis)
 	})
 }
+
+// HotfixAnalysisHandler returns an HTTP handler for GET /repos/{owner}/{repo}/analysis/hotfixes.
+// It detects hotfix PRs that follow merged PRs within a time window.
+func HotfixAnalysisHandler(store storage.Store) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		repoName := parseRepoFromPath(r.URL.Path)
+		if repoName == "" {
+			respondError(w, http.StatusBadRequest, "invalid repository path")
+			return
+		}
+
+		// Parse query parameters
+		windowHoursStr := r.URL.Query().Get("window_hours")
+		sinceStr := r.URL.Query().Get("since")
+		untilStr := r.URL.Query().Get("until")
+
+		// Default window: 48 hours
+		windowHours := 48
+		if windowHoursStr != "" {
+			fmt.Sscanf(windowHoursStr, "%d", &windowHours)
+			if windowHours <= 0 {
+				windowHours = 48
+			}
+		}
+
+		// Default time range: last 30 days
+		now := time.Now()
+		since := now.AddDate(0, 0, -30)
+		until := now
+
+		if sinceStr != "" {
+			if parsed, err := time.Parse("2006-01-02", sinceStr); err == nil {
+				since = parsed
+			}
+		}
+
+		if untilStr != "" {
+			if parsed, err := time.Parse("2006-01-02", untilStr); err == nil {
+				until = parsed.Add(24 * time.Hour) // Include full day
+			}
+		} else {
+			until = until.Add(24 * time.Hour) // Include full current day
+		}
+
+		// Calculate hotfix metrics
+		svc := services.NewHotfixService(store)
+		analysis := svc.GetHotfixes(repoName, windowHours, since, until)
+
+		respondJSON(w, http.StatusOK, analysis)
+	})
+}

@@ -65,3 +65,31 @@ type RevertAnalysis struct {
 	RevertRate       float64      `json:"revert_rate"`
 	RevertedPRs      []RevertedPR `json:"reverted_prs"`
 }
+
+// HotfixEvent tracks a hotfix PR that follows a merged PR.
+type HotfixEvent struct {
+	RepoName      string    `json:"repo_name"`
+	OriginalPR    int       `json:"original_pr"`
+	HotfixPR      int       `json:"hotfix_pr"`
+	FilesInCommon []string  `json:"files_in_common"`
+	MergedAt      time.Time `json:"merged_at"`      // When original PR was merged
+	HotfixAt      time.Time `json:"hotfix_at"`      // When hotfix PR was merged
+	HoursBetween  float64   `json:"hours_between"`
+}
+
+// HotfixPRInfo represents a hotfix PR in the response.
+type HotfixPRInfo struct {
+	OriginalPR   int      `json:"original_pr"`
+	HotfixPR     int      `json:"hotfix_pr"`
+	HoursBetween float64  `json:"hours_between"`
+	FilesInCommon []string `json:"files_in_common"`
+}
+
+// HotfixAnalysis represents the aggregated hotfix metrics for a repository.
+type HotfixAnalysis struct {
+	WindowHours  int            `json:"window_hours"`
+	TotalPRsMerged int          `json:"total_prs_merged"`
+	PRsWithHotfix  int          `json:"prs_with_hotfix"`
+	HotfixRate   float64        `json:"hotfix_rate"`
+	HotfixPRs    []HotfixPRInfo `json:"hotfix_prs"`
+}

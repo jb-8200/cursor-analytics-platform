@@ -55,6 +55,10 @@ func RepoRouter(store storage.Store) http.Handler {
 		case strings.Contains(path, "/analysis/reverts"):
 			RevertAnalysisHandler(store).ServeHTTP(w, r)
 
+		// GET /repos/{owner}/{repo}/analysis/hotfixes
+		case strings.Contains(path, "/analysis/hotfixes"):
+			HotfixAnalysisHandler(store).ServeHTTP(w, r)
+
 		default:
 			respondError(w, http.StatusNotFound, "route not found")
 		}

@@ -338,3 +338,168 @@ func TestRevertAnalysisHandler_EmptyRepo(t *testing.T) {
 		t.Errorf("Expected 0.0 revert rate for empty repo, got %.2f", response.RevertRate)
 	}
 }
+
+func TestHotfixAnalysisHandler_Success(t *testing.T) {
+	// Setup
+	store := setupTestStore()
+	baseTime := time.Date(2026, 1, 15, 10, 0, 0, 0, time.UTC)
+
+	// Add test PRs
+	mergedAt1 := baseTime
+	mergedAt2 := baseTime.Add(5 * time.Hour) // Within 48-hour window
+
+	pr1 := models.PullRequest{
+		Number:       1,
+		State:        models.PRStateMerged,
+		RepoName:     "acme/platform",
+		Title:        "Add auth feature",
+		Body:         "Adds new authentication",
+		AuthorID:     "user_001",
+		AuthorEmail:  "alice@example.com",
+		MergedAt:     &mergedAt1,
+		ChangedFiles: 5,
+	}
+
+	pr2 := models.PullRequest{
+		Number:       2,
+		State:        models.PRStateMerged,
+		RepoName:     "acme/platform",
+		Title:        "Fix auth bug",
+		Body:         "Fixes security issue",
+		AuthorID:     "user_002",
+		AuthorEmail:  "bob@example.com",
+		MergedAt:     &mergedAt2,
+		ChangedFiles: 3,
+	}
+
+	if err := store.AddPR(pr1); err != nil {
+		t.Fatalf("Failed to add PR: %v", err)
+	}
+	if err := store.AddPR(pr2); err != nil {
+		t.Fatalf("Failed to add PR: %v", err)
+	}
+
+	// Test
+	req := httptest.NewRequest("GET", "/repos/acme/platform/analysis/hotfixes?window_hours=48&since=2026-01-01&until=2026-01-31", nil)
+	w := httptest.NewRecorder()
+
+	handler := HotfixAnalysisHandler(store)
+	handler.ServeHTTP(w, req)
+
+	// Verify
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d, body: %s", w.Code, w.Body.String())
+	}
+
+	var response models.HotfixAnalysis
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	// Verify response structure
+	if response.WindowHours != 48 {
+		t.Errorf("Expected window_hours 48, got %d", response.WindowHours)
+	}
+
+	if response.TotalPRsMerged != 2 {
+		t.Errorf("Expected 2 PRs merged, got %d", response.TotalPRsMerged)
+	}
+
+	if response.HotfixRate < 0 || response.HotfixRate > 1 {
+		t.Errorf("Expected hotfix rate between 0 and 1, got %.2f", response.HotfixRate)
+	}
+
+	// Verify hotfix PRs structure
+	for _, hotfix := range response.HotfixPRs {
+		if hotfix.OriginalPR <= 0 || hotfix.HotfixPR <= 0 {
+			t.Error("Expected valid PR numbers")
+		}
+
+		if hotfix.HoursBetween < 0 || hotfix.HoursBetween > 48 {
+			t.Errorf("Expected hours_between between 0 and 48, got %.2f", hotfix.HoursBetween)
+		}
+
+		if len(hotfix.FilesInCommon) == 0 {
+			t.Error("Expected non-empty file list for hotfix")
+		}
+	}
+}
+
+func TestHotfixAnalysisHandler_DefaultParameters(t *testing.T) {
+	// Setup
+	store := setupTestStore()
+
+	// Test with no query parameters (should use defaults)
+	req := httptest.NewRequest("GET", "/repos/acme/platform/analysis/hotfixes", nil)
+	w := httptest.NewRecorder()
+
+	handler := HotfixAnalysisHandler(store)
+	handler.ServeHTTP(w, req)
+
+	// Verify
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response models.HotfixAnalysis
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	// Verify defaults
+	if response.WindowHours != 48 {
+		t.Errorf("Expected default window_hours=48, got %d", response.WindowHours)
+	}
+}
+
+func TestHotfixAnalysisHandler_InvalidRepo(t *testing.T) {
+	// Setup
+	store := setupTestStore()
+
+	// Test with invalid repo path
+	req := httptest.NewRequest("GET", "/analysis/hotfixes", nil)
+	w := httptest.NewRecorder()
+
+	handler := HotfixAnalysisHandler(store)
+	handler.ServeHTTP(w, req)
+
+	// Verify
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected status 400, got %d", w.Code)
+	}
+}
+
+func TestHotfixAnalysisHandler_EmptyRepo(t *testing.T) {
+	// Setup
+	store := setupTestStore()
+
+	// Test with repo that has no PRs
+	req := httptest.NewRequest("GET", "/repos/empty/repo/analysis/hotfixes?window_hours=48", nil)
+	w := httptest.NewRecorder()
+
+	handler := HotfixAnalysisHandler(store)
+	handler.ServeHTTP(w, req)
+
+	// Verify
+	if w.Code != http.StatusOK {
+		t.Errorf("Expected status 200, got %d", w.Code)
+	}
+
+	var response models.HotfixAnalysis
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("Failed to unmarshal response: %v", err)
+	}
+
+	// Verify empty response
+	if response.TotalPRsMerged != 0 {
+		t.Errorf("Expected 0 PRs merged for empty repo, got %d", response.TotalPRsMerged)
+	}
+
+	if response.PRsWithHotfix != 0 {
+		t.Errorf("Expected 0 hotfixes for empty repo, got %d", response.PRsWithHotfix)
+	}
+
+	if response.HotfixRate != 0.0 {
+		t.Errorf("Expected 0.0 hotfix rate for empty repo, got %.2f", response.HotfixRate)
+	}
+}

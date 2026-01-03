@@ -113,12 +113,23 @@
 - Files: `quality.go`, `reverts.go`, `reverts_test.go`, `analysis.go`, `analysis_test.go`, `router.go`
 - Commit: 7d4badf
 
-**Next Task**: C04 - Hotfix Tracking
-- Estimated: 2.0h
+**C04 Complete** ✅ (2.0h estimated / 2.0h actual)
+- HotfixEvent and HotfixAnalysis models
+- HotfixService with pattern matching and file overlap detection
+- GET /repos/{owner}/{repo}/analysis/hotfixes endpoint
+- Regex patterns: fix, hotfix, urgent, patch (whole word boundaries)
+- File overlap detection using changed_files heuristic
+- Time window filtering with 48-hour default
+- All tests passing (15/15 packages, 10 new tests: 6 unit + 4 E2E)
+- Files: `quality.go`, `hotfixes.go`, `hotfixes_test.go`, `analysis.go`, `analysis_test.go`, `router.go`
+- Commit: TBD
+
+**Next Task**: C05 - Research Dataset Enhancement
+- Estimated: 2.5h
 - Status: Ready to start
-- Detect fix-PRs within 48h window
-- File path overlap detection
-- Handler for GET /repos/{owner}/{repo}/analysis/hotfixes
+- Add missing fields to ResearchDataPoint
+- Implement JOIN key validation
+- Enhance CSV export with all 20+ columns
 
 ### Active Symlink
 
