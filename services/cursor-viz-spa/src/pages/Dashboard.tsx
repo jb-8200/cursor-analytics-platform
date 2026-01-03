@@ -39,32 +39,16 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const velocityData = data?.dailyTrend?.map(trend => ({
-    date: new Date(trend.date),
-    count: trend.aiLinesAdded || 0,
-    level: trend.aiLinesAdded > 100 ? 4 : trend.aiLinesAdded > 50 ? 3 : trend.aiLinesAdded > 20 ? 2 : trend.aiLinesAdded > 0 ? 1 : 0,
-  })) || [];
-
-  const teamData = data?.teamComparison?.map(team => ({
-    teamName: team.teamName,
-    acceptanceRate: team.averageAcceptanceRate || 0,
-    aiVelocity: team.aiVelocity || 0,
-    suggestions: team.totalSuggestions || 0,
-    chatInteractions: team.chatInteractions || 0,
-  })) || [];
-
+  // Prepare data for components
+  const velocityData = data?.dailyTrend || [];
+  const teamData = data?.teamComparison || [];
   const developerData = data?.teamComparison?.flatMap(team =>
-    team.topPerformers?.map(dev => ({
-      id: dev.id,
-      name: dev.name,
-      email: dev.email,
-      team: team.teamName,
-      seniority: dev.seniority,
-      acceptanceRate: 0, // Not available in summary data
-      suggestionsCount: 0,
-      aiVelocity: 0,
-    })) || []
+    team.topPerformers || []
   ) || [];
+
+  // Get all team names for TeamRadarChart
+  const allTeams = teamData.map(team => team.teamName);
+  const selectedTeams = allTeams.slice(0, 5); // Show up to 5 teams
 
   return (
     <div data-route="dashboard">
@@ -116,14 +100,14 @@ const Dashboard: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Team Radar
           </h2>
-          <TeamRadarChart teams={teamData} />
+          <TeamRadarChart data={teamData} selectedTeams={selectedTeams} />
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 lg:col-span-2">
           <h2 className="text-lg font-semibold text-gray-700 mb-4">
             Developer Table
           </h2>
-          <DeveloperTable developers={developerData} />
+          <DeveloperTable data={developerData} />
         </div>
       </div>
     </div>
