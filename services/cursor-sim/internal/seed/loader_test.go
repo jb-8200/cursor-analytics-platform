@@ -386,3 +386,93 @@ func TestLoadSeed_WithTempFile(t *testing.T) {
 	require.NotNil(t, seed)
 	assert.Equal(t, "user_temp", seed.Developers[0].UserID)
 }
+
+// TestLoadSeedWithReplication_NoReplication tests loading seed without replication
+func TestLoadSeedWithReplication_NoReplication(t *testing.T) {
+	// Arrange
+	path := filepath.Join("..", "..", "testdata", "valid_seed.json")
+
+	// Act: Load with 0 developer count (no replication)
+	seed, developers, err := LoadSeedWithReplication(path, 0, nil)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+	assert.Len(t, developers, 2, "should return original 2 developers from seed")
+	assert.Equal(t, "user_001", developers[0].UserID)
+	assert.Equal(t, "alice@example.com", developers[0].Email)
+}
+
+// TestLoadSeedWithReplication_Downsample tests downsampling developers
+func TestLoadSeedWithReplication_Downsample(t *testing.T) {
+	// Arrange
+	path := filepath.Join("..", "..", "testdata", "valid_seed.json")
+
+	// Act: Request only 1 developer (seed has 2)
+	seed, developers, err := LoadSeedWithReplication(path, 1, nil)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+	assert.Len(t, developers, 1, "should downsample to 1 developer")
+	// Should be one of the original developers
+	found := false
+	for _, orig := range seed.Developers {
+		if developers[0].UserID == orig.UserID {
+			found = true
+			break
+		}
+	}
+	assert.True(t, found, "downsampled developer should be from original seed")
+}
+
+// TestLoadSeedWithReplication_Replicate tests replicating developers
+func TestLoadSeedWithReplication_Replicate(t *testing.T) {
+	// Arrange
+	path := filepath.Join("..", "..", "testdata", "valid_seed.json")
+
+	// Act: Request 5 developers (seed has 2)
+	seed, developers, err := LoadSeedWithReplication(path, 5, nil)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+	assert.Len(t, developers, 5, "should replicate to 5 developers")
+
+	// Verify unique user IDs
+	userIDs := make(map[string]bool)
+	for _, dev := range developers {
+		assert.False(t, userIDs[dev.UserID], "duplicate user ID: %s", dev.UserID)
+		userIDs[dev.UserID] = true
+	}
+	assert.Len(t, userIDs, 5, "all 5 developers should have unique IDs")
+}
+
+// TestLoadSeedWithReplication_PreservesOriginalSeed tests that original seed data is preserved
+func TestLoadSeedWithReplication_PreservesOriginalSeed(t *testing.T) {
+	// Arrange
+	path := filepath.Join("..", "..", "testdata", "valid_seed.json")
+
+	// Act: Load with replication
+	seed, developers, err := LoadSeedWithReplication(path, 5, nil)
+
+	// Assert
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+	// Original seed.Developers should remain unchanged
+	assert.Len(t, seed.Developers, 2, "original seed.Developers should not be modified")
+	// Returned developers list should be replicated
+	assert.Len(t, developers, 5, "returned developers should be replicated")
+}
+
+// TestLoadSeedWithReplication_InvalidFile tests error handling
+func TestLoadSeedWithReplication_InvalidFile(t *testing.T) {
+	// Act
+	seed, developers, err := LoadSeedWithReplication("nonexistent.json", 5, nil)
+
+	// Assert
+	require.Error(t, err)
+	assert.Nil(t, seed)
+	assert.Nil(t, developers)
+	assert.Contains(t, err.Error(), "failed to read seed file")
+}

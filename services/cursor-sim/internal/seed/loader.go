@@ -3,8 +3,10 @@ package seed
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
+	"time"
 )
 
 // LoadSeed reads and validates a seed.json file from the specified path.
@@ -28,6 +30,37 @@ func LoadSeed(path string) (*SeedData, error) {
 	}
 
 	return &seed, nil
+}
+
+// LoadSeedWithReplication reads a seed file and optionally replicates developers.
+// If developerCount is 0, returns the original developers from the seed.
+// If developerCount > 0, uses ReplicateDevelopers to create the desired number.
+// If rng is nil, creates a new random number generator with current time as seed.
+// Returns the seed data and the (possibly replicated) developer list.
+func LoadSeedWithReplication(path string, developerCount int, rng *rand.Rand) (*SeedData, []Developer, error) {
+	// Load and validate the seed file
+	seed, err := LoadSeed(path)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// If no developer count specified, return original developers
+	if developerCount == 0 {
+		return seed, seed.Developers, nil
+	}
+
+	// Create RNG if not provided
+	if rng == nil {
+		rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
+
+	// Replicate developers to target count
+	developers, err := ReplicateDevelopers(seed, developerCount, rng)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to replicate developers: %w", err)
+	}
+
+	return seed, developers, nil
 }
 
 // Validate performs comprehensive validation on SeedData.
