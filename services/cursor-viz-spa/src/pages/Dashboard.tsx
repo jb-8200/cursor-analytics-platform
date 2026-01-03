@@ -42,9 +42,9 @@ const Dashboard: React.FC = () => {
   // Prepare data for components
   const velocityData = data?.dailyTrend || [];
   const teamData = data?.teamComparison || [];
-  const developerData = data?.teamComparison?.flatMap(team =>
-    team.topPerformers || []
-  ) || [];
+  const developerData = data?.teamComparison
+    ?.map(team => team.topPerformer)
+    .filter((dev): dev is NonNullable<typeof dev> => dev != null) || [];
 
   // Get all team names for TeamRadarChart
   const allTeams = teamData.map(team => team.teamName);

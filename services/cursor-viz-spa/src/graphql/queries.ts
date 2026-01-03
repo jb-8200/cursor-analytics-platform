@@ -40,7 +40,7 @@ export const GET_DASHBOARD_SUMMARY = gql`
         totalSuggestions
         aiVelocity
         chatInteractions
-        topPerformers {
+        topPerformer {
           id
           name
           email
@@ -53,7 +53,7 @@ export const GET_DASHBOARD_SUMMARY = gql`
         suggestionsAccepted
         acceptanceRate
         aiLinesAdded
-        humanLinesAdded
+        linesAdded
         chatInteractions
       }
     }
@@ -91,10 +91,10 @@ export const GET_DEVELOPERS = gql`
           acceptedSuggestions
           acceptanceRate
           aiLinesAdded
-          aiLinesDeleted
-          humanLinesAdded
-          humanLinesDeleted
+          totalLinesAdded
+          totalLinesDeleted
           chatInteractions
+          cmdKUsages
           aiVelocity
         }
       }
@@ -166,15 +166,11 @@ export const GET_TEAM_STATS = gql`
       totalSuggestions
       aiVelocity
       chatInteractions
-      topPerformers {
+      topPerformer {
         id
         name
         email
         seniority
-        stats {
-          acceptanceRate
-          aiVelocity
-        }
       }
     }
   }
@@ -215,8 +211,9 @@ export const GET_DAILY_STATS = gql`
       suggestionsAccepted
       acceptanceRate
       aiLinesAdded
-      humanLinesAdded
+      linesAdded
       chatInteractions
+      cmdKUsages
     }
   }
 `;

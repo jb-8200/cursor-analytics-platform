@@ -28,10 +28,10 @@ export interface DeveloperStats {
   acceptedSuggestions: number;
   acceptanceRate: number;
   aiLinesAdded: number;
-  aiLinesDeleted: number;
-  humanLinesAdded: number;
-  humanLinesDeleted: number;
+  totalLinesAdded: number;
+  totalLinesDeleted: number;
   chatInteractions: number;
+  cmdKUsages: number;
   aiVelocity: number;
 }
 
@@ -41,8 +41,9 @@ export interface DailyStats {
   suggestionsAccepted: number;
   acceptanceRate: number;
   aiLinesAdded: number;
-  humanLinesAdded: number;
+  linesAdded: number;
   chatInteractions: number;
+  cmdKUsages: number;
 }
 
 export interface TeamStats {
@@ -53,7 +54,7 @@ export interface TeamStats {
   totalSuggestions: number;
   aiVelocity: number;
   chatInteractions: number;
-  topPerformers: Developer[];
+  topPerformer?: Developer;
 }
 
 // ============================================================================
