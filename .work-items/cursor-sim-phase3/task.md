@@ -43,22 +43,24 @@ This phase completes cursor-sim with:
 | B07 | By-User Endpoint Handlers | 2.5 | DONE | 2.0 |
 | B08 | Part B Integration Tests | 2.0 | DONE | 1.5 |
 
-### Part C: Code Quality Analysis (10-15h)
+### Part C: GitHub Simulation + Quality Analysis (18.5h) - REVISED
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
-| C01 | Code Survival Tracking Models | 2.0 | NOT_STARTED | - |
-| C02 | Survival Rate Calculator | 3.0 | NOT_STARTED | - |
+| C00 | PR Generation Pipeline | 4.0 | NOT_STARTED | - |
+| C01 | Wire GitHub/Research Routes | 2.0 | NOT_STARTED | - |
+| C02 | Code Survival Calculator | 3.0 | NOT_STARTED | - |
 | C03 | Revert Chain Analysis | 2.5 | NOT_STARTED | - |
 | C04 | Hotfix Tracking | 2.0 | NOT_STARTED | - |
-| C05 | Part C Integration Tests | 2.0 | NOT_STARTED | - |
+| C05 | Research Dataset Enhancement | 2.5 | NOT_STARTED | - |
+| C06 | Part C Integration Tests | 2.5 | NOT_STARTED | - |
 
-### Part D: GitHub Router (OPTIONAL - Documented Only)
+### Part D: Replay Mode (DEFERRED to Phase 3D)
 
 | Step | Task | Hours | Status | Actual |
 |------|------|-------|--------|--------|
-| D01 | Wire GitHub Handlers to Router | 2.0 | OPTIONAL | - |
-| D02 | GitHub API E2E Tests | 1.5 | OPTIONAL | - |
+| D01 | Replay Mode Infrastructure | 3.0 | DEFERRED | - |
+| D02 | Corpus Loading/Saving | 2.0 | DEFERRED | - |
 
 ---
 
@@ -535,30 +537,503 @@ B00 (Fix Response Format)
 
 ---
 
-## Part C: Code Quality Analysis Details
+## Part C: GitHub Simulation + Quality Analysis (REVISED)
 
-(Unchanged from original - see below)
+> **Design Decisions** (January 3, 2026):
+> 1. **PR Generation**: Derive on-the-fly from commit groupings with session-based parameters
+> 2. **Greenfield**: First commit timestamp for the file (not OS file creation)
+> 3. **Replay Mode**: Deferred to Phase 3D (use seeded RNG for reproducibility)
+> 4. **Quality Correlations**: Probabilistic with sigmoid risk score
+> 5. **Code Survival**: File-level tracking (simple, fast, good enough)
 
-### Step C01: Code Survival Tracking Models
-...
+### Research Framework Reference
 
-### Step C02: Survival Rate Calculator
-...
+**Primary Reference**: `docs/design/External - Methods Proposal - AI on SDLC Study.md`
 
-### Step C03: Revert Chain Analysis
-...
+This document defines the scientific framework for measuring AI impact on SDLC:
 
-### Step C04: Hotfix Tracking
-...
+| Category | Metrics to Implement |
+|----------|---------------------|
+| **Independent (Table 1)** | AI Usage Intensity, PR Volume, PR Scatter, Greenfield Index, Repo Maturity |
+| **Velocity (Table 2)** | Coding Lead Time, Pickup Time, Review Lead Time, Volume Throughput, Merge Rate |
+| **Review Costs (Table 3)** | Review Density, Iteration Count, Rework Ratio, Scope Creep, Reviewer Count |
+| **Quality (Table 4)** | Revert Rate, Code Survival Rate, Hotfix Follow-up |
 
-### Step C05: Part C Integration Tests
-...
+**Excluded Metrics** (per methodology doc):
+- Repository-local code duplication (cross-repo in microservices)
+- Test coverage (CI-pipeline specific, incomplete)
+- Deep static/architectural metrics (high compute overhead)
 
 ---
 
-## Part D: GitHub Router (OPTIONAL)
+### Step C00: PR Generation Pipeline
 
-(Unchanged - OPTIONAL)
+**Priority**: CRITICAL - All other C steps depend on this
+
+**Estimated Hours**: 4.0
+
+**Files**:
+- `internal/generator/pr_generator.go` (new)
+- `internal/generator/session.go` (new)
+- `internal/models/pr.go` (update)
+- `internal/storage/memory.go` (update)
+- `internal/storage/interface.go` (update)
+
+**Description**:
+Generate PRs on-the-fly from commit groupings using session-based parameters.
+PRs emerge naturally from "work sessions" with developer-specific characteristics.
+
+**Session Model**:
+```go
+type Session struct {
+    Developer     seed.Developer
+    Repo          seed.Repository
+    Branch        string
+    StartTime     time.Time
+    MaxCommits    int           // Seniority-based: seniors 5-12, juniors 2-5
+    TargetLoC     int           // Affects commit sizes
+    InactivityGap time.Duration // From working hours
+    Commits       []models.Commit
+}
+```
+
+**Grouping Rules**:
+1. Open PR when work session starts (first commit on new branch)
+2. Keep adding commits until:
+   - Inactivity gap > N minutes (developer-specific)
+   - Max commits per PR reached (seniority-based)
+   - Random early close triggered (volatility)
+3. Finalize PR metrics and store
+
+**Acceptance Criteria**:
+- [ ] `Session` struct with seniority-based `MaxCommits` sampling
+- [ ] `sampleMaxCommits(seniority)`: junior=2-5, mid=4-8, senior=5-12
+- [ ] `sampleTargetLoC(seniority)`: junior=50-150, mid=100-300, senior=150-500
+- [ ] `sampleInactivityGap(workingHours)`: 15-60 minutes
+- [ ] Commits grouped by `(repo, branch, author)` with time-based session boundaries
+- [ ] PR envelope stores: number, timestamps, author, repo, branch, commit list
+- [ ] PR metrics calculated: additions, deletions, changed_files, ai_ratio
+- [ ] `first_commit_at`, `created_at` derived from commit timestamps
+- [ ] Storage methods: `AddPR()`, `GetPRsByRepo()`, `GetPRsByRepoAndState()`
+- [ ] Unit tests with seeded RNG for reproducibility
+- [ ] Memory bounded (persist PR envelope, not full commit copies)
+
+**Correlation Enforcement** (via session params):
+```go
+func StartSession(dev seed.Developer, repo seed.Repository) *Session {
+    return &Session{
+        Developer:     dev,
+        Repo:          repo,
+        MaxCommits:    sampleMaxCommits(dev.Seniority),
+        TargetLoC:     sampleTargetLoC(dev.Seniority),
+        InactivityGap: sampleGap(dev.WorkingHoursBand),
+    }
+}
+```
+
+---
+
+### Step C01: Wire GitHub/Research Routes
+
+**Estimated Hours**: 2.0
+
+**Files**:
+- `internal/server/router.go` (update)
+- `internal/api/github/commits.go` (new)
+- `internal/api/github/files.go` (new)
+
+**Description**:
+Wire all GitHub and Research endpoints to the main router.
+Implement missing handlers for commits and files.
+
+**New Handlers Needed**:
+- `GET /repos/{owner}/{repo}/pulls/{n}/commits` - List commits in PR
+- `GET /repos/{owner}/{repo}/pulls/{n}/files` - List files changed in PR
+- `GET /repos/{owner}/{repo}/commits` - List commits in repo
+- `GET /repos/{owner}/{repo}/commits/{sha}` - Get commit details
+
+**Acceptance Criteria**:
+- [ ] All 12 GitHub routes wired to router
+- [ ] All 5 Research routes wired to router
+- [ ] `ListPullCommits` handler returns commits linked to PR
+- [ ] `ListPullFiles` handler returns files with `greenfield_index`
+- [ ] `ListCommits` handler with pagination and filtering
+- [ ] `GetCommit` handler with AI telemetry fields
+- [ ] Greenfield calculation: `file_created_at` = first commit timestamp for file
+- [ ] Files < 30 days old marked as `is_greenfield: true`
+- [ ] `greenfield_index` = % of PR lines in greenfield files
+
+**Route Additions to `router.go`**:
+```go
+// GitHub Simulation API
+mux.Handle("/repos", github.ListRepos(store))
+mux.Handle("/repos/", github.RepoRouter(store))
+
+// Research API
+mux.Handle("/research/dataset", research.DatasetHandler(researchGen))
+mux.Handle("/research/metrics/velocity", research.VelocityMetricsHandler(researchGen))
+mux.Handle("/research/metrics/review-costs", research.ReviewCostMetricsHandler(researchGen))
+mux.Handle("/research/metrics/quality", research.QualityMetricsHandler(researchGen))
+```
+
+---
+
+### Step C02: Code Survival Calculator (File-Level)
+
+**Estimated Hours**: 3.0
+
+**Files**:
+- `internal/services/survival.go` (new)
+- `internal/models/quality.go` (new)
+- `internal/api/github/analysis.go` (new)
+- `internal/storage/memory.go` (update)
+
+**Description**:
+Track file-level code survival across commits.
+Implement the `/repos/{owner}/{repo}/analysis/survival` endpoint.
+
+**File Survival Model**:
+```go
+type FileSurvival struct {
+    FilePath        string    `json:"file_path"`
+    RepoName        string    `json:"repo_name"`
+    CreatedAt       time.Time `json:"created_at"`      // First commit timestamp
+    LastModifiedAt  time.Time `json:"last_modified_at"`
+    AILinesAdded    int       `json:"ai_lines_added"`
+    HumanLinesAdded int       `json:"human_lines_added"`
+    TotalLines      int       `json:"total_lines"`
+    RevertEvents    int       `json:"revert_events"`
+    IsDeleted       bool      `json:"is_deleted"`
+    DeletedAt       *time.Time `json:"deleted_at,omitempty"`
+}
+```
+
+**Survival Calculation**:
+- Track each file from first appearance to deletion or observation date
+- `survival_rate` = files_surviving / files_added_in_cohort
+- Support cohort windows: 30d, 60d, 90d
+
+**Acceptance Criteria**:
+- [ ] `FileSurvival` model with all fields from schema
+- [ ] `SurvivalService.CalculateSurvival(repoName, cohortStart, cohortEnd, observationDate)`
+- [ ] Track file birth as first commit containing that file path
+- [ ] Track file death as commit that deletes the file
+- [ ] Aggregate AI vs human lines per file
+- [ ] Handler: `GET /repos/{owner}/{repo}/analysis/survival`
+- [ ] Response matches `github-sim-api.yaml` `SurvivalAnalysis` schema
+- [ ] `by_developer` breakdown in response
+- [ ] Unit tests for survival rate calculation
+- [ ] E2E test: 100 files created, 20 deleted → 80% survival
+
+**Response Format** (from github-sim-api.yaml):
+```json
+{
+  "cohort_start": "2025-12-01",
+  "cohort_end": "2025-12-31",
+  "observation_date": "2026-01-31",
+  "total_lines_added": 15000,
+  "lines_surviving": 12500,
+  "survival_rate": 0.833,
+  "by_developer": [
+    { "email": "alice@example.com", "lines_added": 5000, "lines_surviving": 4500, "survival_rate": 0.90 }
+  ]
+}
+```
+
+---
+
+### Step C03: Revert Chain Analysis
+
+**Estimated Hours**: 2.5
+
+**Files**:
+- `internal/services/reverts.go` (new)
+- `internal/models/quality.go` (update)
+- `internal/api/github/analysis.go` (update)
+
+**Description**:
+Detect revert commits and link them to original PRs.
+Implement the `/repos/{owner}/{repo}/analysis/reverts` endpoint.
+
+**Revert Detection**:
+1. Message pattern matching: `revert`, `Revert`, `rollback`
+2. Link to original PR via commit SHA or PR number in message
+3. Calculate `days_to_revert`
+
+**Risk Score Model** (probabilistic enforcement):
+```go
+func CalculateRevertRisk(pr models.PullRequest, dev seed.Developer) float64 {
+    // Sigmoid: high AI + low seniority + high volatility → higher risk
+    rawScore := a*pr.AIRatio + b*volatility + c*seniorityPenalty(dev.Seniority)
+    return 1.0 / (1.0 + math.Exp(-rawScore))
+}
+
+func ShouldRevert(pr models.PullRequest, dev seed.Developer, rng *rand.Rand) bool {
+    risk := CalculateRevertRisk(pr, dev)
+    return rng.Float64() < risk
+}
+```
+
+**Acceptance Criteria**:
+- [ ] `RevertEvent` model linking revert commit to original PR
+- [ ] Pattern matching for revert detection in commit messages
+- [ ] `CalculateRevertRisk()` with sigmoid function
+- [ ] Seed correlation: `ai_ratio_revert_rate` applied probabilistically
+- [ ] `RevertService.GetReverts(repoName, windowDays, since, until)`
+- [ ] Handler: `GET /repos/{owner}/{repo}/analysis/reverts`
+- [ ] Response matches `github-sim-api.yaml` `RevertAnalysis` schema
+- [ ] Default `window_days` = 7
+- [ ] Unit tests: verify correlation holds at population level (1000 PRs)
+- [ ] E2E test: high-AI PRs have statistically higher revert rate
+
+**Response Format**:
+```json
+{
+  "window_days": 7,
+  "total_prs_merged": 500,
+  "total_prs_reverted": 12,
+  "revert_rate": 0.024,
+  "reverted_prs": [
+    { "pr_number": 123, "merged_at": "2026-01-10T10:00:00Z", "reverted_at": "2026-01-12T15:00:00Z", "days_to_revert": 2.2 }
+  ]
+}
+```
+
+---
+
+### Step C04: Hotfix Tracking
+
+**Estimated Hours**: 2.0
+
+**Files**:
+- `internal/services/hotfixes.go` (new)
+- `internal/models/quality.go` (update)
+- `internal/api/github/analysis.go` (update)
+
+**Description**:
+Detect fix-PRs that follow a merged PR within 48 hours to the same files.
+Implement the `/repos/{owner}/{repo}/analysis/hotfixes` endpoint.
+
+**Hotfix Detection**:
+1. For each merged PR, find subsequent PRs within `window_hours`
+2. Check for overlapping file paths
+3. Mark as hotfix if title/body contains: `fix`, `hotfix`, `urgent`, `patch`
+
+**Acceptance Criteria**:
+- [ ] `HotfixEvent` model linking original PR to hotfix PR
+- [ ] File path overlap detection
+- [ ] Title/body pattern matching for fix indicators
+- [ ] `HotfixService.GetHotfixes(repoName, windowHours, since, until)`
+- [ ] Handler: `GET /repos/{owner}/{repo}/analysis/hotfixes`
+- [ ] Response matches `github-sim-api.yaml` `HotfixAnalysis` schema
+- [ ] Default `window_hours` = 48
+- [ ] `files_in_common` array in response
+- [ ] Unit tests for overlap detection
+- [ ] E2E test: simulate 3 hotfix scenarios
+
+**Response Format**:
+```json
+{
+  "window_hours": 48,
+  "total_prs_merged": 500,
+  "prs_with_hotfix": 25,
+  "hotfix_rate": 0.05,
+  "hotfix_prs": [
+    { "original_pr": 120, "hotfix_pr": 125, "hours_between": 4.5, "files_in_common": ["src/auth.ts"] }
+  ]
+}
+```
+
+---
+
+### Step C05: Research Dataset Enhancement
+
+**Estimated Hours**: 2.5
+
+**Files**:
+- `internal/generator/research_generator.go` (update)
+- `internal/models/research.go` (update)
+- `internal/services/research_metrics.go` (update)
+
+**Description**:
+Enhance the research dataset with all missing fields from the experimental design framework.
+Ensure JOIN keys work across Cursor + GitHub endpoints.
+
+**Metric Definitions** (from Methods Proposal Table 1-4):
+
+| Metric | Formula | Table |
+|--------|---------|-------|
+| `greenfield_index` | % of PR lines in files created < X days ago | Table 1 |
+| `pickup_time_hours` | First Review Timestamp - PR Open Timestamp | Table 2 |
+| `coding_lead_time_hours` | PR Open Timestamp - First Commit Timestamp | Table 2 |
+| `review_lead_time_hours` | Merge Timestamp - First Review Timestamp | Table 2 |
+| `merge_rate` | Merged PRs / (Merged + Closed PRs) | Table 2 |
+| `review_density` | Total Review Comments / PR Volume (LoC) | Table 3 |
+| `iteration_count` | Count of "Review Requested" → "New Commit" cycles | Table 3 |
+| `rework_ratio` | Total LoC Changed During Review / Total LoC in First Draft | Table 3 |
+| `scope_creep` | (Final LoC - Initial LoC) / Final LoC | Table 3 |
+| `reviewer_count` | Count of unique users who commented or approved | Table 3 |
+| `revert_rate` | % of Merged PRs reverted within X days | Table 4 |
+| `survival_rate` | % of lines added in Month M still present in M+X | Table 4 |
+| `hotfix_rate` | % of PRs followed by fix-PR to same files within Xh | Table 4 |
+
+**Acceptance Criteria**:
+- [ ] `ResearchDataPoint` updated with all fields from `github-sim-api.yaml`
+- [ ] `greenfield_index` calculated from file creation dates
+- [ ] `pickup_time_hours` requires `first_review_at` on PR
+- [ ] `scope_creep` requires `initial_additions` tracking
+- [ ] `rework_ratio` requires diff between first and final commit
+- [ ] `review_density` = comments / total_lines
+- [ ] `/research/dataset` returns all 20+ columns
+- [ ] CSV export includes all columns with headers
+- [ ] JOIN key validation: `commit_hash` matches `sha`, `user_email` matches `author.email`
+- [ ] Unit tests for each derived field calculation
+- [ ] E2E test: export dataset, load in pandas, verify schema
+
+**Updated ResearchDataPoint**:
+```go
+type ResearchDataPoint struct {
+    // Identifiers
+    CommitHash  string `json:"commit_hash"`
+    PRNumber    int    `json:"pr_number"`
+    AuthorID    string `json:"author_id"`
+    AuthorEmail string `json:"author_email"`  // NEW: for JOIN
+    RepoName    string `json:"repo_name"`
+
+    // AI Metrics (Independent Variables)
+    AIRatio        float64 `json:"ai_ratio"`
+    AILinesAdded   int     `json:"ai_lines_added"`    // NEW
+    AILinesDeleted int     `json:"ai_lines_deleted"`  // NEW
+    NonAILinesAdded int    `json:"non_ai_lines_added"` // NEW
+
+    // PR Metrics (Controls)
+    PRVolume       int     `json:"pr_volume"`        // additions + deletions
+    PRScatter      int     `json:"pr_scatter"`       // changed_files
+    GreenfieldIndex float64 `json:"greenfield_index"` // NEW: % lines in new files
+
+    // Cycle Times (Velocity Outcomes)
+    CodingLeadTimeHours float64 `json:"coding_lead_time_hours"`
+    PickupTimeHours     float64 `json:"pickup_time_hours"`      // NEW
+    ReviewLeadTimeHours float64 `json:"review_lead_time_hours"`
+
+    // Review Costs (Outcomes)
+    ReviewDensity    float64 `json:"review_density"`     // NEW
+    IterationCount   int     `json:"iteration_count"`
+    ReworkRatio      float64 `json:"rework_ratio"`       // NEW
+    ScopeCreep       float64 `json:"scope_creep"`        // NEW
+    ReviewerCount    int     `json:"reviewer_count"`     // NEW
+
+    // Quality Outcomes
+    IsReverted        bool    `json:"is_reverted"`
+    HasHotfixFollowup bool    `json:"has_hotfix_followup"` // NEW
+    SurvivalRate30d   float64 `json:"survival_rate_30d"`   // NEW
+
+    // Control Variables
+    AuthorSeniority   string `json:"author_seniority"`
+    RepoMaturity      string `json:"repo_maturity"`
+    RepoAgeDays       int    `json:"repo_age_days"`        // NEW
+    PrimaryLanguage   string `json:"primary_language"`     // NEW
+
+    Timestamp time.Time `json:"timestamp"`
+}
+```
+
+---
+
+### Step C06: Part C Integration Tests
+
+**Estimated Hours**: 2.5
+
+**Files**:
+- `test/e2e/github_api_test.go` (new)
+- `test/e2e/research_api_test.go` (new)
+- `test/e2e/quality_analysis_test.go` (new)
+
+**Description**:
+Comprehensive E2E tests for all GitHub and Research endpoints.
+
+**Test Scenarios**:
+
+**GitHub API Tests**:
+1. `GET /repos` returns repository list
+2. `GET /repos/{owner}/{repo}` returns repo details with maturity metrics
+3. `GET /repos/{owner}/{repo}/pulls` returns PRs with all cycle time fields
+4. `GET /repos/{owner}/{repo}/pulls/{n}` returns full PR with AI summary
+5. `GET /repos/{owner}/{repo}/pulls/{n}/commits` returns commits with JOIN keys
+6. `GET /repos/{owner}/{repo}/pulls/{n}/files` returns files with greenfield_index
+7. `GET /repos/{owner}/{repo}/pulls/{n}/reviews` returns reviews with states
+8. `GET /repos/{owner}/{repo}/commits` returns commits with pagination
+9. `GET /repos/{owner}/{repo}/commits/{sha}` returns commit with AI contribution
+10. `GET /repos/{owner}/{repo}/analysis/survival` returns survival metrics
+11. `GET /repos/{owner}/{repo}/analysis/reverts` returns revert analysis
+12. `GET /repos/{owner}/{repo}/analysis/hotfixes` returns hotfix analysis
+
+**Research API Tests**:
+1. `GET /research/dataset?format=json` returns all columns
+2. `GET /research/dataset?format=csv` returns valid CSV with headers
+3. `GET /research/metrics/velocity` returns velocity by AI ratio band
+4. `GET /research/metrics/review-costs` returns review cost metrics
+5. `GET /research/metrics/quality` returns quality metrics
+
+**Hypothesis Validation Tests** (from Methods Proposal):
+
+| Hypothesis | Test | Expected Direction |
+|------------|------|-------------------|
+| AI reduces Coding Lead Time | Compare high-AI vs low-AI PRs | High AI → Lower coding time |
+| AI may increase Review Lead Time | Compare high-AI vs low-AI PRs | High AI → Higher review time |
+| High AI increases Review Density | Correlation: AI ratio ↔ comments/LoC | Positive correlation |
+| High AI increases Iteration Count | Correlation: AI ratio ↔ cycles | Positive correlation |
+| High AI increases Revert Rate | Compare revert rates by AI band | High AI → Higher revert |
+| AI code has lower Survival Rate | Cohort analysis by AI ratio | High AI → Lower survival |
+
+**Statistical Validation**:
+1. Verify correlations hold at population level (N > 1000 PRs)
+2. Use appropriate tests: t-test for means, chi-square for rates
+3. Report effect sizes, not just p-values
+4. Seed RNG for reproducible statistical tests
+
+**Acceptance Criteria**:
+- [ ] 12 GitHub endpoint E2E tests
+- [ ] 5 Research endpoint E2E tests
+- [ ] Response schema validation against `github-sim-api.yaml`
+- [ ] JOIN key consistency test: fetch commit from both APIs, verify match
+- [ ] Correlation validation with statistical significance
+- [ ] All tests pass with seeded RNG for reproducibility
+- [ ] Test coverage > 80% for Part C code
+
+---
+
+## Part C Dependency Graph
+
+```
+C00 (PR Generator) ────────────────────────────────────────┐
+         │                                                  │
+         ▼                                                  │
+C01 (Wire Routes) ────────────────────────────────────────┤
+         │                                                  │
+         ├──────► C02 (Survival) ──────────────────────────┤
+         │                                                  │
+         ├──────► C03 (Reverts) ───────────────────────────┤
+         │                                                  │
+         └──────► C04 (Hotfixes) ──────────────────────────┤
+                                                            │
+                                                            ▼
+                                               C05 (Dataset Enhancement)
+                                                            │
+                                                            ▼
+                                               C06 (E2E Tests)
+```
+
+---
+
+## Part D: Replay Mode (DEFERRED)
+
+Deferred to Phase 3D per design decision.
+
+For Part C, reproducibility is achieved via:
+- Seeded RNG in all generators
+- Deterministic event generation from seed.json
+- Periodic snapshots (optional Ctrl+E dump)
 
 ---
 
@@ -572,14 +1047,20 @@ B00 (Fix Response Format)
 | B06 | Sonnet | Complex ranking algorithm |
 | B07 | Sonnet | Multiple similar handlers |
 | B08 | Sonnet | Integration testing |
-| C01-C04 | Sonnet | Algorithm complexity |
+| C00 | Sonnet | Critical path, session modeling |
+| C01 | Haiku | Route wiring, straightforward |
+| C02 | Sonnet | Survival calculation algorithm |
+| C03 | Sonnet | Risk scoring, correlation enforcement |
+| C04 | Haiku | Pattern matching, simpler logic |
+| C05 | Sonnet | Multiple derived fields |
+| C06 | Sonnet | Complex test scenarios |
 
 ---
 
 ## TDD Checklist (Per Step)
 
 - [ ] Read step details and acceptance criteria
-- [ ] Read relevant section in `docs/api-reference/cursor_analytics.md`
+- [ ] Read relevant section in `github-sim-api.yaml` or `cursor_analytics.md`
 - [ ] Write failing test(s) for the step
 - [ ] Run tests, confirm RED
 - [ ] Implement minimal code to pass
@@ -595,6 +1076,16 @@ B00 (Fix Response Format)
 
 ```
 1. B00 → B01 → B02 → B03 → B04 → B05 → B06 → B07 → B08 (commit: "feat: Phase 3 Part B")
-2. C01 → C02 → C03 → C04 → C05 (commit: "feat: Phase 3 Part C")
-3. D01 → D02 (OPTIONAL - separate commit if done)
+2. C00 → C01 → C02 → C03 → C04 → C05 → C06 (commit: "feat: Phase 3 Part C")
 ```
+
+---
+
+## Estimated Hours Summary
+
+| Part | Steps | Estimated | Actual |
+|------|-------|-----------|--------|
+| Part A | A01-A07 | 15-20h | 1.75h ✅ |
+| Part B | B00-B08 | 12.5h | 11.9h ✅ |
+| Part C | C00-C06 | 18.5h | - |
+| **Total** | | **46-51h** | **13.65h** |

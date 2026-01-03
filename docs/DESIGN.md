@@ -4,9 +4,9 @@
 > This is a project-level overview for orientation purposes.
 > **Source of truth**: `services/{service}/SPEC.md` for technical specs, `.work-items/` for active work.
 
-**Version**: 2.0.0
-**Last Updated**: January 2026
-**Status**: Active - Major Revision
+**Version**: 2.1.0
+**Last Updated**: January 3, 2026
+**Status**: Active - Phase 3C Design Complete
 
 ## 1. Executive Summary
 
@@ -481,10 +481,149 @@ repo_age_days,primary_language,author_seniority
 - Configurable velocity
 - Real-time event streams
 
-**Replay Mode**: Serve pre-generated corpus for reproducible research.
+**Replay Mode**: Serve pre-generated corpus for reproducible research (deferred to Phase 3D).
 - Fixed dataset for statistical analysis
 - No randomness between runs
 - Faster startup (no generation)
+
+For Phase 3C, reproducibility is achieved via seeded RNG + deterministic event generation.
+
+### 6.4 PR Generation Strategy (Phase 3C)
+
+> **Design Decision** (January 3, 2026): PRs are derived on-the-fly from commit groupings using session-based parameters.
+
+**Session-Based Generation Model**:
+
+PRs emerge naturally from "work sessions" with developer-specific characteristics enforced through session parameters:
+
+```go
+type Session struct {
+    Developer     seed.Developer
+    Repo          seed.Repository
+    Branch        string
+    StartTime     time.Time
+    MaxCommits    int           // Seniority-based
+    TargetLoC     int           // Affects commit sizes
+    InactivityGap time.Duration // From working hours
+    Commits       []models.Commit
+}
+
+func StartSession(dev seed.Developer, repo seed.Repository) *Session {
+    return &Session{
+        Developer:     dev,
+        Repo:          repo,
+        MaxCommits:    sampleMaxCommits(dev.Seniority),    // seniors: 5-12, juniors: 2-5
+        TargetLoC:     sampleTargetLoC(dev.Seniority),     // affects commit sizes
+        InactivityGap: sampleGap(dev.WorkingHoursBand),    // 15-60 minutes
+    }
+}
+```
+
+**Grouping Rules**:
+1. Open PR when work session starts (first commit on new branch)
+2. Keep adding commits until:
+   - Inactivity gap > N minutes (developer-specific)
+   - Max commits per PR reached (seniority-based)
+   - Random early close triggered (volatility)
+3. Finalize PR metrics and store the envelope
+
+**Correlation Enforcement**:
+
+| Correlation | Enforcement Point | Mechanism |
+|-------------|-------------------|-----------|
+| Seniority → PR Size | Session.TargetLoC | Sample from seniority-specific distribution |
+| Seniority → Commits/PR | Session.MaxCommits | Juniors: 2-5, Seniors: 5-12 |
+| Working Hours → Gap | Session.InactivityGap | Clip to developer's work schedule |
+| AI Ratio → Review Iterations | PR generation | Higher AI → more iterations (probabilistic) |
+
+**Memory Efficiency**:
+- Persist only the PR envelope (id, timestamps, author, repo, branch, commit list, summary metrics)
+- Do not copy full commit data into PR storage
+- Support continuous run without unbounded memory growth
+
+### 6.5 Quality Correlation Enforcement (Phase 3C)
+
+> **Design Decision**: Use probabilistic enforcement with sigmoid risk scoring, not deterministic.
+
+Deterministic "high AI ⇒ revert" would look artificial and distort aggregates. Instead:
+
+```go
+func CalculateRevertRisk(pr models.PullRequest, dev seed.Developer) float64 {
+    // Sigmoid: high AI + low seniority + high volatility → higher risk
+    rawScore := a*pr.AIRatio + b*volatility + c*seniorityPenalty(dev.Seniority)
+    return 1.0 / (1.0 + math.Exp(-rawScore))
+}
+
+func ShouldRevert(pr models.PullRequest, dev seed.Developer, rng *rand.Rand) bool {
+    risk := CalculateRevertRisk(pr, dev)
+    return rng.Float64() < risk  // Bernoulli sampling
+}
+```
+
+**Benefits**:
+- Correlations hold at population level (statistically significant over 1000+ PRs)
+- Individual PRs retain realistic variability
+- No artificial "high AI always reverts" patterns
+
+### 6.6 Code Survival Tracking (Phase 3C)
+
+> **Design Decision**: File-level survival tracking (simple, fast, sufficient for research).
+
+**File Survival Model**:
+
+```go
+type FileSurvival struct {
+    FilePath        string    `json:"file_path"`
+    RepoName        string    `json:"repo_name"`
+    CreatedAt       time.Time `json:"created_at"`      // First commit timestamp
+    LastModifiedAt  time.Time `json:"last_modified_at"`
+    AILinesAdded    int       `json:"ai_lines_added"`
+    HumanLinesAdded int       `json:"human_lines_added"`
+    TotalLines      int       `json:"total_lines"`
+    RevertEvents    int       `json:"revert_events"`
+    IsDeleted       bool      `json:"is_deleted"`
+    DeletedAt       *time.Time `json:"deleted_at,omitempty"`
+}
+```
+
+**Key Decisions**:
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Greenfield threshold | First commit timestamp for file | OS file creation is meaningless in simulator |
+| Survival granularity | File-level | Simple, fast, good enough for research |
+| Line-level tracking | Deferred | Add only if very specific metrics needed |
+| Survival windows | 30d, 60d, 90d | Standard cohort intervals |
+
+**Calculation**:
+- Track each file from first appearance (birth) to deletion (death) or observation date
+- `survival_rate` = files_surviving / files_added_in_cohort
+- Aggregate AI vs human lines per file for correlation analysis
+
+### 6.7 Greenfield Index Calculation
+
+> **Design Decision**: Greenfield = file created < 30 days before commit timestamp.
+
+```go
+func IsGreenfield(file models.CommitFile, commitTime time.Time) bool {
+    fileAge := commitTime.Sub(file.CreatedAt)
+    return fileAge < 30 * 24 * time.Hour
+}
+
+func CalculateGreenfieldIndex(pr models.PullRequest) float64 {
+    var greenfieldLines, totalLines int
+    for _, file := range pr.Files {
+        if IsGreenfield(file, pr.CreatedAt) {
+            greenfieldLines += file.Additions
+        }
+        totalLines += file.Additions
+    }
+    if totalLines == 0 {
+        return 0
+    }
+    return float64(greenfieldLines) / float64(totalLines)
+}
+```
 
 ## 7. Deployment Architecture
 
@@ -580,7 +719,7 @@ volumes:
 
 ## 10. Appendix
 
-### 10.1 Glossary (v2.0 Additions)
+### 10.1 Glossary (v2.1 Additions)
 
 | Term | Definition |
 |------|------------|
@@ -589,7 +728,13 @@ volumes:
 | Pickup Time | Hours from PR open to first review |
 | Rework Ratio | LoC changed during review / initial LoC |
 | Scope Creep | (final additions - initial) / final |
-| Survival Rate | % of lines still present after N days |
+| Survival Rate | % of files still present after N days |
+| Session | A work period that produces a PR from grouped commits |
+| Risk Score | Sigmoid-based probability for quality outcomes |
+| Hotfix | Fix-PR within 48 hours of original PR merge |
+| Revert Chain | Sequence linking original PR to its revert commit |
+| File Birth | First commit timestamp containing the file path |
+| Cohort Window | Time period for grouping files in survival analysis |
 
 ### 10.2 References
 
@@ -597,3 +742,5 @@ volumes:
 - Cursor AI Code Tracking: https://docs.cursor.com/business/api-reference/ai-code-tracking
 - NVIDIA NeMo DataDesigner: https://github.com/NVIDIA/NeMo
 - GitHub REST API: https://docs.github.com/en/rest
+- **Methods Proposal**: `docs/design/External - Methods Proposal - AI on SDLC Study.md` - Scientific framework for SDLC metrics
+- **GitHub Sim API**: `cursor-analytics-platform-research/packages/shared-schemas/openapi/github-sim-api.yaml`

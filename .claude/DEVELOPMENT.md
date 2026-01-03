@@ -61,12 +61,20 @@
 - ✅ All tests passing (15/15 packages, 62 E2E test cases)
 - ⏱️ Actual: 11.9h / Estimated: 12.5h (5% under budget)
 
-### Current Focus: Part C - Code Quality Analysis
+### Current Focus: Part C - GitHub Simulation + Quality Analysis (REVISED)
 
-**Next Task**: C01 - Code Survival Tracking Models
-- Estimated: 2.0h
+> **Design Decisions Finalized** (January 3, 2026):
+> - PR Generation: Session-based, on-the-fly from commit groupings
+> - Greenfield: First commit timestamp for file
+> - Quality Correlations: Probabilistic with sigmoid risk score
+> - Code Survival: File-level tracking
+> - Replay Mode: Deferred to Phase 3D
+
+**Next Task**: C00 - PR Generation Pipeline (CRITICAL)
+- Estimated: 4.0h
 - Status: Ready to start
-- Files: `internal/models/quality.go`
+- Files: `internal/generator/pr_generator.go`, `internal/generator/session.go`
+- Prerequisite for all other Part C tasks
 
 ### Active Symlink
 
