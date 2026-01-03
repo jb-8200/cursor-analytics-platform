@@ -30,7 +30,13 @@
       "Skill(model-selection-guide)",
       "WebFetch(domain:cursor.com)",
       "WebFetch(domain:docs.google.com)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(chmod:*)",
+      "Bash(/tmp/test_all_endpoints.sh)",
+      "Bash(ls:*)",
+      "Bash(readlink:*)"
     ],
     "deny": [],
     "ask": []
