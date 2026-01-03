@@ -67,20 +67,30 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	// Load seed data
 	log.Printf("Loading seed data from %s...\n", cfg.SeedPath)
-	seedData, err := seed.LoadSeed(cfg.SeedPath)
+
+	// TASK-CLI-06: Use LoadSeedWithReplication to support developer scaling
+	// If cfg.GenParams.Developers > 0, replicate developers to that count
+	// Otherwise, use all developers from seed file
+	seedData, developers, err := seed.LoadSeedWithReplication(cfg.SeedPath, cfg.GenParams.Developers, nil)
 	if err != nil {
 		return fmt.Errorf("failed to load seed data: %w", err)
 	}
-	log.Printf("Loaded %d developers from seed file\n", len(seedData.Developers))
+
+	if cfg.GenParams.Developers > 0 {
+		log.Printf("Loaded %d developers from seed file, replicated to %d developers\n",
+			len(seedData.Developers), len(developers))
+	} else {
+		log.Printf("Loaded %d developers from seed file\n", len(developers))
+	}
 
 	// Initialize storage
 	store := storage.NewMemoryStore()
 
-	// Load developers into storage
-	if err := store.LoadDevelopers(seedData.Developers); err != nil {
+	// Load developers into storage (use replicated developers, not seed.Developers)
+	if err := store.LoadDevelopers(developers); err != nil {
 		return fmt.Errorf("failed to load developers into storage: %w", err)
 	}
-	log.Printf("Loaded %d developers into storage\n", len(seedData.Developers))
+	log.Printf("Loaded %d developers into storage\n", len(developers))
 
 	// Generate commits
 	log.Printf("Generating %d days of commit history...\n", cfg.Days)

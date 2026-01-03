@@ -53,6 +53,14 @@ Flags:
   --port int           HTTP server port (default 8080)
   --days int           Days of history to generate (default 90)
   --velocity string    Event generation rate: low, medium, high (default "medium")
+
+  Interactive Mode (P4-F02):
+  --interactive        Enable interactive configuration prompts
+
+  Non-Interactive Mode (P4-F02):
+  --developers int     Number of developers (replicates from seed if > seed count)
+  --months int         Period in months (converted to days automatically)
+  --max-commits int    Maximum commits per developer (0 = unlimited)
 ```
 
 ### Environment Variables
