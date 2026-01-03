@@ -9,6 +9,12 @@ COPY package*.json ./
 # Install dependencies
 RUN npm ci
 
+# Copy prisma schema
+COPY prisma ./prisma
+
+# Generate Prisma client
+RUN npx prisma generate
+
 # Copy source
 COPY . .
 
@@ -25,6 +31,10 @@ COPY package*.json ./
 
 # Install production dependencies only
 RUN npm ci --production
+
+# Copy Prisma schema and generated client
+COPY --from=builder /build/prisma ./prisma
+COPY --from=builder /build/src/generated ./src/generated
 
 # Copy built files from builder
 COPY --from=builder /build/dist ./dist
