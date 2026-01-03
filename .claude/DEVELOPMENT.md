@@ -163,10 +163,19 @@
 - Files: `cmd/simulator/main.go`, `test/e2e/team_members_test.go`
 - Commit: 8357fc1
 
-**Next Task**: TASK-FIX-02 - Generate Model Usage Events
-- Estimated: 1.0h
+**TASK-FIX-02 Complete** ✅ (1.0h estimated / 0.75h actual)
+- Fixed `/analytics/team/models` and `/analytics/by-user/models` endpoints
+- Added `ModelGenerator.GenerateModelUsage()` call in main.go
+- Created E2E test suite validating model analytics with nested response structure
+- Verified models: gpt-4-turbo, claude-3-sonnet
+- All tests passing (15/15 packages)
+- Files: `cmd/simulator/main.go`, `test/e2e/model_analytics_test.go`
+- Commit: a017287
+
+**Next Task**: TASK-FIX-03 - Generate Client Version Events
+- Estimated: 0.5h
 - Status: Ready to start
-- Fix `/analytics/team/models` and `/analytics/by-user/models` endpoints
+- Fix `/analytics/team/client-versions` and `/analytics/by-user/client-versions` endpoints
 
 ### Active Symlink
 
