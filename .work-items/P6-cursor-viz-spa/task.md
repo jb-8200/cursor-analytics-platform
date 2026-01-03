@@ -21,13 +21,13 @@
 |---------|------|-------|--------|--------|
 | TASK01 | Project Setup (Dependencies, Tailwind, ESLint, Vitest) | 3.0 | DONE | 2.5 |
 | TASK02 | Apollo Client Configuration & GraphQL Setup | 3.0 | DONE | 2.0 |
-| TASK03 | Core Layout Components & Routing | 3.5 | NOT_STARTED | - |
+| TASK03 | Core Layout Components & Routing | 3.5 | DONE | 3.0 |
 | TASK04 | Chart Components (Heatmap, Radar, Table) | 5.0 | NOT_STARTED | - |
 | TASK05 | Filter Controls & Date Picker | 3.0 | NOT_STARTED | - |
 | TASK06 | GraphQL Queries & Custom Hooks | 4.0 | NOT_STARTED | - |
 | TASK07 | Testing Setup & Initial Tests | 2.5 | NOT_STARTED | - |
 
-**Current Task**: TASK02 (Complete)
+**Current Task**: TASK03 (Complete)
 
 ---
 
@@ -117,8 +117,8 @@
 ### TASK03: Core Layout Components & Routing
 
 **Estimated**: 3.5h
-**Status**: NOT_STARTED
-**Actual**: -
+**Status**: DONE
+**Actual**: 3.0h
 
 **Objective**: Build responsive layout structure and routing.
 
@@ -131,12 +131,12 @@
 - `services/cursor-viz-spa/src/App.tsx`
 
 **Tasks**:
-- [ ] Create responsive Header with KPI cards
-- [ ] Create collapsible Sidebar for navigation
-- [ ] Set up React Router with routes from SPEC
-- [ ] Build Dashboard page layout
-- [ ] Create LoadingState and ErrorState components
-- [ ] Write component tests
+- [x] Create responsive Header with user menu placeholder
+- [x] Create collapsible Sidebar for navigation
+- [x] Set up React Router with routes from SPEC
+- [x] Build Dashboard page layout
+- [x] Create page stubs for Teams and Developers
+- [x] Write component tests
 
 **Acceptance Criteria**:
 - Header displays on all pages

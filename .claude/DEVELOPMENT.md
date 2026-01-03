@@ -1,8 +1,8 @@
 # Development Session Context
 
 **Last Updated**: January 3, 2026
-**Active Feature**: P4-F02-cli-enhancement
-**Primary Focus**: Interactive CLI Configuration
+**Active Feature**: P6-cursor-viz-spa
+**Primary Focus**: React Dashboard Layout & Routing
 
 ---
 
@@ -27,7 +27,7 @@ Phase (P#) = Epic level
 | **P3** | cursor-sim Research Framework | **COMPLETE** ✅ |
 | **P4** | cursor-sim Enhancements | **IN PROGRESS** |
 | **P5** | cursor-analytics-core | **IN PROGRESS** |
-| **P6** | cursor-viz-spa | TODO |
+| **P6** | cursor-viz-spa | **IN PROGRESS** |
 
 ### Feature Status
 
@@ -41,37 +41,53 @@ Phase (P#) = Epic level
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
 | P5-F01 | Analytics Core | IN PROGRESS | 4.0h / 25-30h est |
-| P6-F01 | Viz SPA | TODO | - |
+| P6-F01 | Viz SPA | IN PROGRESS | 7.5h / 24.0h est |
 
 ---
 
 ## Active Work
 
-### Current Feature: P4-F02-cli-enhancement
+### Current Feature: P6-cursor-viz-spa
 
-**Work Item**: `.work-items/P4-F02-cli-enhancement/`
+**Work Item**: `.work-items/P6-cursor-viz-spa/`
 
-**Scope**: Interactive CLI prompts for data generation parameters
-- Interactive prompts for: developers, period (months), max commits
-- Regex validation with retry logic
-- Default value support (press Enter)
-- Developer replication from seed file
+**Scope**: React-based visualization dashboard for AI coding analytics
+- React 18+ with Vite build system
+- Apollo Client for GraphQL data fetching
+- Tailwind CSS for responsive design
+- Chart components (heatmap, radar, table)
 
-**Next Task**: TASK01 - Create Interactive Prompt Infrastructure
-- Implement `PromptForInt()` with validation
-- Create `internal/config/interactive.go`
-- Write tests (TDD approach)
-- Estimated: 2.0h
+**Recently Completed**: TASK03 - Core Layout Components & Routing
+- Created AppLayout with Header and Sidebar components
+- Implemented React Router with Dashboard, Teams, Developers routes
+- Built responsive navigation with Tailwind
+- Comprehensive component tests (30 tests passing)
+- Time: 3.0h actual / 3.5h estimated
+
+**Next Task**: TASK04 - Chart Components (Heatmap, Radar, Table)
+- VelocityHeatmap (GitHub-style contribution graph)
+- TeamRadarChart (multi-axis comparison)
+- DeveloperTable (sortable with pagination)
+- Estimated: 5.0h
 
 ### Active Symlink
 
 ```
-.claude/plans/active -> ../../.work-items/P4-F02-cli-enhancement/task.md
+No active symlink currently set
 ```
 
 ---
 
 ## Recently Completed
+
+### P6 TASK03: Core Layout Components & Routing (January 3, 2026)
+
+- Created responsive AppLayout with Header and Sidebar
+- Implemented React Router with 3 main routes
+- Built page components: Dashboard, Teams, Developers
+- Mobile-responsive navigation (Tailwind breakpoints)
+- Full test coverage: 30 tests passing
+- Time: 3.0h actual / 3.5h estimated
 
 ### P5-F01 Step 02: Database Schema & Migrations (January 3, 2026)
 
@@ -157,6 +173,7 @@ Parallel development enabled via specialized subagents:
 
 | Subagent | Service | Tech Stack | Port |
 |----------|---------|------------|------|
+| `cursor-sim-cli-dev` | P4: cursor-sim CLI | Go (CLI only) | - |
 | `analytics-core-dev` | P5: cursor-analytics-core | TypeScript, Apollo Server, GraphQL | 4000 |
 | `viz-spa-dev` | P6: cursor-viz-spa | React 18+, Vite, Apollo Client, Tailwind | 3000 |
 
@@ -172,13 +189,16 @@ Parallel development enabled via specialized subagents:
 
 ```
 Main Agent (Chief Architect)
+├── cursor-sim-cli-dev (P4)
+│   └── CLI features only → NEVER touches API/Generator
 ├── analytics-core-dev (P5)
 │   └── Consumes cursor-sim REST → Exposes GraphQL
 └── viz-spa-dev (P6)
     └── Consumes analytics-core GraphQL → Renders dashboard
 ```
 
-Both services align with cursor-sim API via shared `api-contract` skill.
+**Isolation**: cursor-sim-cli-dev modifies only CLI code to protect API contracts.
+Both P5/P6 services align with cursor-sim API via shared `api-contract` skill.
 
 ---
 
