@@ -101,6 +101,14 @@ func run(ctx context.Context, cfg *config.Config) error {
 	}
 	log.Printf("Generated model usage events\n")
 
+	// Generate client version events
+	log.Printf("Generating client version events...\n")
+	versionGen := generator.NewVersionGenerator(seedData, store, cfg.Velocity)
+	if err := versionGen.GenerateClientVersions(ctx, cfg.Days); err != nil {
+		return fmt.Errorf("failed to generate client versions: %w", err)
+	}
+	log.Printf("Generated client version events\n")
+
 	// Create HTTP router
 	router := server.NewRouter(store, seedData, DefaultAPIKey)
 
