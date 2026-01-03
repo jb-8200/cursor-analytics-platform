@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 6.0h / 25-30h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 8.0h / 25-30h est |
 | P6-F01 | Viz SPA | IN PROGRESS | 7.5h / 24.0h est |
 
 ---
@@ -79,6 +79,17 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P5-F01 Step 05: GraphQL Schema (January 3, 2026)
+
+- Created complete GraphQL schema with all types (Developer, DailyStats, TeamStats, DashboardKPI)
+- Set up Apollo Server 4 with proper configuration
+- Implemented GraphQL context with PrismaClient and CursorSimClient
+- Built health check resolver with DB and simulator status
+- Implemented DateTime scalar for proper date handling
+- Comprehensive test coverage: 14 tests for server, 3 for context
+- Updated index.ts to use new Apollo Server setup with graceful shutdown
+- Time: 2.0h actual / 2.0h estimated
 
 ### P6 TASK03: Core Layout Components & Routing (January 3, 2026)
 
