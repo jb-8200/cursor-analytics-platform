@@ -79,7 +79,8 @@
       "Bash(docker ps:*)",
       "Bash(npm start)",
       "Bash(jq:*)",
-      "Bash(docker-compose down:*)"
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose build:*)"
     ],
     "deny": [],
     "ask": []
