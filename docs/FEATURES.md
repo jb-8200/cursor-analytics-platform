@@ -767,5 +767,3 @@ The following v1.0 features are replaced by v2.0 equivalents:
 | SIM-004: CLI Configuration | DEPRECATED | SIM-R002: CLI v2 |
 | SIM-005: Team Structure Simulation | DEPRECATED | Loaded from seed |
 | SIM-006: Realistic Time Patterns | RETAINED | Integrated into SIM-R003 |
-
-The v1.0 code is archived at `services/cursor-sim-v1/` for reference.

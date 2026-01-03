@@ -21,7 +21,7 @@ This document breaks down features into actionable implementation tasks for curs
 
 ## v1.0 Tasks (ARCHIVED)
 
-The v1.0 tasks (TASK-SIM-001 through TASK-SIM-007) are archived. See `services/cursor-sim-v1/` for reference implementation. The following v1 tasks were completed:
+The v1.0 tasks (TASK-SIM-001 through TASK-SIM-007) are archived. The following v1 tasks were completed:
 
 | v1.0 Task | Status | Reuse in v2 |
 |-----------|--------|-------------|
@@ -51,9 +51,8 @@ The v1.0 tasks (TASK-SIM-001 through TASK-SIM-007) are archived. See `services/c
 Create the v2 project structure by copying from v1 and updating module paths.
 
 **Implementation Steps:**
-1. Archive v1: `mv services/cursor-sim services/cursor-sim-v1`
-2. Create new v2 directory: `mkdir -p services/cursor-sim`
-3. Copy reusable infrastructure: Makefile, Dockerfile, .golangci.yml
+1. Create new v2 directory: `mkdir -p services/cursor-sim`
+2. Copy reusable infrastructure: Makefile, Dockerfile, .golangci.yml
 4. Initialize go.mod with same module path
 5. Create v2 directory structure:
    ```

@@ -13,8 +13,8 @@ Create the v2 project structure by archiving v1 and setting up the new directory
 
 ## Acceptance Criteria
 
-- [ ] v1 code archived to `services/cursor-sim-v1/`
-- [ ] New v2 directory created at `services/cursor-sim/`
+- [x] v1 code removed (archived code deleted)
+- [x] New v2 directory created at `services/cursor-sim/`
 - [ ] go.mod initialized with correct module path
 - [ ] Directory structure matches design.md
 - [ ] Makefile copied and updated
@@ -23,13 +23,7 @@ Create the v2 project structure by archiving v1 and setting up the new directory
 
 ## Implementation Steps
 
-### 1. Archive v1
-
-```bash
-mv services/cursor-sim services/cursor-sim-v1
-```
-
-### 2. Create v2 Directory Structure
+### 1. Create v2 Directory Structure
 
 ```bash
 mkdir -p services/cursor-sim/{cmd/simulator,internal/{config,seed,models,generator,storage,api/cursor},testdata}
@@ -82,6 +76,6 @@ Copy from v1 or create minimal config.
 
 ## Definition of Done
 
-- v1 archived, v2 structure in place
+- v2 structure in place
 - Build succeeds, linter passes
 - Commit with message following template
