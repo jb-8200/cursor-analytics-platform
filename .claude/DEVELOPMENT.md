@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F02 | Stub Completion | COMPLETE | 11.9h / 12.5h est |
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
-| **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 5.5h / 14.0h est |
+| **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 6.0h / 14.0h est |
 | P5-F01 | Analytics Core | IN PROGRESS | 18.0h / 25-30h est |
 | P6-F01 | Viz SPA | COMPLETE | 24.5h / 24.0h est ✅ |
 | **P7-F01** | **Local Docker Deploy** | **COMPLETE** | 2.5h / 4.0h est ✅ |
@@ -53,9 +53,9 @@ Phase (P#) = Epic level
 ### Current Features (Parallel Development)
 
 #### P4-F02: CLI Enhancement
-**Progress**: 5/14 tasks (36%) - 5.5h / 14.0h
-**Recently Completed**: TASK-CLI-05 - Integrate Replicator into Seed Loading
-**Next**: TASK-CLI-06 - E2E Test for Developer Replication
+**Progress**: 6/14 tasks (43%) - 6.0h / 14.0h
+**Recently Completed**: TASK-CLI-06 - E2E Test for Developer Replication (Feature 2 COMPLETE)
+**Next**: TASK-CLI-07 - Add Max Commit Tracking to Generator
 
 #### P5-F01: cursor-analytics-core
 **Progress**: 9/10 steps (90%) - 18.0h / 25-30h
