@@ -93,6 +93,14 @@ func run(ctx context.Context, cfg *config.Config) error {
 	allCommits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
 	log.Printf("Generated %d commits across %d developers\n", len(allCommits), len(seedData.Developers))
 
+	// Generate model usage events
+	log.Printf("Generating model usage events...\n")
+	modelGen := generator.NewModelGenerator(seedData, store, cfg.Velocity)
+	if err := modelGen.GenerateModelUsage(ctx, cfg.Days); err != nil {
+		return fmt.Errorf("failed to generate model usage: %w", err)
+	}
+	log.Printf("Generated model usage events\n")
+
 	// Create HTTP router
 	router := server.NewRouter(store, seedData, DefaultAPIKey)
 
