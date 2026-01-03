@@ -101,12 +101,24 @@
 - Commit: 77e5025
 - **SDD Violation**: Fixed task.md update (commit e8f4a31)
 
-**Next Task**: C03 - Revert Chain Analysis
-- Estimated: 2.5h
+**C03 Complete** ✅ (2.5h estimated / 2.5h actual)
+- RevertEvent and RevertAnalysis models
+- RevertService with probabilistic risk calculation
+- GET /repos/{owner}/{repo}/analysis/reverts endpoint
+- Sigmoid risk function: AI ratio + seniority + activity level
+- Pattern matching for revert detection
+- Risk capped at 15% maximum
+- Reproducible with seeded RNG
+- All tests passing (15/15 packages, 11 new tests)
+- Files: `quality.go`, `reverts.go`, `reverts_test.go`, `analysis.go`, `analysis_test.go`, `router.go`
+- Commit: (pending)
+
+**Next Task**: C04 - Hotfix Tracking
+- Estimated: 2.0h
 - Status: Ready to start
-- Detect revert commits via pattern matching
-- Calculate revert risk score (sigmoid function)
-- Handler for GET /repos/{owner}/{repo}/analysis/reverts
+- Detect fix-PRs within 48h window
+- File path overlap detection
+- Handler for GET /repos/{owner}/{repo}/analysis/hotfixes
 
 ### Active Symlink
 

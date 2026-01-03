@@ -1,6 +1,7 @@
 package github
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -71,6 +72,61 @@ func SurvivalAnalysisHandler(store storage.Store) http.Handler {
 		// Override the formatted dates to match the original query parameters
 		analysis.CohortEnd = cohortEndFormatted
 		analysis.ObservationDate = observationDateFormatted
+
+		respondJSON(w, http.StatusOK, analysis)
+	})
+}
+
+// RevertAnalysisHandler returns an HTTP handler for GET /repos/{owner}/{repo}/analysis/reverts.
+// It analyzes revert rates for PRs in a repository.
+func RevertAnalysisHandler(store storage.Store) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		repoName := parseRepoFromPath(r.URL.Path)
+		if repoName == "" {
+			respondError(w, http.StatusBadRequest, "invalid repository path")
+			return
+		}
+
+		// Parse query parameters
+		windowDaysStr := r.URL.Query().Get("window_days")
+		sinceStr := r.URL.Query().Get("since")
+		untilStr := r.URL.Query().Get("until")
+
+		// Default window: 7 days
+		windowDays := 7
+		if windowDaysStr != "" {
+			fmt.Sscanf(windowDaysStr, "%d", &windowDays)
+			if windowDays <= 0 {
+				windowDays = 7
+			}
+		}
+
+		// Default time range: last 30 days
+		now := time.Now()
+		since := now.AddDate(0, 0, -30)
+		until := now
+
+		if sinceStr != "" {
+			if parsed, err := time.Parse("2006-01-02", sinceStr); err == nil {
+				since = parsed
+			}
+		}
+
+		if untilStr != "" {
+			if parsed, err := time.Parse("2006-01-02", untilStr); err == nil {
+				until = parsed.Add(24 * time.Hour) // Include full day
+			}
+		} else {
+			until = until.Add(24 * time.Hour) // Include full current day
+		}
+
+		// Calculate revert metrics
+		svc := services.NewRevertService(store)
+		analysis, err := svc.GetReverts(repoName, windowDays, since, until)
+		if err != nil {
+			respondError(w, http.StatusInternalServerError, "failed to calculate reverts: "+err.Error())
+			return
+		}
 
 		respondJSON(w, http.StatusOK, analysis)
 	})

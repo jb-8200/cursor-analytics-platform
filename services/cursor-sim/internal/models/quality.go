@@ -36,3 +36,32 @@ type DeveloperSurvival struct {
 	LinesSurviving int     `json:"lines_surviving"`
 	SurvivalRate   float64 `json:"survival_rate"`
 }
+
+// RevertEvent tracks a revert commit that reverses a previous PR.
+type RevertEvent struct {
+	RepoName      string    `json:"repo_name"`
+	PRNumber      int       `json:"pr_number"`
+	RevertCommit  string    `json:"revert_commit"`  // SHA of the revert commit
+	OriginalPR    int       `json:"original_pr"`    // PR number that was reverted
+	MergedAt      time.Time `json:"merged_at"`      // When original PR was merged
+	RevertedAt    time.Time `json:"reverted_at"`    // When revert commit was created
+	DaysToRevert  float64   `json:"days_to_revert"` // Time between merge and revert
+	RevertMessage string    `json:"revert_message"` // Commit message of revert
+}
+
+// RevertedPR represents a PR that was reverted in the response.
+type RevertedPR struct {
+	PRNumber     int     `json:"pr_number"`
+	MergedAt     string  `json:"merged_at"`
+	RevertedAt   string  `json:"reverted_at"`
+	DaysToRevert float64 `json:"days_to_revert"`
+}
+
+// RevertAnalysis represents the aggregated revert metrics for a repository.
+type RevertAnalysis struct {
+	WindowDays       int          `json:"window_days"`
+	TotalPRsMerged   int          `json:"total_prs_merged"`
+	TotalPRsReverted int          `json:"total_prs_reverted"`
+	RevertRate       float64      `json:"revert_rate"`
+	RevertedPRs      []RevertedPR `json:"reverted_prs"`
+}
