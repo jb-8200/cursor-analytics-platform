@@ -80,6 +80,19 @@ No active symlink currently set
 
 ## Recently Completed
 
+### P5-F01 Step 07: Commit Resolvers (January 3, 2026)
+
+- Implemented commits query resolver fetching usage_events (accepted suggestions)
+- Added filtering by userId, team, and dateRange
+- Implemented cursor-based pagination with hasNextPage/hasPreviousPage
+- Support for sorting by timestamp (default desc) and author name
+- Built Commit field resolvers: timestamp(), author()
+- Added Commit type and CommitConnection to GraphQL schema
+- Comprehensive test coverage: 11 new tests for commit resolvers
+- Total test count: 63 passed (7 test suites)
+- All acceptance criteria met, build and lint successful
+- Time: 2.0h actual / 2.0h estimated
+
 ### P5-F01 Step 06: Developer Resolvers (January 3, 2026)
 
 - Implemented developer(id) query resolver with database lookup

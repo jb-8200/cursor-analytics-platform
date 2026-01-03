@@ -35,6 +35,19 @@ export const typeDefs = `#graphql
     ): DeveloperConnection!
 
     """
+    List commits (accepted AI suggestions) with optional filtering
+    """
+    commits(
+      userId: ID
+      team: String
+      dateRange: DateRangeInput
+      sortBy: String = "timestamp"
+      sortOrder: String = "desc"
+      limit: Int = 50
+      offset: Int = 0
+    ): CommitConnection!
+
+    """
     Get team statistics
     """
     teamStats(teamName: String!): TeamStats
@@ -101,6 +114,34 @@ export const typeDefs = `#graphql
     hasPreviousPage: Boolean!
     startCursor: String
     endCursor: String
+  }
+
+  # ===========================
+  # Commit Types
+  # ===========================
+
+  """
+  Commit (accepted AI suggestion) information
+  """
+  type Commit {
+    id: ID!
+    externalId: String!
+    timestamp: DateTime!
+    linesAdded: Int!
+    linesDeleted: Int!
+    modelUsed: String
+    tokensInput: Int!
+    tokensOutput: Int!
+    author: Developer!
+  }
+
+  """
+  Paginated commit list response
+  """
+  type CommitConnection {
+    nodes: [Commit!]!
+    totalCount: Int!
+    pageInfo: PageInfo!
   }
 
   # ===========================

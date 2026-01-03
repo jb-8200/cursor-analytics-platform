@@ -6,7 +6,7 @@
 **Framework**: Apollo Server 4 + Express
 **Database**: PostgreSQL 15+
 **Port**: 4000 (configurable)
-**Last Updated**: January 3, 2026 (Step 06 - Developer Resolvers complete)
+**Last Updated**: January 3, 2026 (Step 07 - Commit Resolvers complete)
 
 ## Implementation Status
 
@@ -18,7 +18,7 @@
 | 04 | Ingestion Worker | NOT_STARTED |
 | 05 | GraphQL Schema | ✅ COMPLETE |
 | 06 | Developer Resolvers | ✅ COMPLETE |
-| 07 | Commit Resolvers | NOT_STARTED |
+| 07 | Commit Resolvers | ✅ COMPLETE |
 | 08 | Metrics Service | NOT_STARTED |
 | 09 | Dashboard Summary | NOT_STARTED |
 | 10 | Integration & E2E Tests | NOT_STARTED |
@@ -203,7 +203,7 @@ enum DateRangePreset {
 type Query {
     # Single developer by ID
     developer(id: ID!): Developer
-    
+
     # List developers with optional filtering
     developers(
         team: String
@@ -213,23 +213,52 @@ type Query {
         sortBy: String = "name"
         sortOrder: String = "asc"
     ): DeveloperConnection!
-    
+
+    # List commits (accepted AI suggestions) with optional filtering
+    commits(
+        userId: ID
+        team: String
+        dateRange: DateRangeInput
+        sortBy: String = "timestamp"
+        sortOrder: String = "desc"
+        limit: Int = 50
+        offset: Int = 0
+    ): CommitConnection!
+
     # Team statistics
     teamStats(teamName: String!): TeamStats
     teams: [TeamStats!]!
-    
+
     # Dashboard summary - optimized for main dashboard view
     dashboardSummary(
         range: DateRangeInput
         preset: DateRangePreset
     ): DashboardKPI!
-    
+
     # Health check
     health: HealthStatus!
 }
 
 type DeveloperConnection {
     nodes: [Developer!]!
+    totalCount: Int!
+    pageInfo: PageInfo!
+}
+
+type Commit {
+    id: ID!
+    externalId: String!
+    timestamp: DateTime!
+    linesAdded: Int!
+    linesDeleted: Int!
+    modelUsed: String
+    tokensInput: Int!
+    tokensOutput: Int!
+    author: Developer!
+}
+
+type CommitConnection {
+    nodes: [Commit!]!
     totalCount: Int!
     pageInfo: PageInfo!
 }

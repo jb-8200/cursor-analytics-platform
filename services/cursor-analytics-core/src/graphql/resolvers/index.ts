@@ -2,16 +2,17 @@
  * Resolver Index
  *
  * Exports all GraphQL resolvers for the application.
- * Resolvers are modularized by domain (developer, dashboard, etc.)
+ * Resolvers are modularized by domain (developer, commit, dashboard, etc.)
  */
 
 import { developerResolvers } from './developer';
+import { commitResolvers } from './commit';
 import { GraphQLContext } from '../context';
 import { GraphQLError } from 'graphql';
 
 /**
  * Merge all resolvers into a single object
- * This includes Query, Developer field resolvers, DateTime scalar, etc.
+ * This includes Query, Developer, Commit field resolvers, DateTime scalar, etc.
  */
 export const resolvers = {
   Query: {
@@ -51,11 +52,19 @@ export const resolvers = {
 
     // Developer resolvers
     ...developerResolvers.Query,
+
+    // Commit resolvers
+    ...commitResolvers.Query,
   },
 
   // Developer field resolvers
   Developer: {
     ...developerResolvers.Developer,
+  },
+
+  // Commit field resolvers
+  Commit: {
+    ...commitResolvers.Commit,
   },
 
   // DateTime scalar resolver
