@@ -518,6 +518,12 @@ cat services/cursor-viz-spa/.env
 - Verify data is returned from GraphQL (Network tab)
 - Check if Recharts library is installed: `npm list recharts`
 
+**Dashboard shows placeholders, no GraphQL requests**:
+- Issue: Dashboard.tsx may be a placeholder component not using hooks
+- Verify Dashboard imports and uses `useDashboard` hook
+- Check that chart components are imported and rendered
+- Fixed in commit 57dc089 (integrated hooks with Dashboard page)
+
 ---
 
 ## Performance Testing

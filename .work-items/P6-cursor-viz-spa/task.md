@@ -247,8 +247,8 @@
 ### TASK06: GraphQL Queries & Custom Hooks
 
 **Estimated**: 4.0h
-**Status**: NOT_STARTED
-**Actual**: -
+**Status**: DONE
+**Actual**: 4.0h
 
 **Objective**: Define all GraphQL queries and create custom hooks.
 
@@ -276,6 +276,12 @@
 1. RED: Write test for useDashboard hook
 2. GREEN: Create hook with query
 3. REFACTOR: Add error handling and retries
+
+**Implementation Notes**:
+- Created `useDashboard`, `useDevelopers`, `useTeamStats` hooks using Apollo Client's `useQuery`
+- Defined GraphQL queries in `src/graphql/queries.ts` (GET_DASHBOARD_SUMMARY, GET_DEVELOPERS, GET_TEAM_STATS)
+- All hooks return { data, loading, error, refetch } with proper TypeScript types
+- **Post-Integration Fix (commit 57dc089)**: Dashboard.tsx was never updated to use hooks - fixed by integrating hooks with actual chart components and KPI cards
 
 ---
 
