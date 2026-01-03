@@ -4,19 +4,31 @@ Complete guide for running the cursor-analytics-platform stack locally with full
 
 ## Architecture Overview
 
+**Current Deployment (as of Jan 4, 2026):**
+
 ```
-┌─────────────────┐      ┌──────────────────────┐      ┌─────────────────────┐
-│   cursor-sim    │      │ cursor-analytics-core│      │  cursor-viz-spa     │
-│   (P4 - Go)     │─────▶│   (P5 - GraphQL)     │─────▶│  (P6 - React/Vite)  │
-│   Port 8080     │ REST │   Port 4000          │ GQL  │   Port 3000         │
-└─────────────────┘      └──────────────────────┘      └─────────────────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │    PostgreSQL       │
-                         │    Port 5432        │
-                         └─────────────────────┘
+┌─────────────────────────┐      ┌────────────────────────────────┐      ┌─────────────────────┐
+│   cursor-sim            │      │  cursor-analytics-core (P5)    │      │  cursor-viz-spa     │
+│   (P4 - Go)             │      │  ┌──────────────────────────┐  │      │  (P6 - React/Vite)  │
+│   Docker Container      │─────▶│  │  GraphQL (Port 4000)     │  │─────▶│  Local npm dev      │
+│   Port 8080             │ REST │  └──────────────────────────┘  │ GQL  │  Port 3000          │
+└─────────────────────────┘      │  ┌──────────────────────────┐  │      └─────────────────────┘
+                                 │  │  PostgreSQL (Port 5432)  │  │
+                                 │  │  (Internal to Docker)    │  │
+                                 │  └──────────────────────────┘  │
+                                 │  Docker Compose Stack         │
+                                 └────────────────────────────────┘
 ```
+
+**Deployment Models:**
+- **cursor-sim (P4)**: Docker container (`cursor-sim-local`)
+- **cursor-analytics-core (P5)**: Docker Compose stack with GraphQL + PostgreSQL
+- **cursor-viz-spa (P6)**: Local npm dev server (connects to P5 via `http://localhost:4000/graphql`)
+
+**Why This Architecture:**
+- P5 GraphQL and PostgreSQL run in same Docker network for reliable container-to-container communication
+- P6 runs locally for fast hot-reload development experience
+- P4 runs in Docker for consistent seed data and API simulation
 
 ## Quick Start (All Services)
 
@@ -523,6 +535,47 @@ cat services/cursor-viz-spa/.env
 - Verify Dashboard imports and uses `useDashboard` hook
 - Check that chart components are imported and rendered
 - Fixed in commit 57dc089 (integrated hooks with Dashboard page)
+
+**GraphQL schema mismatch errors (400 Bad Request)**:
+- Symptom: `Cannot query field "topPerformers" on type "TeamStats"`
+- Symptom: `Cannot query field "humanLinesAdded" on type "DailyStats"`
+- Root Cause: P6 GraphQL queries don't match P5's actual schema
+- **Critical Issue**: No automated schema validation between services
+- Investigation:
+  1. Check browser console for GraphQL errors
+  2. Compare P6 `src/graphql/queries.ts` with P5 `src/graphql/schema.ts`
+  3. Verify field names, types, and nullability match exactly
+- Fixed in commit 2dfd06b (aligned P6 queries with P5 schema)
+- **Prevention**: See "Data Contract Testing" section below
+
+**Import/export mismatches in React components**:
+- Symptom: `Uncaught SyntaxError: The requested module does not provide an export named 'X'`
+- Root Cause: Component uses `export default` but imported with named import `{ Component }`
+- Check: `tail -5 <ComponentFile.tsx>` to see export style
+- Fix: Change `import { Component }` to `import Component` for default exports
+
+---
+
+## Data Contract Testing (Added Jan 4, 2026)
+
+To prevent schema mismatches like the one encountered during integration:
+
+### Current Gap
+
+**Problem**: P6 defines its own GraphQL types (`src/graphql/types.ts`) independently from P5's schema (`src/graphql/schema.ts`), leading to drift and runtime errors.
+
+**Impact**:
+- Integration failures not caught until runtime
+- Manual schema synchronization required
+- TypeScript provides false sense of type safety
+
+### Recommended Solutions
+
+See `docs/data-contract-testing.md` for full strategy including:
+1. GraphQL Code Generator for type generation
+2. Apollo Studio schema registry
+3. Contract testing with GraphQL Inspector
+4. Pre-commit schema validation hooks
 
 ---
 

@@ -337,3 +337,142 @@
 - Full implementation depends on P5 (cursor-analytics-core) GraphQL schema
 - Can proceed with mock data for initial setup
 - Real integration testing will occur after P5 is deployed
+
+---
+
+## Integration Issues Encountered (Jan 4, 2026)
+
+During P5+P6 integration testing, several critical issues were discovered:
+
+### Issue 1: Dashboard Component Not Integrated (commit 57dc089)
+
+**Problem**: Dashboard.tsx was never updated from TASK03 placeholder to use hooks/components built in TASK04-TASK06.
+
+**Symptom**:
+- Dashboard showed "Chart placeholder" text
+- No GraphQL POST requests in browser Network tab
+- Components and hooks existed but were never connected
+
+**Root Cause**: TASK04-TASK06 completed components and hooks separately, but Dashboard page integration was skipped.
+
+**Fix**: Updated Dashboard.tsx to:
+- Import and call `useDashboard()` hook
+- Add loading/error states
+- Render KPI cards with real data
+- Pass data to VelocityHeatmap, TeamRadarChart, DeveloperTable
+
+**Lesson**: Task completion checklist should verify end-to-end integration, not just individual component creation.
+
+---
+
+### Issue 2: Import/Export Mismatches (commit 293f4fc)
+
+**Problem**: Chart components used `export default` but Dashboard imported them as named exports.
+
+**Symptom**: `Uncaught SyntaxError: The requested module does not provide an export named 'DeveloperTable'`
+
+**Fix**: Changed all chart imports from `import { Component }` to `import Component`.
+
+**Lesson**: Enforce consistent export style (all default OR all named) in ESLint config.
+
+---
+
+### Issue 3: Component Prop Type Mismatches (commit 26d3567)
+
+**Problem**: Dashboard created custom data objects that didn't match component prop interfaces.
+
+**Examples**:
+- VelocityHeatmap expected `DailyStats[]` but received custom `{ date, count, level }[]`
+- TeamRadarChart expected `data` and `selectedTeams` props but received `teams` prop
+- DeveloperTable expected `data` prop but received `developers` prop
+
+**Fix**: Pass data directly without transformation, matching component interfaces.
+
+**Lesson**: Component integration tests should validate prop contracts.
+
+---
+
+### Issue 4: GraphQL Schema Mismatches (commit 2dfd06b) ⚠️ CRITICAL
+
+**Problem**: P6 GraphQL queries didn't match P5's actual schema, causing 400 Bad Request errors.
+
+**Mismatches Found**:
+1. `TeamStats.topPerformers` (P6) → `TeamStats.topPerformer` (P5 actual)
+2. `DailyStats.humanLinesAdded` (P6) → `DailyStats.linesAdded` (P5 actual)
+3. `UsageStats.aiLinesDeleted` (P6) → doesn't exist in P5
+4. `UsageStats.humanLinesAdded` (P6) → `UsageStats.totalLinesAdded` (P5 actual)
+
+**Root Cause**:
+- P6 defined types manually in `src/graphql/types.ts` based on design docs
+- P5 schema evolved during implementation
+- No automated validation between P6 queries and P5 schema
+- TypeScript provided false sense of type safety (types matched local definitions, not server schema)
+
+**Symptom**:
+```
+[GraphQL error]: Cannot query field "topPerformers" on type "TeamStats"
+[GraphQL error]: Cannot query field "humanLinesAdded" on type "DailyStats"
+[Network error]: Response not successful: Received status code 400
+```
+
+**Fix**: Manually compared P6 queries with P5 `schema.ts` and aligned all fields.
+
+**Impact**: Integration completely broken until manual schema sync.
+
+**Prevention Strategy**: See `docs/data-contract-testing.md` for:
+- GraphQL Code Generator (auto-generate types from schema)
+- Schema validation in CI/CD
+- Contract testing with GraphQL Inspector
+- Pre-commit hooks for schema drift detection
+
+**Lesson**: **NEVER manually define GraphQL types in client code**. Always generate from server schema.
+
+---
+
+## Testing Gaps Identified
+
+Based on integration issues, the following test coverage gaps exist:
+
+### 1. Schema Contract Tests (Missing)
+- **Need**: Validate P6 queries against P5 schema before runtime
+- **Tool**: GraphQL Code Generator + GraphQL Inspector
+- **Frequency**: Pre-commit, CI/CD
+
+### 2. Component Integration Tests (Incomplete)
+- **Need**: Test that pages correctly use hooks and pass data to components
+- **Current**: Individual component tests exist, but page-level integration untested
+- **Gap**: Dashboard integration with useDashboard hook
+
+### 3. E2E Integration Tests (Missing)
+- **Need**: Full stack test (P4 → P5 → P6) with real data flow
+- **Current**: Only unit and component tests
+- **Gap**: No automated test verifying GraphQL queries work end-to-end
+
+### 4. Visual Regression Tests (Missing)
+- **Need**: Catch when components render placeholders instead of data
+- **Tool**: Playwright with screenshots
+- **Gap**: Dashboard placeholder issue would have been caught
+
+---
+
+## Recommendations for Future Features
+
+1. **Schema-First Development**:
+   - Define P5 schema changes first
+   - Generate P6 types automatically
+   - Never manually edit P6 types
+
+2. **Integration Test Per Feature**:
+   - Add E2E test that exercises full data flow
+   - Run in CI before merge
+
+3. **Component Prop Validation**:
+   - Add PropTypes or Zod validation
+   - Fail fast on prop type mismatches
+
+4. **Dashboard Integration Checklist**:
+   - [ ] Hook imported and called
+   - [ ] Data passed to components
+   - [ ] Loading state shown
+   - [ ] Error state shown
+   - [ ] Network request visible in DevTools

@@ -1,8 +1,8 @@
 # Development Session Context
 
-**Last Updated**: January 3, 2026
-**Active Features**: P4-F02-cli-enhancement
-**Primary Focus**: CLI Enhancement + P5/P6 Integration Testing
+**Last Updated**: January 4, 2026
+**Active Features**: None (Integration Testing Complete)
+**Primary Focus**: Documentation + Testing Strategy Enhancement
 
 ---
 
@@ -27,8 +27,9 @@ Phase (P#) = Epic level
 | **P3** | cursor-sim Research Framework | **COMPLETE** ✅ |
 | **P4** | cursor-sim Enhancements | **IN PROGRESS** |
 | **P5** | cursor-analytics-core | **COMPLETE** ✅ (9/10 steps, Step 04 deferred) |
-| **P6** | cursor-viz-spa | **COMPLETE** ✅ |
+| **P6** | cursor-viz-spa | **COMPLETE** ✅ (Integration Issues Resolved) |
 | **P7** | Deployment Infrastructure | **ON HOLD** (P7-F01 complete) |
+| **INTEGRATION** | P4+P5+P6 Full Stack | **COMPLETE** ✅ (Docker-based) |
 
 ### Feature Status
 
@@ -432,3 +433,111 @@ Both P5/P6 services align with cursor-sim API via shared `api-contract` skill.
 ---
 
 **Terminology**: Phase (epic) → Feature (work item) → Task (step)
+
+---
+
+## P5+P6 Integration Testing (January 4, 2026)
+
+### Integration Status: COMPLETE ✅
+
+**Architecture**:
+- **cursor-sim (P4)**: Docker container, port 8080
+- **cursor-analytics-core (P5)**: Docker Compose (GraphQL + PostgreSQL), port 4000
+- **cursor-viz-spa (P6)**: Local npm dev server, port 3000
+
+**Result**: Full stack integration successful after resolving 4 critical issues.
+
+### Issues Encountered & Resolved
+
+#### Issue 1: Dashboard Component Not Integrated (commit 57dc089)
+- **Problem**: Dashboard.tsx still placeholder, never used hooks/components
+- **Impact**: No GraphQL requests, charts showed placeholders
+- **Fix**: Integrated useDashboard hook, KPI cards, chart components
+- **Lesson**: Task checklists must verify end-to-end integration
+
+#### Issue 2: Import/Export Mismatches (commit 293f4fc)
+- **Problem**: Components used default exports, Dashboard used named imports
+- **Impact**: `SyntaxError: module does not provide export named 'X'`
+- **Fix**: Changed all chart imports to default style
+- **Lesson**: Enforce consistent export style in ESLint
+
+#### Issue 3: Component Prop Type Mismatches (commit 26d3567)
+- **Problem**: Dashboard created custom objects, not matching component props
+- **Impact**: TypeScript errors, components received wrong data shape
+- **Fix**: Pass data directly without transformation
+- **Lesson**: Component integration tests should validate prop contracts
+
+#### Issue 4: GraphQL Schema Mismatches (commit 2dfd06b) ⚠️ CRITICAL
+- **Problem**: P6 queries manually defined, didn't match P5 actual schema
+- **Impact**: 400 Bad Request, complete integration failure
+- **Mismatches**:
+  - `topPerformers` (P6) → `topPerformer` (P5)
+  - `humanLinesAdded` (P6) → `linesAdded` (P5)
+  - `aiLinesDeleted` (P6) → doesn't exist in P5
+- **Fix**: Manually aligned queries with P5 schema
+- **Lesson**: **NEVER manually define GraphQL types in client**
+
+### Documentation Created
+
+1. **docs/INTEGRATION.md**: Added troubleshooting, current architecture, data contract testing section
+2. **docs/data-contract-testing.md**: Comprehensive strategy for schema validation (NEW)
+3. **docs/e2e-testing-strategy.md**: E2E and integration testing plan (NEW)
+4. **.work-items/P6-cursor-viz-spa/task.md**: Documented all 4 integration issues + lessons
+
+### Testing Gaps Identified
+
+| Gap | Current | Proposed Solution |
+|-----|---------|-------------------|
+| Schema validation | None | GraphQL Code Generator + Inspector |
+| Component integration | Incomplete | Page-level integration tests |
+| E2E full stack | None | Playwright E2E tests |
+| Visual regression | None | Playwright snapshots |
+| Contract testing | None | GraphQL Inspector + CI validation |
+
+### Mitigation Plan: Data Contract Testing
+
+**Phase 1** (High Priority):
+- Install GraphQL Code Generator in P6
+- Auto-generate types from P5 schema
+- Add pre-commit validation
+
+**Phase 2** (Medium Priority):
+- Set up Apollo Studio schema registry
+- Breaking change detection
+- Schema versioning
+
+**Phase 3** (Medium Priority):
+- Contract testing with GraphQL Inspector
+- Pre-commit query validation
+
+**Phase 4** (Low Priority):
+- Visual regression testing with Playwright
+- E2E tests for critical paths
+
+**See**: `docs/data-contract-testing.md` for full implementation plan
+
+---
+
+## Next Steps
+
+### Short Term (This Week)
+- [x] Document integration issues and lessons learned
+- [x] Create data contract testing strategy
+- [x] Create E2E testing enhancement plan
+- [ ] Implement GraphQL Code Generator (Phase 1)
+- [ ] Add P6 component integration tests
+
+### Medium Term (Next 2 Weeks)
+- [ ] Set up Apollo Studio schema registry
+- [ ] Add Playwright E2E tests for Dashboard
+- [ ] Add visual regression baseline screenshots
+- [ ] Implement contract testing in CI/CD
+
+### Long Term (Next Month)
+- [ ] Complete E2E test coverage for all pages
+- [ ] Add performance testing with Lighthouse
+- [ ] Set up monitoring and alerts
+- [ ] Document testing best practices
+
+---
+
