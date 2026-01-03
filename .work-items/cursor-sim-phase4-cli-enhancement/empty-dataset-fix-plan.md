@@ -240,11 +240,13 @@ router := server.NewRouter(store, seedData, DefaultAPIKey)
 
 **Acceptance Criteria**:
 - ✅ All 8 endpoints return data (4 team + 4 by-user)
-- ✅ MCP tools are realistic ("read_file", "write_file", etc.)
-- ✅ Commands are valid ("explain", "refactor", "fix", etc.)
+- ✅ MCP tools are realistic ("read_file", "write_file", "search_web", "execute_command")
+- ✅ Commands are valid ("explain", "refactor", "fix", "optimize", "test")
 
 **Estimated**: 1.5h
-**Files**: `cmd/simulator/main.go`, `test/e2e/feature_analytics_test.go` (NEW)
+**Actual**: 1.5h
+**Status**: ✅ COMPLETE (Commit: a122e88)
+**Files**: `cmd/simulator/main.go`, `test/e2e/feature_analytics_test.go` (NEW, 9 tests)
 
 ---
 
