@@ -5,7 +5,7 @@
 **Feature**: cursor-analytics-core (GraphQL Aggregator)
 **Total Estimated Hours**: 25-30
 **Number of Steps**: 10
-**Current Step**: Step 07 - COMPLETE
+**Current Step**: Step 09 - COMPLETE
 
 ## Progress Tracker
 
@@ -19,7 +19,7 @@
 | 06 | Developer Resolvers | 2.5 | DONE | 2.5 |
 | 07 | Commit Resolvers | 2.0 | DONE | 2.0 |
 | 08 | Metrics Service | 3.0 | NOT_STARTED | - |
-| 09 | Dashboard Summary | 2.5 | NOT_STARTED | - |
+| 09 | Dashboard Summary | 2.5 | DONE | 2.5 |
 | 10 | Integration & E2E Tests | 3.0 | NOT_STARTED | - |
 
 ## Dependency Graph
@@ -333,25 +333,49 @@ tests/fixtures/commits.ts
 
 ---
 
-### Step 09: Dashboard Summary
+### Step 09: Dashboard Summary ✅ COMPLETE
+
+**Status**: DONE
+**Actual Time**: 2.5h
 
 **Tasks**:
-- [ ] Implement dashboardSummary resolver
-- [ ] Aggregate all KPIs
-- [ ] Top contributors query
-- [ ] Team stats resolver
-- [ ] Unit tests
+- [x] Implement dashboardSummary resolver
+- [x] Aggregate all KPIs
+- [x] Top contributors query (top performer)
+- [x] Team stats resolver
+- [x] Teams query resolver
+- [x] Unit tests
 
-**Files to Create**:
+**Files Created**:
 ```
 src/graphql/resolvers/dashboard.ts
-tests/unit/graphql/dashboard.test.ts
+src/graphql/resolvers/__tests__/dashboard.test.ts
+```
+
+**Files Updated**:
+```
+src/graphql/resolvers/index.ts (exported dashboard resolvers)
+SPEC.md (Step 09 marked complete)
 ```
 
 **Acceptance Criteria**:
-- Dashboard query returns all KPIs
-- Top contributors sorted correctly
-- Team stats work
+- ✅ Dashboard query returns all KPIs (totalDevelopers, activeDevelopers, overallAcceptanceRate, etc.)
+- ✅ Top performer identified by AI lines contributed
+- ✅ Team stats work with weighted averages
+- ✅ Teams query returns all teams with statistics
+- ✅ All 14 unit tests passing
+- ✅ Total test count: 101 passed
+- ✅ Build successful
+- ✅ Lint clean (dashboard.ts)
+
+**Key Features Implemented**:
+- Query resolvers: dashboardSummary(), teamStats(), teams()
+- Date range support with presets (TODAY, LAST_7_DAYS, etc.)
+- Weighted team acceptance rate (activity-based, not simple average)
+- Weighted team AI velocity calculation
+- Daily trend calculation for time-series visualization
+- Team comparison across organization
+- Top performer identification per team
 
 ---
 

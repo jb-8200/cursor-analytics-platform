@@ -28,7 +28,7 @@ Phase (P#) = Epic level
 | **P4** | cursor-sim Enhancements | **IN PROGRESS** |
 | **P5** | cursor-analytics-core | **IN PROGRESS** |
 | **P6** | cursor-viz-spa | **IN PROGRESS** |
-| **P7** | Deployment Infrastructure | TODO |
+| **P7** | Deployment Infrastructure | **IN PROGRESS** |
 
 ### Feature Status
 
@@ -41,7 +41,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **IN PROGRESS** | 5.5h / 14.0h est |
-| P5-F01 | Analytics Core | IN PROGRESS | 15.5h / 25-30h est |
+| P5-F01 | Analytics Core | IN PROGRESS | 18.0h / 25-30h est |
 | P6-F01 | Viz SPA | IN PROGRESS | 19.0h / 24.0h est |
 | P7-F01 | Local Docker Deploy | TODO | 0h / 4.0h est |
 | P7-F02 | GCP Cloud Run Deploy | TODO | 0h / 4.5h est |
@@ -58,9 +58,9 @@ Phase (P#) = Epic level
 **Next**: TASK-CLI-06 - E2E Test for Developer Replication
 
 #### P5-F01: cursor-analytics-core
-**Progress**: 8/10 steps (80%) - 15.5h / 25-30h
-**Recently Completed**: Step 08 - Metrics Service with weighted calculations
-**Next**: Step 09 - (Next implementation step)
+**Progress**: 9/10 steps (90%) - 18.0h / 25-30h
+**Recently Completed**: Step 09 - Dashboard Summary Resolvers
+**Next**: Step 10 - Integration & E2E Tests (Final step)
 
 #### P6-F01: cursor-viz-spa
 **Progress**: 6/7 tasks (86%) - 19.0h / 24.0h
