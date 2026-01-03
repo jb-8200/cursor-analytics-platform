@@ -139,12 +139,46 @@ SPEC → TEST → CODE → REFACTOR → REFLECT → SYNC → COMMIT
 
 ---
 
+## Subagent Infrastructure
+
+Parallel development enabled via specialized subagents:
+
+### Available Subagents
+
+| Subagent | Service | Tech Stack | Port |
+|----------|---------|------------|------|
+| `analytics-core-dev` | P5: cursor-analytics-core | TypeScript, Apollo Server, GraphQL | 4000 |
+| `viz-spa-dev` | P6: cursor-viz-spa | React 18+, Vite, Apollo Client, Tailwind | 3000 |
+
+### Shared Skills
+
+| Skill | Purpose |
+|-------|---------|
+| `api-contract` | cursor-sim API reference (endpoints, models, responses) |
+| `typescript-graphql-patterns` | Apollo Server, resolvers, error handling |
+| `react-vite-patterns` | React hooks, Apollo Client, Tailwind patterns |
+
+### Architecture
+
+```
+Main Agent (Chief Architect)
+├── analytics-core-dev (P5)
+│   └── Consumes cursor-sim REST → Exposes GraphQL
+└── viz-spa-dev (P6)
+    └── Consumes analytics-core GraphQL → Renders dashboard
+```
+
+Both services align with cursor-sim API via shared `api-contract` skill.
+
+---
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` | Operational spine |
 | `.claude/DEVELOPMENT.md` | This file - session context |
+| `.claude/agents/` | Subagent definitions |
 | `docs/spec-driven-design.md` | Full SDD methodology |
 | `services/cursor-sim/SPEC.md` | cursor-sim specification |
 
