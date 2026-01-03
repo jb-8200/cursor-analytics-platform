@@ -1,6 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { BrowserRouter, useSearchParams } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { useUrlState } from './useUrlState';
 import { ReactNode } from 'react';
 
@@ -115,7 +115,7 @@ describe('useUrlState', () => {
   });
 
   it('should sync state when URL changes externally', () => {
-    const { result, rerender } = renderHook(() => useUrlState('testKey', 'default'), {
+    const { rerender } = renderHook(() => useUrlState('testKey', 'default'), {
       wrapper: RouterWrapper,
     });
 

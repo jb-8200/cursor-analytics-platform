@@ -1,24 +1,43 @@
 import { render, RenderOptions } from '@testing-library/react';
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
+import { ApolloProvider } from '@apollo/client';
+import { MemoryRouter, MemoryRouterProps } from 'react-router-dom';
+import { createApolloClient } from '../graphql/client';
+
+/**
+ * Options for renderWithProviders function
+ */
+export interface TestRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+  /**
+   * Initial route entries for MemoryRouter
+   * @default ['/']
+   */
+  routerProps?: MemoryRouterProps;
+}
 
 /**
  * Custom render function that wraps components with necessary providers
- * Can be extended to include Apollo Provider, Router, etc. as needed
+ * Includes Apollo Provider with test client and React Router's MemoryRouter
  */
 export function renderWithProviders(
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  options?: TestRenderOptions
 ) {
-  // Add providers here as they are implemented
-  // const AllProviders = ({ children }: { children: React.ReactNode }) => {
-  //   return (
-  //     <ApolloProvider client={mockClient}>
-  //       <BrowserRouter>{children}</BrowserRouter>
-  //     </ApolloProvider>
-  //   );
-  // };
+  const { routerProps, ...renderOptions } = options || {};
 
-  return render(ui, { ...options });
+  // Create a test Apollo client instance
+  // MSW will intercept the GraphQL requests
+  const testClient = createApolloClient();
+
+  function AllProviders({ children }: { children: ReactNode }) {
+    return (
+      <ApolloProvider client={testClient}>
+        <MemoryRouter {...routerProps}>{children}</MemoryRouter>
+      </ApolloProvider>
+    );
+  }
+
+  return render(ui, { wrapper: AllProviders, ...renderOptions });
 }
 
 export * from '@testing-library/react';

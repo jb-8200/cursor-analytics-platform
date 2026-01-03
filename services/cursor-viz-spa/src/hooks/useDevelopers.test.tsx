@@ -162,7 +162,7 @@ describe('useDevelopers', () => {
         );
       };
 
-      const { result } = renderHook(() => useDevelopers(undefined, pagination), { wrapper });
+      const { result } = renderHook(() => useDevelopers(pagination), { wrapper });
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

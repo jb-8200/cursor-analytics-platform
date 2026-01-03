@@ -7,6 +7,7 @@
 
 import { developerResolvers } from './developer';
 import { commitResolvers } from './commit';
+import { dashboardResolvers } from './dashboard';
 import { GraphQLContext } from '../context';
 import { GraphQLError } from 'graphql';
 
@@ -55,6 +56,9 @@ export const resolvers = {
 
     // Commit resolvers
     ...commitResolvers.Query,
+
+    // Dashboard resolvers
+    ...dashboardResolvers.Query,
   },
 
   // Developer field resolvers

@@ -94,3 +94,6 @@ export function createApolloClient(): ApolloClient<unknown> {
 
 // Export singleton instance for use in the app
 export const apolloClient = createApolloClient();
+
+// Default export for convenience
+export default apolloClient;

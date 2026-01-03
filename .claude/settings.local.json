@@ -50,7 +50,21 @@
       "Bash(npx prisma migrate:*)",
       "Bash(npm run db:generate:*)",
       "Bash(npx eslint:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Skill(spec-user-story)",
+      "Bash(docker build:*)",
+      "Bash(docker images:*)",
+      "Bash(docker history:*)",
+      "Bash(docker inspect:*)",
+      "Bash(docker run:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)",
+      "Bash(DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
+      "Bash(PORT=8081 DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
+      "Bash(REBUILD=true PORT=8081 DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
+      "Bash(PORT=8082 DAYS=30 VELOCITY=high DETACH=true /Users/jbellish/VSProjects/cursor-analytics-platform/tools/docker-local.sh:*)",
+      "Bash(npm run lint:fix:*)"
     ],
     "deny": [],
     "ask": []

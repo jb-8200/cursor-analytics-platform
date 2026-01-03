@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test artifacts
+coverage.out
+coverage.html
+*.test
+
+# Documentation (not needed in image)
+*.md
+docs/
+LICENSE
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CI/CD
+.github/
+
+# Docker files (don't include in build context)
+Dockerfile*
+.dockerignore
+
+# Environment files
+.env
+.env.local
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+testdata/*.log

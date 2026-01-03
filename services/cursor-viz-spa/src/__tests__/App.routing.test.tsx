@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MemoryRouter } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import Dashboard from '../pages/Dashboard';

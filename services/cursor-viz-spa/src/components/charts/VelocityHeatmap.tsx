@@ -239,23 +239,24 @@ const VelocityHeatmap: React.FC<VelocityHeatmapProps> = ({
                 : `${dateStr}: No activity`;
 
               return (
-                <rect
-                  key={`cell-${weekIndex}-${dayIndex}`}
-                  data-testid={`heatmap-cell-${cellIndex}`}
-                  x={weekIndex * (CELL_SIZE + CELL_GAP)}
-                  y={dayIndex * (CELL_SIZE + CELL_GAP)}
-                  width={CELL_SIZE}
-                  height={CELL_SIZE}
-                  fill={color}
-                  stroke="#1b1f230a"
-                  strokeWidth="1"
-                  rx="2"
-                  title={tooltip}
-                  aria-label={tooltip}
-                  className="cursor-pointer hover:stroke-gray-400 transition-all"
-                  onClick={() => handleCellClick(date)}
-                  tabIndex={weekIndex === 0 && dayIndex === 0 ? 0 : -1}
-                />
+                <g key={`cell-${weekIndex}-${dayIndex}`}>
+                  <title>{tooltip}</title>
+                  <rect
+                    data-testid={`heatmap-cell-${cellIndex}`}
+                    x={weekIndex * (CELL_SIZE + CELL_GAP)}
+                    y={dayIndex * (CELL_SIZE + CELL_GAP)}
+                    width={CELL_SIZE}
+                    height={CELL_SIZE}
+                    fill={color}
+                    stroke="#1b1f230a"
+                    strokeWidth="1"
+                    rx="2"
+                    aria-label={tooltip}
+                    className="cursor-pointer hover:stroke-gray-400 transition-all"
+                    onClick={() => handleCellClick(date)}
+                    tabIndex={weekIndex === 0 && dayIndex === 0 ? 0 : -1}
+                  />
+                </g>
               );
             })
           )}

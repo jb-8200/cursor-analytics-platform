@@ -25,7 +25,7 @@ describe('useDateRange', () => {
       const customRange = {
         from: new Date('2026-01-01'),
         to: new Date('2026-01-10'),
-        preset: 'CUSTOM',
+        preset: 'CUSTOM' as const,
       };
 
       const { result } = renderHook(() => useDateRange(customRange));
@@ -43,7 +43,7 @@ describe('useDateRange', () => {
       const newRange = {
         from: new Date('2026-01-01'),
         to: new Date('2026-01-15'),
-        preset: 'CUSTOM',
+        preset: 'CUSTOM' as const,
       };
 
       act(() => {

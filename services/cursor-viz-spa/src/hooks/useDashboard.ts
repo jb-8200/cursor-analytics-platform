@@ -1,7 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { GET_DASHBOARD_SUMMARY } from '../graphql/queries';
 import type {
-  DashboardSummary,
   DateRangeInput,
   GetDashboardSummaryResponse,
 } from '../graphql/types';

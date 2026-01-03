@@ -2,25 +2,20 @@ import { useQuery } from '@apollo/client';
 import { GET_DEVELOPERS } from '../graphql/queries';
 import type {
   GetDevelopersResponse,
-  DeveloperFilters,
-  PaginationInput,
+  DeveloperQueryInput,
 } from '../graphql/types';
 
 /**
  * Custom hook for fetching developers list
  *
- * @param filters - Optional filters (team, seniority)
- * @param pagination - Optional pagination parameters
+ * @param queryInput - Optional query parameters (team, limit, offset, search)
  * @returns Developers list with loading and error states
  */
-export function useDevelopers(filters?: DeveloperFilters, pagination?: PaginationInput) {
+export function useDevelopers(queryInput?: DeveloperQueryInput) {
   const { data, loading, error, refetch, fetchMore } = useQuery<GetDevelopersResponse>(
     GET_DEVELOPERS,
     {
-      variables: {
-        ...( filters && { filters }),
-        ...(pagination && { pagination }),
-      },
+      variables: queryInput || {},
       fetchPolicy: 'cache-and-network',
       notifyOnNetworkStatusChange: true,
     }
@@ -29,6 +24,7 @@ export function useDevelopers(filters?: DeveloperFilters, pagination?: Paginatio
   return {
     developers: data?.developers?.nodes || [],
     pageInfo: data?.developers?.pageInfo,
+    totalCount: data?.developers?.totalCount || 0,
     loading,
     error,
     refetch,

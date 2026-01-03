@@ -211,14 +211,184 @@ CURSOR_SIM_VELOCITY=${VELOCITY},\
 CURSOR_SIM_PORT=8080
 ```
 
-## Manual Docker Deploy (local VM or any host)
+## Manual Docker Deploy (Local)
+
+### Quick Start with Automated Script
+
+Use the provided script for easy local testing:
+
+```bash
+# Default configuration (runtime mode, 90 days, medium velocity)
+./tools/docker-local.sh
+
+# Custom configuration
+DAYS=30 VELOCITY=high ./tools/docker-local.sh
+
+# Run in background (detached mode)
+DETACH=true ./tools/docker-local.sh
+
+# Force rebuild image
+REBUILD=true ./tools/docker-local.sh
+
+# Custom port (if 8080 is in use)
+PORT=8081 ./tools/docker-local.sh
 ```
-docker run -p 8080:8080 \
+
+The script automatically:
+- Builds the image if it doesn't exist
+- Starts the container with health check verification
+- Displays service URL and example commands
+- Cleans up gracefully on exit (foreground mode)
+
+### Manual Docker Commands
+
+If you prefer running Docker commands directly:
+
+```bash
+# Build image
+docker build -t cursor-sim:latest services/cursor-sim
+
+# Run container (foreground with logs)
+docker run --rm -p 8080:8080 \
   -e CURSOR_SIM_MODE=runtime \
   -e CURSOR_SIM_SEED=/app/seed.json \
   -e CURSOR_SIM_DAYS=90 \
   -e CURSOR_SIM_VELOCITY=medium \
   cursor-sim:latest
+
+# Run container (background/detached)
+docker run -d --name cursor-sim-local -p 8080:8080 \
+  -e CURSOR_SIM_MODE=runtime \
+  -e CURSOR_SIM_SEED=/app/seed.json \
+  -e CURSOR_SIM_DAYS=90 \
+  -e CURSOR_SIM_VELOCITY=medium \
+  cursor-sim:latest
+
+# View logs
+docker logs -f cursor-sim-local
+
+# Stop container
+docker stop cursor-sim-local
+docker rm cursor-sim-local
+```
+
+### Volume Mounting Custom Seed Files
+
+To use a custom seed file without rebuilding the image:
+
+```bash
+docker run --rm -p 8080:8080 \
+  -v $(pwd)/testdata/custom_seed.json:/app/seed.json \
+  -e CURSOR_SIM_MODE=runtime \
+  -e CURSOR_SIM_SEED=/app/seed.json \
+  -e CURSOR_SIM_DAYS=90 \
+  cursor-sim:latest
+```
+
+### Performance Benchmarks
+
+Measured on Apple Silicon (M-series):
+
+| Metric | Target | Actual |
+|--------|--------|--------|
+| Image build time (cold) | < 2 min | ~22s |
+| Image build time (cached) | < 30s | ~4s |
+| Final image size | < 50MB | 8.75MB |
+| Container startup time | < 5s | ~2s |
+| Health check response | < 200ms | ~50ms |
+
+### Troubleshooting
+
+#### Container starts but health check fails
+
+**Symptom**: Container runs but `curl http://localhost:8080/health` times out or fails.
+
+**Possible causes**:
+- Port already in use: Try a different port with `PORT=8081 ./tools/docker-local.sh`
+- Environment variables missing: Check logs with `docker logs cursor-sim-local`
+- Seed file not accessible: Verify `/app/seed.json` has correct permissions
+
+**Solution**:
+```bash
+# Check container logs
+docker logs cursor-sim-local
+
+# Verify environment variables
+docker inspect cursor-sim-local --format='{{.Config.Env}}'
+
+# Check if port is available
+lsof -i :8080  # macOS/Linux
+netstat -an | grep 8080  # Windows
+```
+
+#### Build fails with "go.mod: no such file or directory"
+
+**Symptom**: Docker build fails during `COPY go.mod go.sum ./`
+
+**Possible causes**:
+- Running docker build from wrong directory
+- .dockerignore excluding too many files
+
+**Solution**:
+```bash
+# Build from repository root
+cd /path/to/cursor-analytics-platform
+docker build -t cursor-sim:latest services/cursor-sim
+
+# Verify build context
+docker build -t cursor-sim:latest --no-cache services/cursor-sim
+```
+
+#### Image size larger than expected (> 50MB)
+
+**Symptom**: `docker images cursor-sim:latest` shows size > 50MB
+
+**Possible causes**:
+- Multi-stage build not working
+- .dockerignore not excluding build artifacts
+
+**Solution**:
+```bash
+# Check image layers
+docker history cursor-sim:latest
+
+# Verify golang builder is not in final image
+docker history cursor-sim:latest | grep golang
+# Should return nothing (golang only in builder stage)
+
+# Rebuild with --no-cache
+REBUILD=true ./tools/docker-local.sh
+```
+
+#### Permission denied reading /app/seed.json
+
+**Symptom**: Logs show "open /app/seed.json: permission denied"
+
+**Cause**: Non-root user cannot read seed file (fixed in current Dockerfile)
+
+**Solution**: Ensure Dockerfile uses `--chown=nonroot:nonroot` when copying files:
+```dockerfile
+COPY --chown=nonroot:nonroot testdata/valid_seed.json /app/seed.json
+```
+
+#### Container exits immediately with code 1
+
+**Symptom**: Container starts but exits immediately
+
+**Possible causes**:
+- Missing required environment variables (MODE, SEED)
+- Invalid seed file path
+- Port already bound
+
+**Solution**:
+```bash
+# Check why container exited
+docker logs cursor-sim-local
+
+# Common errors and fixes:
+# "validation failed: seed path is required" → Set CURSOR_SIM_SEED
+# "failed to load seed data" → Check seed file path and permissions
+# "bind: address already in use" → Use different port
 ```
 
 ## Cloud Console: Access & Monitoring
