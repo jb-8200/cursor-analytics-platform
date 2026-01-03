@@ -47,6 +47,10 @@ func RepoRouter(store storage.Store) http.Handler {
 		case strings.Contains(path, "/commits") && !strings.Contains(path, "/pulls") && countPathSegments(path) == 6:
 			GetCommit(store).ServeHTTP(w, r)
 
+		// GET /repos/{owner}/{repo}/analysis/survival
+		case strings.Contains(path, "/analysis/survival"):
+			SurvivalAnalysisHandler(store).ServeHTTP(w, r)
+
 		default:
 			respondError(w, http.StatusNotFound, "route not found")
 		}

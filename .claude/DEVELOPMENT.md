@@ -86,14 +86,26 @@
 - Greenfield index calculation for PR files
 - All tests passing (15/15 packages)
 - Files: `commits.go`, `commits_test.go`, `files.go`, `files_test.go`, `router.go`
+- Commit: 68a81aa
+
+**C02 Complete** ✅ (3.0h estimated / actual TBD)
+- FileSurvival model with file lifecycle tracking
+- SurvivalService with cohort-based survival calculation
+- GET /repos/{owner}/{repo}/analysis/survival endpoint
+- File birth/death tracking via commit patterns
+- Developer breakdown with individual survival rates
+- Probabilistic deletion model (sigmoid-based)
+- Reproducible results with seeded RNG
+- All tests passing (15/15 packages, 9 new tests)
+- Files: `quality.go`, `survival.go`, `survival_test.go`, `analysis.go`, `analysis_test.go`
 - Commit: (pending)
 
-**Next Task**: C02 - Code Survival Calculator (File-Level)
-- Estimated: 3.0h
+**Next Task**: C03 - Revert Chain Analysis
+- Estimated: 2.5h
 - Status: Ready to start
-- Track file-level code survival across commits
-- Implement SurvivalService and FileSurvival model
-- Handler for GET /repos/{owner}/{repo}/analysis/survival
+- Detect revert commits via pattern matching
+- Calculate revert risk score (sigmoid function)
+- Handler for GET /repos/{owner}/{repo}/analysis/reverts
 
 ### Active Symlink
 
