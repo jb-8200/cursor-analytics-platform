@@ -26,7 +26,7 @@ Phase (P#) = Epic level
 | **P2** | cursor-sim GitHub Simulation | TODO |
 | **P3** | cursor-sim Research Framework | **COMPLETE** ✅ |
 | **P4** | cursor-sim Enhancements | **IN PROGRESS** |
-| **P5** | cursor-analytics-core | TODO |
+| **P5** | cursor-analytics-core | **IN PROGRESS** |
 | **P6** | cursor-viz-spa | TODO |
 
 ### Feature Status
@@ -40,7 +40,7 @@ Phase (P#) = Epic level
 | P3-F03 | Quality Analysis | COMPLETE | 17.5h / 18.5h est |
 | P4-F01 | Empty Dataset Fixes | COMPLETE | 4.5h / 5.0h est |
 | **P4-F02** | **CLI Enhancement** | **READY** | 0h / 18.5h est |
-| P5-F01 | Analytics Core | TODO | - |
+| P5-F01 | Analytics Core | IN PROGRESS | 1.5h / 25-30h est |
 | P6-F01 | Viz SPA | TODO | - |
 
 ---

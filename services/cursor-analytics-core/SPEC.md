@@ -1,11 +1,27 @@
 # SPEC.md - Aggregator Service (cursor-analytics-core)
 
-**Service**: cursor-analytics-core  
-**Type**: Backend API Service  
-**Language**: TypeScript (Node.js 20+)  
-**Framework**: Apollo Server 4 + Express  
-**Database**: PostgreSQL 15+  
-**Port**: 4000 (configurable)  
+**Service**: cursor-analytics-core
+**Type**: Backend API Service
+**Language**: TypeScript (Node.js 20+)
+**Framework**: Apollo Server 4 + Express
+**Database**: PostgreSQL 15+
+**Port**: 4000 (configurable)
+**Last Updated**: January 3, 2026
+
+## Implementation Status
+
+| Step | Description | Status |
+|------|-------------|--------|
+| 01 | Project Setup | ✅ COMPLETE |
+| 02 | Database Schema & Migrations | NOT_STARTED |
+| 03 | cursor-sim REST Client | NOT_STARTED |
+| 04 | Ingestion Worker | NOT_STARTED |
+| 05 | GraphQL Schema | NOT_STARTED |
+| 06 | Developer Resolvers | NOT_STARTED |
+| 07 | Commit Resolvers | NOT_STARTED |
+| 08 | Metrics Service | NOT_STARTED |
+| 09 | Dashboard Summary | NOT_STARTED |
+| 10 | Integration & E2E Tests | NOT_STARTED |
 
 ## Overview
 
