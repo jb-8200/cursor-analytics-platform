@@ -36,7 +36,21 @@
       "Bash(chmod:*)",
       "Bash(/tmp/test_all_endpoints.sh)",
       "Bash(ls:*)",
-      "Bash(readlink:*)"
+      "Bash(readlink:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)",
+      "Bash(npm test)",
+      "Skill(dependency-reflection)",
+      "Skill(spec-sync-check)",
+      "Bash(npm run test:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx prisma init)",
+      "Bash(npm test:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npm run db:generate:*)",
+      "Bash(npx eslint:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
