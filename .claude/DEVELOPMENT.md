@@ -61,20 +61,39 @@
 - ✅ All tests passing (15/15 packages, 62 E2E test cases)
 - ⏱️ Actual: 11.9h / Estimated: 12.5h (5% under budget)
 
-### Current Focus: Part C - GitHub Simulation + Quality Analysis (REVISED)
+### Current Focus: Part C - GitHub Simulation + Quality Analysis
 
 > **Design Decisions Finalized** (January 3, 2026):
-> - PR Generation: Session-based, on-the-fly from commit groupings
+> - PR Generation: Session-based, on-the-fly from commit groupings ✅ COMPLETE
 > - Greenfield: First commit timestamp for file
 > - Quality Correlations: Probabilistic with sigmoid risk score
 > - Code Survival: File-level tracking
 > - Replay Mode: Deferred to Phase 3D
 
-**Next Task**: C00 - PR Generation Pipeline (CRITICAL)
-- Estimated: 4.0h
+**C00 Complete** ✅ (4.0h estimated / actual TBD)
+- Session model with seniority-based parameters (junior/mid/senior)
+- PR grouping with inactivity gap (15-60m), max commits rules
+- 58 generator tests passing (0 failures)
+- Backwards-compatible API for e2e tests
+- Files: `session.go`, `session_test.go`, `pr_generator.go`, `pr_generator_test.go`, `pr_generator_integration_test.go`
+- Commit: 005cb62
+
+**C01 Complete** ✅ (2.0h estimated / actual TBD)
+- All 12 GitHub routes wired to router (ListRepos, RepoRouter with nested routes)
+- All 5 Research routes wired to router (DatasetHandler, VelocityMetricsHandler, ReviewCostMetricsHandler, QualityMetricsHandler)
+- Implemented missing handlers: ListCommits, GetCommit, ListPullCommits, ListPullFiles
+- Implemented RepoRouter for dynamic GitHub API routing
+- Greenfield index calculation for PR files
+- All tests passing (15/15 packages)
+- Files: `commits.go`, `commits_test.go`, `files.go`, `files_test.go`, `router.go`
+- Commit: (pending)
+
+**Next Task**: C02 - Code Survival Calculator (File-Level)
+- Estimated: 3.0h
 - Status: Ready to start
-- Files: `internal/generator/pr_generator.go`, `internal/generator/session.go`
-- Prerequisite for all other Part C tasks
+- Track file-level code survival across commits
+- Implement SurvivalService and FileSurvival model
+- Handler for GET /repos/{owner}/{repo}/analysis/survival
 
 ### Active Symlink
 
@@ -82,7 +101,7 @@
 .claude/plans/active -> ../../.work-items/cursor-sim-phase3/task.md
 ```
 
-**Currently working on**: cursor-sim Phase 3 Part B (Stub Completion)
+**Currently working on**: cursor-sim Phase 3 Part C (GitHub Simulation + Quality Analysis)
 
 ---
 

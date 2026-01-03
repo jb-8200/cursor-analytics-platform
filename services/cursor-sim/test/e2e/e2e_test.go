@@ -38,7 +38,7 @@ func setupTestServer(t *testing.T) (context.CancelFunc, *storage.MemoryStore) {
 	require.NoError(t, err)
 
 	// Create and start HTTP server
-	router := server.NewRouter(store, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", testPort),
 		Handler: router,

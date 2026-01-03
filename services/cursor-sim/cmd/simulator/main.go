@@ -88,7 +88,7 @@ func run(ctx context.Context, cfg *config.Config) error {
 	log.Printf("Generated %d commits across %d developers\n", len(allCommits), len(seedData.Developers))
 
 	// Create HTTP router
-	router := server.NewRouter(store, DefaultAPIKey)
+	router := server.NewRouter(store, seedData, DefaultAPIKey)
 
 	// Start HTTP server
 	httpServer := &http.Server{

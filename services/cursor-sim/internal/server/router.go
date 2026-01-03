@@ -6,11 +6,15 @@ import (
 
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/cursor"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/github"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/research"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
 )
 
 // NewRouter creates and configures the HTTP router with all endpoints and middleware.
-func NewRouter(store storage.Store, apiKey string) http.Handler {
+func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Handler {
 	mux := http.NewServeMux()
 
 	// Health check (no auth required)
@@ -48,6 +52,18 @@ func NewRouter(store storage.Store, apiKey string) http.Handler {
 	mux.Handle("/analytics/by-user/commands", cursor.ByUserCommands(store))
 	mux.Handle("/analytics/by-user/plans", cursor.ByUserPlans(store))
 	mux.Handle("/analytics/by-user/ask-mode", cursor.ByUserAskMode(store))
+
+	// GitHub Simulation API (12 endpoints)
+	mux.Handle("/repos", github.ListRepos(store))
+	mux.Handle("/repos/", github.RepoRouter(store))
+
+	// Research API (5 endpoints)
+	// Create research generator from seed data
+	researchGen := generator.NewResearchGenerator(seedData.(*seed.SeedData), store)
+	mux.Handle("/research/dataset", research.DatasetHandler(researchGen))
+	mux.Handle("/research/metrics/velocity", research.VelocityMetricsHandler(researchGen))
+	mux.Handle("/research/metrics/review-costs", research.ReviewCostMetricsHandler(researchGen))
+	mux.Handle("/research/metrics/quality", research.QualityMetricsHandler(researchGen))
 
 	// Apply middleware (reverse order: Logger wraps RateLimit wraps BasicAuth wraps mux)
 	limiter := api.NewRateLimiter(100, time.Minute)
