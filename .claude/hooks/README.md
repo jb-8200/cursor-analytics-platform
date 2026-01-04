@@ -193,8 +193,8 @@ echo $?
 
 | Hook | Script | Configured? |
 |------|--------|-------------|
-| Pre-commit validation | `pre_commit.py` | ⚠️ Needs `/hooks` setup |
-| Markdown formatter | `markdown_formatter.py` | ⚠️ Needs `/hooks` setup |
-| SDD reminder | `sdd_reminder.py` | ⚠️ Needs `/hooks` setup |
+| Pre-commit validation | `pre_commit.py` | ✅ Configured |
+| Markdown formatter | `markdown_formatter.py` | ✅ Configured |
+| SDD reminder | `sdd_reminder.py` | ✅ Configured |
 
-Run `/hooks` to configure these for your session.
+All hooks are configured in `.claude/settings.local.json` and ready to use.
