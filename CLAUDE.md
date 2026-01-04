@@ -90,6 +90,37 @@ After **every** task, follow `sdd-checklist`:
 
 ---
 
+## Subagent Orchestration Protocol
+
+When using subagents for parallel development:
+
+### Master Agent Responsibilities
+
+1. **Task Delegation**: Spawn subagents with clear context and scope
+2. **Code Review**: Review all subagent changes for quality and consistency
+3. **E2E Testing**: Run full-stack tests, fix cross-service issues directly
+4. **Documentation**: Update DEVELOPMENT.md and plan folder after E2E passes
+5. **Final Commit**: Commit all changes including E2E fixes and docs
+
+### Subagent Constraints
+
+- **ONLY** update `.work-items/{feature}/task.md`
+- **NEVER** update `.claude/DEVELOPMENT.md` (master agent only)
+- **NEVER** modify plan folder symlinks
+- **FOCUS** on assigned service (no cross-service changes)
+
+### Completion Flow
+
+```
+Subagent → Update task.md → Report completion
+    ↓
+Master Agent → Code review → E2E testing → Fix issues → Update docs → Commit
+```
+
+**Full Protocol**: `.work-items/P0-F01-sdd-subagent-orchestration/design.md`
+
+---
+
 ## Commands
 
 | Command | Purpose |
