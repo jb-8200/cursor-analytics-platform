@@ -145,6 +145,56 @@ See `hooks/README.md` for detailed setup instructions.
 
 ---
 
+## When to Use What
+
+Claude Code has multiple ways to encode instructions. Each solves a different problem:
+
+### Selection Table
+
+| Feature | Location | Behavior | Use For |
+|---------|----------|----------|---------|
+| **Rules** | `.claude/rules/` | Always loaded, always applied | Security, coding standards, SDD enforcement |
+| **Commands** | `.claude/commands/` | Invoked with `/command` | Workflows, deployments, status checks |
+| **Skills** | `.claude/skills/` | Auto-triggered by context | Knowledge, patterns, guidance |
+| **Agents** | `.claude/agents/` | Spawned for isolated tasks | Parallel service development |
+| **Hooks** | `settings.local.json` | Run on tool events | Formatting, validation, reminders |
+| **Memory** | `CLAUDE.md` | Always included | Project overview, key instructions |
+
+### Decision Tree
+
+When adding a new instruction:
+
+1. **Must ALWAYS happen, no exceptions?**
+   → **Rule** in `.claude/rules/` (enforcement)
+
+2. **User explicitly invokes with `/command`?**
+   → **Command** in `.claude/commands/` (workflows)
+
+3. **Provides knowledge when context matches?**
+   → **Skill** in `.claude/skills/` (guidance)
+
+4. **Needs isolated context for parallel work?**
+   → **Agent** in `.claude/agents/` (coordination)
+
+5. **Runs automatically on tool events?**
+   → **Hook** in `settings.local.json` (automation)
+
+6. **Project-wide context always needed?**
+   → **Memory** in `CLAUDE.md` (global context)
+
+### Examples
+
+| Instruction | Type | Location | Why |
+|-------------|------|----------|-----|
+| "Never commit secrets" | Rule | `rules/01-security.md` | Must always apply |
+| "Show project status" | Command | `commands/status.md` | User invokes `/status` |
+| "Go error handling patterns" | Skill | `skills/go-best-practices/` | Activates when writing Go |
+| "Work on P4 CLI only" | Agent | `agents/cursor-sim-cli-dev.md` | Isolated scope for subagent |
+| "Format markdown after edit" | Hook | `settings.local.json` | Auto-runs on Edit/Write |
+| "This is a monorepo with 3 services" | Memory | `CLAUDE.md` | Always-on context |
+
+---
+
 ## SDD Workflow Quick Reference
 
 ### Session Start
