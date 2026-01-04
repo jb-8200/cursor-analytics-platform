@@ -382,6 +382,30 @@ services/cursor-sim/
 └── README.md             # This file
 ```
 
+## Platform Integration
+
+cursor-sim (P4) is part of the Cursor Analytics Platform:
+
+```
+cursor-sim (P4) → cursor-analytics-core (P5) → cursor-viz-spa (P6)
+  Docker          Docker Compose             Local npm dev
+  Port 8080       Port 4000 (GraphQL)        Port 3000
+                  Port 5432 (PostgreSQL)
+```
+
+### Integration Status (January 4, 2026)
+
+✅ **P4+P5 Integration**: Complete
+- cursor-sim provides REST API for historical data
+- cursor-analytics-core consumes and transforms to GraphQL
+- Both services run in Docker for local development
+
+### Related Documentation
+
+- **Platform Architecture**: [docs/DESIGN.md](../../docs/DESIGN.md)
+- **Integration Guide**: [docs/INTEGRATION.md](../../docs/INTEGRATION.md)
+- **Data Contract Testing**: [docs/data-contract-testing.md](../../docs/data-contract-testing.md)
+
 ## Support
 
 - **Specification:** [services/cursor-sim/SPEC.md](./SPEC.md)

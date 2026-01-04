@@ -99,18 +99,54 @@ npm run codegen
 
 This requires cursor-analytics-core to be running on port 4000.
 
+**IMPORTANT**: Always run `npm run codegen` after pulling schema changes from cursor-analytics-core to prevent data contract mismatches. See [Data Contract Testing Strategy](../../docs/data-contract-testing.md) for mitigation plan.
+
 ## Testing
 
-- Unit tests: Component and hook testing
-- Integration tests: Full page rendering with mocked API
-- Coverage target: 80%
+### Test Coverage (as of January 4, 2026)
+
+- **Unit tests**: Component and hook testing (80%+ coverage)
+- **Integration tests**: Full page rendering with mocked API
+- **E2E tests**: Playwright tests with visual regression (proposed)
+- **Coverage target**: 80%
+
+### Integration Testing Status
+
+✅ **P5+P6 Integration Complete** (January 4, 2026)
+
+All critical integration issues resolved:
+1. Dashboard component integration with hooks/charts
+2. Import/export consistency across chart components
+3. Component prop type alignment
+4. GraphQL schema synchronization with P5
+
+See [Integration Guide](../../docs/INTEGRATION.md) for current architecture and troubleshooting.
+
+### Testing Strategy
+
+See [E2E Testing Strategy](../../docs/e2e-testing-strategy.md) for comprehensive testing approach including:
+- Component integration tests
+- GraphQL schema validation
+- E2E tests with Playwright
+- Visual regression testing
+- CI/CD integration
 
 ## Documentation
+
+### Service Documentation
 
 - **Specification**: `SPEC.md`
 - **User Story**: `.work-items/P6-cursor-viz-spa/user-story.md`
 - **Design**: `.work-items/P6-cursor-viz-spa/design.md`
 - **Tasks**: `.work-items/P6-cursor-viz-spa/task.md`
+
+### Platform Documentation
+
+- **Architecture**: `../../docs/DESIGN.md`
+- **Integration Guide**: `../../docs/INTEGRATION.md`
+- **Data Contract Testing**: `../../docs/data-contract-testing.md`
+- **E2E Testing Strategy**: `../../docs/e2e-testing-strategy.md`
+- **Mitigation Plan**: `../../docs/MITIGATION-PLAN.md`
 
 ## Dependencies
 
