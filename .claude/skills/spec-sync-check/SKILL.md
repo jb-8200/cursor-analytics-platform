@@ -1,6 +1,6 @@
 ---
 name: spec-sync-check
-description: Determines if SPEC.md needs updating after implementation changes. Triggers automatically when completing tasks that modify endpoints, models, services, or complete phases. Use when finishing any implementation task.
+description: Determines if SPEC.md needs updating after implementation changes. Triggers automatically when completing tasks that modify endpoints, models, services, or complete phases. Use when finishing any implementation task. (project)
 ---
 
 # SPEC.md Sync Check

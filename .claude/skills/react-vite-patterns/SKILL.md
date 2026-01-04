@@ -1,6 +1,6 @@
 ---
 name: react-vite-patterns
-description: React and Vite best practices for cursor-viz-spa dashboard. Use when implementing React components, Apollo Client queries, Tailwind styling, or Vite configuration. Covers hooks, state management, and data visualization patterns.
+description: React and Vite best practices for cursor-viz-spa dashboard. Use when implementing React components, Apollo Client queries, Tailwind styling, or Vite configuration. Covers hooks, state management, and data visualization patterns. (project)
 ---
 
 # React & Vite Patterns

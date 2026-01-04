@@ -1,6 +1,6 @@
 ---
 name: cursor-api-patterns
-description: Cursor Business API implementation patterns. Use when implementing API endpoints, writing HTTP handlers, handling authentication, pagination, error responses, or CSV exports. Covers response formats for AI Code Tracking, Analytics, and Admin APIs.
+description: Cursor Business API implementation patterns. Use when implementing API endpoints, writing HTTP handlers, handling authentication, pagination, error responses, or CSV exports. Covers response formats for AI Code Tracking, Analytics, and Admin APIs. (project)
 ---
 
 # Cursor API Patterns

@@ -1,6 +1,6 @@
 ---
 name: go-best-practices
-description: Go coding standards for cursor-sim service. Use when writing Go code, implementing HTTP handlers, creating structs, handling errors, or writing Go tests. Covers naming conventions, error handling, concurrency, and testing patterns.
+description: Go coding standards for cursor-sim service. Use when writing Go code, implementing HTTP handlers, creating structs, handling errors, or writing Go tests. Covers naming conventions, error handling, concurrency, and testing patterns. (project)
 ---
 
 # Go Best Practices

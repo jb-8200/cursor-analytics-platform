@@ -1,6 +1,6 @@
 ---
 name: api-contract
-description: cursor-sim API contract reference. Use when implementing services that consume cursor-sim data (analytics-core, viz-spa), ensuring API alignment, or verifying response formats. Source of truth for data models and endpoint contracts.
+description: cursor-sim API contract reference. Use when implementing services that consume cursor-sim data (analytics-core, viz-spa), ensuring API alignment, or verifying response formats. Source of truth for data models and endpoint contracts. (project)
 ---
 
 # cursor-sim API Contract

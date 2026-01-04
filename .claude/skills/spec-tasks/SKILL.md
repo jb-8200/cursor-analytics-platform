@@ -1,6 +1,6 @@
 ---
 name: spec-tasks
-description: Create or revise task breakdowns for feature implementation. Use when decomposing features into work units, planning sprints, or tracking implementation progress. Produces task.md files with progress tracker and TDD approach.
+description: Create or revise task breakdowns for feature implementation. Use when decomposing features into work units, planning sprints, or tracking implementation progress. Produces task.md files with progress tracker and TDD approach. (project)
 ---
 
 # Task Breakdown Standard

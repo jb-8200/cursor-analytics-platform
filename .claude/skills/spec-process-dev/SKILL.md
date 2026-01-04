@@ -1,6 +1,6 @@
 ---
 name: spec-process-dev
-description: TDD (Test-Driven Development) workflow for implementation. Use when writing code, implementing features, or fixing bugs. Covers RED-GREEN-REFACTOR cycle, test patterns, and coverage requirements.
+description: TDD (Test-Driven Development) workflow for implementation. Use when writing code, implementing features, or fixing bugs. Covers RED-GREEN-REFACTOR cycle, test patterns, and coverage requirements. (project)
 ---
 
 # Development Process (TDD Workflow)

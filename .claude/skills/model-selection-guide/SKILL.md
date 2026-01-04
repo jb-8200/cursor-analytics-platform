@@ -1,6 +1,6 @@
 ---
 name: model-selection-guide
-description: Guide for selecting the right Claude model (Haiku, Sonnet, Opus) for different tasks. Use when starting a new task, planning implementation, or optimizing costs. Helps choose between fast/cheap Haiku and powerful Sonnet/Opus.
+description: Guide for selecting the right Claude model (Haiku, Sonnet, Opus) for different tasks. Use when starting a new task, planning implementation, or optimizing costs. Helps choose between fast/cheap Haiku and powerful Sonnet/Opus. (project)
 model: haiku
 ---
 

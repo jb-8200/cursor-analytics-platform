@@ -1,6 +1,6 @@
 ---
 name: spec-design
-description: Create or revise technical design documents. Use when planning architecture, making component decisions, designing interfaces, or documenting ADRs (Architecture Decision Records). Produces design.md files with rationale and alternatives.
+description: Create or revise technical design documents. Use when planning architecture, making component decisions, designing interfaces, or documenting ADRs (Architecture Decision Records). Produces design.md files with rationale and alternatives. (project)
 ---
 
 # Design Document Standard

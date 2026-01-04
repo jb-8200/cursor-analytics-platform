@@ -1,6 +1,6 @@
 ---
 name: spec-user-story
-description: Create or revise user stories following EARS format. Use when writing PRDs, feature narratives, acceptance criteria, or product requirements. Produces user-story.md files with As-a/I-want/So-that and Given-When-Then criteria.
+description: Create or revise user stories following EARS format. Use when writing PRDs, feature narratives, acceptance criteria, or product requirements. Produces user-story.md files with As-a/I-want/So-that and Given-When-Then criteria. (project)
 ---
 
 # User Story Standard

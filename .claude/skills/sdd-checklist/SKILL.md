@@ -1,6 +1,6 @@
 ---
 name: sdd-checklist
-description: Post-task completion checklist for Spec-Driven Development. Use after completing any implementation task to ensure proper commit hygiene. Triggers on "task complete", "step done", "ready to commit", or moving to next task.
+description: Post-task completion checklist for Spec-Driven Development. Use after completing any implementation task to ensure proper commit hygiene. Triggers on "task complete", "step done", "ready to commit", or moving to next task. (project)
 ---
 
 # SDD Checklist

@@ -1,6 +1,6 @@
 ---
 name: dependency-reflection
-description: Identifies required updates to related files after primary changes. Use after completing any code changes to detect documentation drift, missing test updates, and cross-file dependencies. Triggers on refactoring, model changes, or interface modifications.
+description: Identifies required updates to related files after primary changes. Use after completing any code changes to detect documentation drift, missing test updates, and cross-file dependencies. Triggers on refactoring, model changes, or interface modifications. (project)
 ---
 
 # Dependency Reflection Check

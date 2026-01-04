@@ -127,24 +127,31 @@ Or override:
 
 ## Integration with Skills
 
-Commands automatically use skills in `.claude/skills/` (categorized):
+Commands use skills from `.claude/skills/` for relevant guidance:
 
-**Process** (`.claude/skills/process/`):
-- `spec-process-core.md` - Core SDD principles
-- `spec-process-dev.md` - TDD workflow
+**SDD Workflow Skills**:
+- `spec-process-core` - Core SDD principles
+- `spec-process-dev` - TDD workflow
+- `sdd-checklist` - Post-task completion guidance
+- `dependency-reflection` - Dependency checking
+- `spec-sync-check` - SPEC.md update triggers
 
-**Standards** (`.claude/skills/standards/`):
-- `spec-user-story.md` - User story format
-- `spec-design.md` - Design doc format
-- `spec-tasks.md` - Task breakdown format
+**Documentation Skills**:
+- `spec-user-story` - User story format
+- `spec-design` - Design doc format
+- `spec-tasks` - Task breakdown format
 
-**Guidelines** (`.claude/skills/guidelines/`):
-- `go-best-practices.md` - Go standards
-- `cursor-api-patterns.md` - API patterns
+**Language/Framework Skills**:
+- `go-best-practices` - Go standards
+- `cursor-api-patterns` - API patterns
+- `typescript-graphql-patterns` - GraphQL patterns
+- `react-vite-patterns` - React patterns
+- `api-contract` - cursor-sim API reference
 
-**Operational** (`.claude/skills/operational/`):
-- `sdd-checklist.md` - **CRITICAL**: Post-task commit enforcement
-- `model-selection-guide.md` - Model recommendations
+**Selection & Optimization**:
+- `model-selection-guide` - Model recommendations
+
+See `.claude/skills/README.md` for complete skill catalog.
 
 ---
 

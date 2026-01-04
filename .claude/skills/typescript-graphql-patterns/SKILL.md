@@ -1,6 +1,6 @@
 ---
 name: typescript-graphql-patterns
-description: TypeScript and GraphQL best practices for cursor-analytics-core. Use when implementing GraphQL schemas, resolvers, TypeScript services, or data fetching. Covers type safety, error handling, and Apollo Server patterns.
+description: TypeScript and GraphQL best practices for cursor-analytics-core. Use when implementing GraphQL schemas, resolvers, TypeScript services, or data fetching. Covers type safety, error handling, and Apollo Server patterns. (project)
 ---
 
 # TypeScript & GraphQL Patterns

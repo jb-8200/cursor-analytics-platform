@@ -1,6 +1,6 @@
 ---
 name: spec-process-core
-description: Core SDD (Spec-Driven Development) process. Use when starting development work, planning features, or asking about workflow. Covers the fundamental sequence of Spec, Test, Code, Refactor, Commit.
+description: Core SDD (Spec-Driven Development) process. Use when starting development work, planning features, or asking about workflow. Covers the fundamental sequence of Spec, Test, Code, Refactor, Commit. (project)
 ---
 
 # Core SDD Process
