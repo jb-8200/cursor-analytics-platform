@@ -136,10 +136,10 @@ No active symlink currently set
 - Defined 5 protocol phases: Delegation → Execution → Review → E2E → Documentation
 - Added task.md update format for subagents
 - Updated CLAUDE.md with protocol reference and completion flow
-- Created 3 agent prompt templates (.claude/prompts/):
-  - cursor-sim-cli-dev-template.md (P4 CLI-only scope)
-  - analytics-core-dev-template.md (P5 GraphQL/TypeScript)
-  - viz-spa-dev-template.md (P6 React/Vite/Apollo)
+- Created 3 subagent command templates (.claude/commands/subagent/):
+  - cursor-sim-cli.md (P4 CLI-only scope)
+  - analytics-core.md (P5 GraphQL/TypeScript)
+  - viz-spa.md (P6 React/Vite/Apollo)
 - Protocol now active and enforced through CLAUDE.md
 - Time: 1.0h actual / 4.0h estimated (Tasks 02-05 pre-documented)
 
