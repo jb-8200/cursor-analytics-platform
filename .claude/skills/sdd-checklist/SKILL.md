@@ -5,11 +5,13 @@ description: Post-task completion checklist for Spec-Driven Development. Use aft
 
 # SDD Checklist
 
-**Purpose**: Enforce SDD methodology after every completed task.
+**Purpose**: Detailed guidance for SDD task completion workflow.
 
-## CRITICAL: After Every Task Completion
+**ENFORCEMENT**: See `.claude/rules/04-sdd-process.md` for MUST/NEVER requirements.
 
-When you complete a task and all tests pass, **you MUST**:
+## After Every Task Completion: 7-Step Workflow
+
+Follow these steps after completing a task and verifying tests pass:
 
 ### 1. Verify Tests Pass
 
@@ -108,47 +110,22 @@ EOF
 
 ### 7. Only Then Proceed to Next Task
 
-**NEVER** move to the next task before:
-1. Tests passing
-2. **Reflections checked** ← NEW
-3. **SPEC.md synced if triggered** ← NEW
-4. Code committed (including SPEC.md if updated)
-5. Progress documented
+Verify all steps complete before moving forward.
 
-## Why This Matters
+**See `.claude/rules/04-sdd-process.md` for enforcement requirements.**
 
-**Without commits:**
-- Work can be lost
-- History is unclear
-- Collaboration breaks
-- Can't track progress
-- Hard to debug issues
+## Workflow Context
 
-**Enhanced SDD Flow:**
+The SDD workflow ties together:
+- **SPEC**: What needs to be done
+- **TEST**: Verify expectations
+- **CODE**: Minimal implementation
+- **REFLECT**: Check dependencies (dependency-reflection skill)
+- **SYNC**: Update SPEC.md (spec-sync-check skill)
+- **COMMIT**: Record progress
+- **NEXT**: Move forward confidently
 
-```
-Spec → Tests → Implementation → Tests Pass → REFLECT → SYNC → COMMIT → Next Task
-                                              ^^^^^^^^  ^^^^^^  ^^^^^^
-                                           Check deps  Update  Include
-                                                       SPEC.md all docs
-```
-
-## Red Flags
-
-If you catch yourself saying any of these **WITHOUT committing first**:
-- "Now let's move to Step B02..."
-- "Ready for the next step?"
-- "Step B01 complete! Would you like to continue..."
-
-**STOP** and commit first!
-
-## Correct Pattern
-
-1. "Step B01 complete. Let me check reflections and SPEC.md sync..."
-2. [Runs dependency-reflection and spec-sync-check]
-3. [Updates SPEC.md if triggered]
-4. [Stages files including SPEC.md, commits, updates docs]
-5. "Commit complete. Ready to start Step B02?"
+Each step builds on the previous, ensuring quality and clarity.
 
 ## Integration with TodoWrite
 
