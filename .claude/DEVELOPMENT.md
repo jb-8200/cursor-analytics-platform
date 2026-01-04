@@ -39,6 +39,7 @@ Phase (P#) = Epic level
 | **P0-F01** | **SDD Subagent Orchestration** | **COMPLETE** ✅ | **1.0h / 4.0h est** |
 | **P0-F02** | **Rules Layer Implementation** | **COMPLETE** ✅ | **3.0h / 3.0h est** |
 | **P0-F03** | **Skills Cleanup & Catalog** | **COMPLETE** ✅ | **1.5h / 1.5h est** |
+| **P0-F04** | **Commands/Prompts Restructure** | **COMPLETE** ✅ | **1.0h / 1.0h est** |
 | P1-F01 | Foundation | COMPLETE | 10.75h / 44.5h est |
 | P2-F01 | PR Lifecycle | TODO | - |
 | P3-F01 | Research Framework | COMPLETE | 1.75h / 15-20h est |
@@ -82,6 +83,29 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P0-F04: Commands/Prompts Restructure - COMPLETE ✅ (January 4, 2026)
+
+**Slash command structure for subagent orchestration**
+
+- Created `.claude/commands/subagent/` directory with 3 subagent commands
+- **cursor-sim-cli.md**: P4 CLI-only scope, enforces service constraints
+- **analytics-core.md**: P5 GraphQL/TypeScript scope
+- **viz-spa.md**: P6 React/Vite scope
+- Added YAML frontmatter to all commands (description, argument-hint, allowed-tools)
+- Converted {placeholder} syntax to $1, $2 argument substitution
+- Removed `.claude/prompts/` directory (old template location)
+- Updated DEVELOPMENT.md to reference new command location
+- Time: 1.0h actual / 1.0h estimated (on schedule)
+
+**Key Improvements**:
+- Proper Claude Code command structure (not ad-hoc prompts)
+- Arguments work with slash command invocation (e.g., `/subagent/cursor-sim-cli P4-F02 TASK07`)
+- Frontmatter enables tool restrictions and proper command discovery
+- References rules/skills instead of inline constraints
+- Cleaner file organization
+
+---
 
 ### P0-F03: Skills Cleanup & Catalog - COMPLETE ✅ (January 4, 2026)
 
