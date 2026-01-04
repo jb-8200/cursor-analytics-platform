@@ -2,7 +2,7 @@
 name: viz-spa-dev
 description: React/Vite specialist for cursor-viz-spa dashboard (P6). Use for implementing React components, data visualization, Apollo Client integration, and Tailwind styling. Consumes analytics-core GraphQL. Follows SDD methodology.
 model: sonnet
-skills: api-contract, spec-process-core, spec-tasks
+skills: react-vite-patterns, spec-process-core, spec-tasks
 ---
 
 # cursor-viz-spa Developer

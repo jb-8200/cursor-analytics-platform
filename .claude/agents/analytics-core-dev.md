@@ -2,7 +2,7 @@
 name: analytics-core-dev
 description: TypeScript/GraphQL specialist for cursor-analytics-core (P5). Use for implementing GraphQL schema, resolvers, data aggregation, and TypeScript services. Consumes cursor-sim API data. Follows SDD methodology.
 model: sonnet
-skills: api-contract, spec-process-core, spec-tasks
+skills: typescript-graphql-patterns, api-contract, spec-process-core, spec-tasks
 ---
 
 # cursor-analytics-core Developer
