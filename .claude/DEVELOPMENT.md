@@ -22,7 +22,7 @@ Phase (P#) = Epic level
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| **P0** | Project Management | **IN PROGRESS** (P0-F01 complete) |
+| **P0** | Project Management | **IN PROGRESS** (P0-F01, P0-F02, P0-F03 complete) |
 | **P1** | cursor-sim Foundation | **COMPLETE** ✅ |
 | **P2** | cursor-sim GitHub Simulation | TODO |
 | **P3** | cursor-sim Research Framework | **COMPLETE** ✅ |
@@ -37,6 +37,8 @@ Phase (P#) = Epic level
 | Feature ID | Feature Name | Status | Time |
 |------------|--------------|--------|------|
 | **P0-F01** | **SDD Subagent Orchestration** | **COMPLETE** ✅ | **1.0h / 4.0h est** |
+| **P0-F02** | **Rules Layer Implementation** | **COMPLETE** ✅ | **3.0h / 3.0h est** |
+| **P0-F03** | **Skills Cleanup & Catalog** | **COMPLETE** ✅ | **1.5h / 1.5h est** |
 | P1-F01 | Foundation | COMPLETE | 10.75h / 44.5h est |
 | P2-F01 | PR Lifecycle | TODO | - |
 | P3-F01 | Research Framework | COMPLETE | 1.75h / 15-20h est |
@@ -80,6 +82,51 @@ No active symlink currently set
 ---
 
 ## Recently Completed
+
+### P0-F03: Skills Cleanup & Catalog - COMPLETE ✅ (January 4, 2026)
+
+**Skills documentation and organization for Spec-Driven Development**
+
+- Created `.claude/skills/README.md` with catalog of all 14 skills
+- **Skill Catalog Table**: Shows triggers, service mapping, and purpose
+- **Skill vs Rule Guide**: Clear explanation of when to use each
+- **Service Mapping**: P4/P5/P6 service alignment documented
+- Updated all 14 skills with (project) metadata
+- Verified YAML frontmatter consistency across all skills
+- Fixed `.claude/commands/README.md` to remove references to nonexistent skill groupings
+- Added reference to skills/README.md for complete skill discovery
+- Time: 1.5h actual / 1.5h estimated (on schedule)
+
+**Key Deliverables**:
+- Skills catalog with triggers and descriptions
+- Consistent frontmatter across all skills
+- Clear separation: enforcement (rules) vs guidance (skills)
+- Updated command documentation with correct skill references
+
+---
+
+### P0-F02: Rules Layer Implementation - COMPLETE ✅ (January 4, 2026)
+
+**Foundation enforcement layer for Spec-Driven Development**
+
+- Created `.claude/rules/` directory structure with 9 rule files
+- **01-security.md**: Security guardrails (secrets, PII, destructive ops)
+- **02-repo-guardrails.md**: Repository safety rules (git, file protection)
+- **03-coding-standards.md**: Language-specific standards (Go, TypeScript, React)
+- **04-sdd-process.md**: 7-step SDD workflow enforcement (CRITICAL)
+- **service/cursor-sim.md**: P4 constraints (API contracts, CLI isolation)
+- **service/analytics-core.md**: P5 constraints (GraphQL, Prisma)
+- **service/viz-spa.md**: P6 constraints (GraphQL codegen, components)
+- Updated sdd-checklist skill to separate enforcement (rules) from guidance (skill)
+- Time: 3.0h actual / 3.0h estimated (on schedule)
+
+**Key Decisions**:
+- Rules use NEVER/ALWAYS format for enforcement
+- Path-scoped rules enable service-specific constraints
+- Clear separation: Rules (always-on) ≠ Skills (guided) ≠ Commands (workflows)
+- sdd-checklist skill now references rules/04-sdd-process.md for enforcement
+
+---
 
 ### P0-F01: SDD Subagent Orchestration Protocol - COMPLETE ✅ (January 4, 2026)
 
