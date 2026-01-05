@@ -42,7 +42,7 @@ func TestE2E_DeveloperReplication_Downsample(t *testing.T) {
 	// Generate minimal data to simulate real environment
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 1) // 1 day of data
+	err = commitGen.GenerateCommits(ctx, 1, 0) // 1 day of data
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router
@@ -99,7 +99,7 @@ func TestE2E_DeveloperReplication_ExactMatch(t *testing.T) {
 	// Generate minimal data
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 1)
+	err = commitGen.GenerateCommits(ctx, 1, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router
@@ -157,7 +157,7 @@ func TestE2E_DeveloperReplication_ScaleUp(t *testing.T) {
 	// Generate minimal data
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 1)
+	err = commitGen.GenerateCommits(ctx, 1, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router

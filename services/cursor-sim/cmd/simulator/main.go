@@ -95,7 +95,11 @@ func run(ctx context.Context, cfg *config.Config) error {
 	// Generate commits
 	log.Printf("Generating %d days of commit history...\n", cfg.Days)
 	gen := generator.NewCommitGenerator(seedData, store, cfg.Velocity)
-	if err := gen.GenerateCommits(ctx, cfg.Days); err != nil {
+	maxCommits := cfg.GenParams.MaxCommits
+	if maxCommits > 0 {
+		log.Printf("Max commits limit: %d\n", maxCommits)
+	}
+	if err := gen.GenerateCommits(ctx, cfg.Days, maxCommits); err != nil {
 		return fmt.Errorf("failed to generate commits: %w", err)
 	}
 

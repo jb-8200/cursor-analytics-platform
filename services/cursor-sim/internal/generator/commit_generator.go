@@ -42,11 +42,20 @@ func NewCommitGeneratorWithSeed(seedData *seed.SeedData, store Store, velocity s
 
 // GenerateCommits generates commits for the specified number of days.
 // Uses Poisson process for timing and lognormal distribution for commit sizes.
-func (g *CommitGenerator) GenerateCommits(ctx context.Context, days int) error {
+// If maxCommits > 0, generation stops after reaching the limit.
+// If maxCommits == 0, unlimited commits are generated (existing behavior).
+func (g *CommitGenerator) GenerateCommits(ctx context.Context, days int, maxCommits int) error {
 	startTime := time.Now().AddDate(0, 0, -days)
+	commitCount := 0
 
 	for _, dev := range g.seed.Developers {
-		if err := g.generateForDeveloper(ctx, dev, startTime); err != nil {
+		if maxCommits > 0 && commitCount >= maxCommits {
+			fmt.Printf("Reached max commits limit (%d), stopping generation\n", maxCommits)
+			break
+		}
+
+		remaining := maxCommits - commitCount
+		if err := g.generateForDeveloper(ctx, dev, startTime, &commitCount, remaining); err != nil {
 			return err
 		}
 	}
@@ -55,7 +64,9 @@ func (g *CommitGenerator) GenerateCommits(ctx context.Context, days int) error {
 }
 
 // generateForDeveloper generates commits for a single developer over the time range.
-func (g *CommitGenerator) generateForDeveloper(ctx context.Context, dev seed.Developer, startTime time.Time) error {
+// commitCount is a pointer to track total commits across all developers.
+// remaining indicates how many commits can still be generated (0 = unlimited).
+func (g *CommitGenerator) generateForDeveloper(ctx context.Context, dev seed.Developer, startTime time.Time, commitCount *int, remaining int) error {
 	// Calculate commit rate for this developer
 	commitsPerDay := g.velocity.CommitsPerDay(dev.PRBehavior.PRsPerWeek)
 	if commitsPerDay <= 0 {
@@ -70,6 +81,11 @@ func (g *CommitGenerator) generateForDeveloper(ctx context.Context, dev seed.Dev
 	now := time.Now()
 
 	for current.Before(now) {
+		// Check if we've reached the limit
+		if remaining > 0 && *commitCount >= remaining {
+			break
+		}
+
 		// Select from context
 		if err := ctx.Err(); err != nil {
 			return err
@@ -89,6 +105,9 @@ func (g *CommitGenerator) generateForDeveloper(ctx context.Context, dev seed.Dev
 		if err := g.store.AddCommit(commit); err != nil {
 			return err
 		}
+
+		// Increment commit count
+		*commitCount++
 	}
 
 	return nil

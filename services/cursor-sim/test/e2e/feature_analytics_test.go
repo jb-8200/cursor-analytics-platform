@@ -31,7 +31,7 @@ func TestE2E_TeamMCP(t *testing.T) {
 	// Generate commits first (features derive from commits)
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7) // 1 week of data
+	err = commitGen.GenerateCommits(ctx, 7, 0) // 1 week of data
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events (MCP, Commands, Plans, AskMode)
@@ -98,7 +98,7 @@ func TestE2E_TeamCommands(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -165,7 +165,7 @@ func TestE2E_TeamPlans(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -216,7 +216,7 @@ func TestE2E_TeamAskMode(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -267,7 +267,7 @@ func TestE2E_ByUserMCP(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -320,7 +320,7 @@ func TestE2E_ByUserCommands(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -373,7 +373,7 @@ func TestE2E_ByUserPlans(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events
@@ -426,7 +426,7 @@ func TestE2E_ByUserAskMode(t *testing.T) {
 	// Generate commits
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate feature events

@@ -185,7 +185,7 @@ func setupFullDataGeneration(t *testing.T) (*seed.SeedData, storage.Store) {
 
 	// Generate commits
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7) // 1 week of data
+	err = commitGen.GenerateCommits(ctx, 7, 0) // 1 week of data
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate model usage

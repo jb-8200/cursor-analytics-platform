@@ -34,7 +34,7 @@ func setupTestServer(t *testing.T) (context.CancelFunc, *storage.MemoryStore) {
 	// Generate sample commits (1 day of history)
 	gen := generator.NewCommitGenerator(seedData, store, "medium")
 	ctx := context.Background()
-	err = gen.GenerateCommits(ctx, 1)
+	err = gen.GenerateCommits(ctx, 1, 0)
 	require.NoError(t, err)
 
 	// Create and start HTTP server
@@ -357,7 +357,7 @@ func TestE2E_PRLifecycle(t *testing.T) {
 	// Generate commits
 	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
 	ctx := context.Background()
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err)
 
 	// Verify commits were generated
@@ -418,7 +418,7 @@ func TestE2E_PRMetricsAggregation(t *testing.T) {
 	// Generate commits with known AI metrics
 	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
 	ctx := context.Background()
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err)
 
 	// Generate PRs
@@ -454,7 +454,7 @@ func TestE2E_QualityOutcomeCorrelations(t *testing.T) {
 	// Generate large sample for statistical significance
 	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "high", 42)
 	ctx := context.Background()
-	err = commitGen.GenerateCommits(ctx, 14) // 2 weeks
+	err = commitGen.GenerateCommits(ctx, 14, 0) // 2 weeks
 	require.NoError(t, err)
 
 	prGen := generator.NewPRGeneratorWithSeed(seedData, store, 42)

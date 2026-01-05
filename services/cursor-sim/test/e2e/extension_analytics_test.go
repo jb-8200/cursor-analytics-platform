@@ -31,7 +31,7 @@ func TestE2E_TeamFileExtensions(t *testing.T) {
 	// Generate commits first (extensions are derived from commit file changes)
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7) // 1 week of data
+	err = commitGen.GenerateCommits(ctx, 7, 0) // 1 week of data
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate file extension events
@@ -99,7 +99,7 @@ func TestE2E_ByUserFileExtensions(t *testing.T) {
 	// Generate commits first
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7)
+	err = commitGen.GenerateCommits(ctx, 7, 0)
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Generate file extension events

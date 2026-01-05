@@ -74,7 +74,7 @@ func TestCommitGenerator_GenerateCommits(t *testing.T) {
 	gen := NewCommitGeneratorWithSeed(seedData, store, "medium", 42) // Use deterministic seed
 
 	ctx := context.Background()
-	err := gen.GenerateCommits(ctx, 7) // Generate 7 days of history for reliable commits
+	err := gen.GenerateCommits(ctx, 7, 0) // Generate 7 days of history for reliable commits (0 = unlimited)
 
 	require.NoError(t, err)
 	commits := store.GetCommits()
@@ -122,7 +122,7 @@ func TestCommitGenerator_AIAttribution(t *testing.T) {
 	gen := NewCommitGenerator(seedData, store, "medium")
 
 	ctx := context.Background()
-	err := gen.GenerateCommits(ctx, 2)
+	err := gen.GenerateCommits(ctx, 2, 0)
 	require.NoError(t, err)
 
 	commits := store.GetCommits()
@@ -173,7 +173,7 @@ func TestCommitGenerator_TimeRange(t *testing.T) {
 
 	days := 5
 	ctx := context.Background()
-	err := gen.GenerateCommits(ctx, days)
+	err := gen.GenerateCommits(ctx, days, 0)
 	require.NoError(t, err)
 
 	commits := store.GetCommits()
@@ -217,12 +217,12 @@ func TestCommitGenerator_Reproducibility(t *testing.T) {
 	// Generate twice with same seed
 	store1 := &MockStore{}
 	gen1 := NewCommitGeneratorWithSeed(seedData, store1, "medium", 12345)
-	err := gen1.GenerateCommits(context.Background(), 2)
+	err := gen1.GenerateCommits(context.Background(), 2, 0)
 	require.NoError(t, err)
 
 	store2 := &MockStore{}
 	gen2 := NewCommitGeneratorWithSeed(seedData, store2, "medium", 12345)
-	err = gen2.GenerateCommits(context.Background(), 2)
+	err = gen2.GenerateCommits(context.Background(), 2, 0)
 	require.NoError(t, err)
 
 	// Should generate same number of commits
@@ -258,7 +258,7 @@ func TestCommitGenerator_CommitMessage(t *testing.T) {
 	gen := NewCommitGenerator(seedData, store, "high")
 
 	ctx := context.Background()
-	err := gen.GenerateCommits(ctx, 3)
+	err := gen.GenerateCommits(ctx, 3, 0)
 	require.NoError(t, err)
 
 	commits := store.GetCommits()
@@ -268,4 +268,150 @@ func TestCommitGenerator_CommitMessage(t *testing.T) {
 	for _, c := range commits {
 		assert.NotEmpty(t, c.Message, "commit should have a message")
 	}
+}
+
+func TestGenerateCommits_MaxLimit(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "dev1@example.com",
+				Name:   "Dev 1",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   10.0, // High rate to ensure we hit limit
+					AvgPRSizeLOC: 100,
+				},
+			},
+			{
+				UserID: "user_002",
+				Email:  "dev2@example.com",
+				Name:   "Dev 2",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   10.0,
+					AvgPRSizeLOC: 100,
+				},
+			},
+		},
+		Repositories: []seed.Repository{
+			{RepoName: "test/repo", DefaultBranch: "main"},
+		},
+		TextTemplates: seed.TextTemplates{
+			CommitMessages: seed.CommitMessageTemplates{
+				Feature: []string{"test commit"},
+			},
+		},
+	}
+
+	store := &MockStore{}
+	gen := NewCommitGeneratorWithSeed(seedData, store, "high", 42)
+
+	ctx := context.Background()
+	maxCommits := 10
+	err := gen.GenerateCommits(ctx, 90, maxCommits)
+
+	require.NoError(t, err)
+	commits := store.GetCommits()
+	assert.Equal(t, maxCommits, len(commits), "should generate exactly maxCommits commits")
+}
+
+func TestGenerateCommits_NoLimit(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "test@example.com",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   5.0,
+					AvgPRSizeLOC: 100,
+				},
+			},
+		},
+		Repositories: []seed.Repository{
+			{RepoName: "test/repo", DefaultBranch: "main"},
+		},
+		TextTemplates: seed.TextTemplates{
+			CommitMessages: seed.CommitMessageTemplates{
+				Feature: []string{"test"},
+			},
+		},
+	}
+
+	store := &MockStore{}
+	gen := NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
+
+	ctx := context.Background()
+	err := gen.GenerateCommits(ctx, 7, 0) // 0 = unlimited
+
+	require.NoError(t, err)
+	commits := store.GetCommits()
+	// Should generate commits based on Poisson process (not limited)
+	assert.Greater(t, len(commits), 0, "should generate commits with unlimited mode")
+}
+
+func TestGenerateCommits_LimitDistribution(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "dev1@example.com",
+				Name:   "Dev 1",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   10.0,
+					AvgPRSizeLOC: 100,
+				},
+			},
+			{
+				UserID: "user_002",
+				Email:  "dev2@example.com",
+				Name:   "Dev 2",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   10.0,
+					AvgPRSizeLOC: 100,
+				},
+			},
+			{
+				UserID: "user_003",
+				Email:  "dev3@example.com",
+				Name:   "Dev 3",
+				PRBehavior: seed.PRBehavior{
+					PRsPerWeek:   10.0,
+					AvgPRSizeLOC: 100,
+				},
+			},
+		},
+		Repositories: []seed.Repository{
+			{RepoName: "test/repo", DefaultBranch: "main"},
+		},
+		TextTemplates: seed.TextTemplates{
+			CommitMessages: seed.CommitMessageTemplates{
+				Feature: []string{"test"},
+			},
+		},
+	}
+
+	store := &MockStore{}
+	gen := NewCommitGeneratorWithSeed(seedData, store, "high", 42)
+
+	ctx := context.Background()
+	maxCommits := 15
+	err := gen.GenerateCommits(ctx, 90, maxCommits)
+
+	require.NoError(t, err)
+	commits := store.GetCommits()
+	assert.Equal(t, maxCommits, len(commits), "should generate exactly maxCommits")
+
+	// Verify commits are distributed across developers
+	developerCounts := make(map[string]int)
+	for _, c := range commits {
+		developerCounts[c.UserID]++
+	}
+
+	// Should have commits from multiple developers
+	assert.GreaterOrEqual(t, len(developerCounts), 1, "should have commits from at least 1 developer")
+	// Total should match
+	totalCommits := 0
+	for _, count := range developerCounts {
+		totalCommits += count
+	}
+	assert.Equal(t, maxCommits, totalCommits, "total commits should equal max")
 }

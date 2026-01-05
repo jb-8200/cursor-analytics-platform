@@ -32,7 +32,7 @@ func TestE2E_TeamMembers(t *testing.T) {
 	// Generate minimal data (commits) to simulate real environment
 	ctx := context.Background()
 	commitGen := generator.NewCommitGenerator(seedData, store, "medium")
-	err = commitGen.GenerateCommits(ctx, 7) // Just 1 week of data for speed
+	err = commitGen.GenerateCommits(ctx, 7, 0) // Just 1 week of data for speed
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router with loaded data

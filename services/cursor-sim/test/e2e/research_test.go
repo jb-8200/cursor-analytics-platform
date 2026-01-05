@@ -35,7 +35,7 @@ func TestE2E_ResearchDatasetGeneration(t *testing.T) {
 
 	// Generate commits
 	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
-	err = commitGen.GenerateCommits(context.Background(), 7)
+	err = commitGen.GenerateCommits(context.Background(), 7, 0)
 	require.NoError(t, err)
 
 	// Generate PRs
@@ -246,7 +246,7 @@ func TestE2E_FullResearchPipeline(t *testing.T) {
 	require.NoError(t, err)
 
 	commitGen := generator.NewCommitGeneratorWithSeed(seedData, store, "high", 42)
-	err = commitGen.GenerateCommits(context.Background(), 14) // 2 weeks
+	err = commitGen.GenerateCommits(context.Background(), 14, 0) // 2 weeks
 	require.NoError(t, err)
 
 	prGen := generator.NewPRGeneratorWithSeed(seedData, store, 42)
