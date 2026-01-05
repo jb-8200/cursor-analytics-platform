@@ -15,10 +15,10 @@
 | **Setup** | 1 | ✅ DONE | 0.5h | 0.5h |
 | **Feature 1: Interactive Prompts** | 3 | ✅ DONE | 4.0h | 3.0h |
 | **Feature 2: Developer Replication** | 3 | ✅ DONE | 3.0h | 2.5h |
-| **Feature 3: Commit Limit** | 3 | ⏳ TODO | 2.5h | - |
+| **Feature 3: Commit Limit** | 3 | 🔨 IN PROGRESS | 2.5h | 1.5h |
 | **Feature 4: Integration** | 2 | ⏳ TODO | 2.0h | - |
 | **Feature 5: Empty Dataset Fix** | 2 | ⏳ TODO | 2.0h | - |
-| **TOTAL** | **14** | **6/14** | **14.0h** | **6.0h** |
+| **TOTAL** | **14** | **7/14** | **14.0h** | **7.5h** |
 
 ---
 
@@ -347,7 +347,9 @@ func TestGenerateCommits_NoLimit(t *testing.T) {
 - ✅ Log message when limit reached early
 
 **Estimated**: 1.5h
-**Status**: ⏳ TODO
+**Status**: ✅ COMPLETE
+**Actual**: 1.5h
+**Commit**: 0618a1b
 
 ---
 
