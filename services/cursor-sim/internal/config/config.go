@@ -119,14 +119,14 @@ func parseFlagsWithArgs(args []string) (*Config, error) {
 // Returns a descriptive error if any validation rule fails.
 func (c *Config) Validate() error {
 	// Validate mode
-	if c.Mode != "runtime" && c.Mode != "replay" {
-		return fmt.Errorf("validation failed: mode must be 'runtime' or 'replay', got %q", c.Mode)
+	if c.Mode != "runtime" && c.Mode != "replay" && c.Mode != "preview" {
+		return fmt.Errorf("validation failed: mode must be 'runtime', 'replay', or 'preview', got %q", c.Mode)
 	}
 
 	// Mode-specific validation
-	if c.Mode == "runtime" {
+	if c.Mode == "runtime" || c.Mode == "preview" {
 		if c.SeedPath == "" {
-			return fmt.Errorf("validation failed: seed path is required for runtime mode")
+			return fmt.Errorf("validation failed: seed path is required for %s mode", c.Mode)
 		}
 	}
 

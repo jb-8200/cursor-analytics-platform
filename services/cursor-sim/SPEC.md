@@ -29,6 +29,10 @@ cursor-sim is a high-fidelity Cursor Business API simulator that generates synth
 # Build
 go build -o bin/cursor-sim ./cmd/simulator
 
+# Preview mode: Quick seed validation (< 5 seconds)
+./bin/cursor-sim -mode preview -seed testdata/valid_seed.yaml
+./bin/cursor-sim -mode preview -seed testdata/valid_seed.json
+
 # Run with seed file
 ./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json -port 8080 -days 90 -velocity high
 
@@ -50,8 +54,8 @@ curl -u cursor-sim-dev-key: http://localhost:8080/analytics/ai-code/commits
 cursor-sim [flags]
 
 Flags:
-  --mode string        Operation mode: runtime or replay (default "runtime")
-  --seed string        Path to seed file (.json, .yaml, or .yml) (required for runtime mode)
+  --mode string        Operation mode: runtime, preview, or replay (default "runtime")
+  --seed string        Path to seed file (.json, .yaml, or .yml) (required for runtime/preview mode)
   --corpus string      Path to events.parquet (required for replay mode)
   --port int           HTTP server port (default 8080)
   --days int           Days of history to generate (default 90)

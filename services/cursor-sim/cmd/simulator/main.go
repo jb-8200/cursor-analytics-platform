@@ -15,6 +15,7 @@ import (
 
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/preview"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/server"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
@@ -74,11 +75,46 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	log.Printf("Starting cursor-sim v%s with config: %s\n", Version, cfg)
 
-	// Only runtime mode is supported in v2.0.0
-	if cfg.Mode != "runtime" {
-		return fmt.Errorf("only runtime mode is supported in v2.0.0")
+	// Validate mode
+	switch cfg.Mode {
+	case "runtime":
+		return runRuntimeMode(ctx, cfg)
+	case "preview":
+		return runPreviewMode(ctx, cfg)
+	default:
+		return fmt.Errorf("invalid mode: '%s' (must be 'runtime' or 'preview')", cfg.Mode)
+	}
+}
+
+// runPreviewMode executes preview mode for quick seed validation.
+func runPreviewMode(ctx context.Context, cfg *config.Config) error {
+	log.Printf("Preview mode: validating seed file %s\n", cfg.SeedPath)
+
+	// Load seed data
+	seedData, err := seed.LoadSeed(cfg.SeedPath)
+	if err != nil {
+		return fmt.Errorf("failed to load seed data: %w", err)
 	}
 
+	// Create preview config
+	previewCfg := preview.Config{
+		Days:       cfg.Days,
+		MaxCommits: 10,  // Limit for fast preview
+		MaxEvents:  100, // Limit for fast preview
+	}
+
+	// Create and run preview
+	p := preview.New(seedData, previewCfg, os.Stdout)
+	if err := p.Run(ctx); err != nil {
+		return fmt.Errorf("preview failed: %w", err)
+	}
+
+	log.Println("Preview complete")
+	return nil
+}
+
+// runRuntimeMode executes full runtime mode with API server.
+func runRuntimeMode(ctx context.Context, cfg *config.Config) error {
 	// Load seed data
 	log.Printf("Loading seed data from %s...\n", cfg.SeedPath)
 
