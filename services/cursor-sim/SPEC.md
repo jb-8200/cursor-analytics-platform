@@ -316,7 +316,8 @@ services/cursor-sim/
 │   └── main_test.go      # Integration tests
 ├── internal/
 │   ├── config/           # CLI flags, env vars
-│   ├── seed/             # Seed loading and validation
+│   ├── seed/             # Seed loading and validation (JSON/YAML)
+│   ├── preview/          # Preview mode for seed validation
 │   ├── models/           # Cursor API types (13 files)
 │   ├── generator/        # Event generation (25 files: commits, PRs, reviews, quality)
 │   ├── storage/          # In-memory storage
