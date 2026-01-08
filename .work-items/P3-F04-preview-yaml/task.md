@@ -12,11 +12,11 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Setup** | 1 | ✅ DONE | 0.5h | 0.5h |
-| **Feature 1: YAML Support** | 3 | 🔄 IN PROGRESS | 2.5h | 1.5h |
-| **Feature 2: Preview Mode Core** | 4 | ⏳ TODO | 4.0h | - |
+| **Feature 1: YAML Support** | 3 | ✅ DONE | 2.5h | 2.0h |
+| **Feature 2: Preview Mode Core** | 4 | ✅ DONE | 4.0h | 4.0h |
 | **Feature 3: Validation Framework** | 2 | ⏳ TODO | 2.0h | - |
 | **Feature 4: Integration & Polish** | 1 | ⏳ TODO | 1.5h | - |
-| **TOTAL** | **11** | **2/11** | **10.5h** | **2.0h** |
+| **TOTAL** | **11** | **7/11** | **10.5h** | **6.5h** |
 
 ---
 
@@ -218,7 +218,10 @@ func TestE2E_YAMLSeed(t *testing.T) {
 - ✅ E2E test passes
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE
+**Commit**: 2311e57
+**Notes**: Added 2 E2E tests: TestE2E_YAMLSeedRuntimeMode (verifies YAML runtime) and TestE2E_YAMLvsJSONEquivalence (compares JSON vs YAML outputs).
 
 ---
 
@@ -265,7 +268,10 @@ func TestPreview_New(t *testing.T) {
 - ✅ Tests pass
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE
+**Commit**: e245c47
+**Notes**: Created preview package with Config and Preview structs. New constructor handles nil writer gracefully. All 4 tests passing.
 
 ---
 
@@ -337,7 +343,10 @@ func TestPreview_RunWithTimeout(t *testing.T) {
 - ✅ All tests pass
 
 **Estimated**: 2.0h
-**Status**: ⏳ TODO
+**Actual**: 2.0h
+**Status**: ✅ COMPLETE
+**Commit**: c07797e
+**Notes**: Implemented Run method with displayHeader, displayDeveloperSummary, generateSampleData, displaySampleCommits, and displayStatistics. Fixed field name errors (CommitTs, UserName, RepoName). All 7 tests passing.
 
 ---
 
@@ -404,7 +413,10 @@ func TestPreview_TruncateLongMessages(t *testing.T) {
 - ✅ All tests pass
 
 **Estimated**: 1.0h
-**Status**: ⏳ TODO
+**Actual**: 1.0h
+**Status**: ✅ COMPLETE
+**Commit**: edc180f
+**Notes**: Added truncate() and formatWorkingHours() helpers. Enhanced all display methods with 80-column truncation. Added avg commits/dev and total lines statistics. Fixed trailing space handling in truncate. All 9 tests passing.
 
 ---
 
@@ -459,7 +471,10 @@ func TestMain_InvalidMode(t *testing.T) {
 - ✅ Integration tests pass
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE
+**Commit**: 7dd9a4c
+**Notes**: Added runPreviewMode() to main.go, refactored run() to use mode switching. Updated config.Validate() to accept "preview" mode. Updated SPEC.md Quick Start and CLI flags documentation. Manual tests successful with both YAML and JSON seeds. Preview completes in < 5 seconds.
 
 ---
 
