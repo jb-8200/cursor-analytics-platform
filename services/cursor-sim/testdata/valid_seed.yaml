@@ -1,0 +1,306 @@
+version: "1.0"
+developers:
+  - user_id: user_001
+    email: alice@example.com
+    name: Alice Developer
+    org: acme-corp
+    division: Engineering
+    team: Backend
+    role: member
+    region: US
+    timezone: America/New_York
+    locale: en-US
+    seniority: senior
+    activity_level: high
+    acceptance_rate: 0.85
+    pr_behavior:
+      prs_per_week: 5.0
+      avg_pr_size_loc: 200
+      avg_files_per_pr: 6
+      review_thoroughness: 0.85
+      iteration_tolerance: 2
+    coding_speed:
+      mean: 2.0
+      std: 1.0
+    preferred_models:
+      - gpt-4-turbo
+      - claude-3-sonnet
+    chat_vs_code_ratio:
+      chat: 0.15
+      code: 0.85
+    working_hours_band:
+      start: 9
+      end: 18
+      peak: 14
+
+  - user_id: user_002
+    email: bob@example.com
+    name: Bob Developer
+    org: acme-corp
+    division: Engineering
+    team: Frontend
+    role: member
+    region: EU
+    timezone: Europe/London
+    locale: en-GB
+    seniority: mid
+    activity_level: medium
+    acceptance_rate: 0.75
+    pr_behavior:
+      prs_per_week: 3.0
+      avg_pr_size_loc: 150
+      avg_files_per_pr: 4
+      review_thoroughness: 0.70
+      iteration_tolerance: 3
+    coding_speed:
+      mean: 3.5
+      std: 1.5
+    preferred_models:
+      - gpt-4-turbo
+    chat_vs_code_ratio:
+      chat: 0.25
+      code: 0.75
+    working_hours_band:
+      start: 8
+      end: 17
+      peak: 13
+
+repositories:
+  - repo_name: acme-corp/payment-service
+    primary_language: Go
+    service_type: api
+    default_branch: main
+    teams:
+      - Backend
+    maturity:
+      age_days: 400
+      total_commits: 600
+      total_prs: 250
+      total_contributors: 12
+      size_bytes: 500000
+    code_quality_baseline:
+      avg_file_age_days: 180
+      greenfield_file_ratio: 0.15
+      revert_rate_baseline: 0.02
+      hotfix_rate_baseline: 0.08
+    common_file_patterns:
+      - "**/*.go"
+      - "cmd/**/*.go"
+
+text_templates:
+  commit_messages:
+    feature:
+      - "feat: add {{ feature_name }}"
+      - "feat({{ component }}): implement {{ feature_name }}"
+    bugfix:
+      - "fix: resolve {{ issue }}"
+      - "fix({{ component }}): fix {{ issue }}"
+    refactor:
+      - "refactor: improve {{ component }}"
+      - "refactor({{ component }}): restructure code"
+    chore:
+      - "chore: update dependencies"
+      - "chore: maintenance tasks"
+  pr_titles:
+    - "feat: add new feature"
+    - "fix: resolve critical bug"
+    - "refactor: improve code structure"
+  pr_descriptions:
+    - |
+      ## Summary
+
+      Added feature X to improve Y.
+    - |
+      ## Changes
+
+      - Fixed issue with Z
+      - Updated tests
+  review_comments:
+    style:
+      - "Consider using const here"
+      - "Could we extract this function?"
+    logic:
+      - "What happens if X is null?"
+      - "Is this edge case handled?"
+    suggestion:
+      - "Could we use a helper here?"
+      - "Consider renaming this variable"
+    approval:
+      - "LGTM!"
+      - "Looks good to me"
+      - "Great work!"
+  chat_prompt_themes:
+    code_generation:
+      - "implement function to"
+      - "create a class for"
+      - "write a script that"
+    debugging:
+      - "fix this error"
+      - "why is this failing"
+      - "debug this issue"
+    refactoring:
+      - "improve this code"
+      - "optimize this function"
+      - "clean up this module"
+    explanation:
+      - "explain how this works"
+      - "what does this do"
+      - "document this code"
+    learning:
+      - "how to implement"
+      - "best practices for"
+      - "examples of"
+
+correlations:
+  seniority_to_behavior:
+    junior:
+      events_per_day:
+        mean: 80
+        std: 30
+      tab_to_composer_ratio: 0.80
+      accepts_per_session:
+        mean: 10
+        std: 5
+    mid:
+      events_per_day:
+        mean: 120
+        std: 40
+      tab_to_composer_ratio: 0.70
+      accepts_per_session:
+        mean: 12
+        std: 5
+    senior:
+      events_per_day:
+        mean: 150
+        std: 50
+      tab_to_composer_ratio: 0.65
+      accepts_per_session:
+        mean: 15
+        std: 6
+  region_to_activity:
+    US:
+      weekday_weight: 1.0
+      weekend_weight: 0.15
+      peak_hours: [10, 11, 14, 15, 16]
+    EU:
+      weekday_weight: 0.95
+      weekend_weight: 0.10
+      peak_hours: [9, 10, 13, 14, 15]
+    APAC:
+      weekday_weight: 1.0
+      weekend_weight: 0.20
+      peak_hours: [9, 10, 14, 15, 16]
+  lines_per_change:
+    TAB:
+      added:
+        mean: 3
+        std: 2
+        max: 25
+      deleted:
+        mean: 0.5
+        std: 0.8
+        max: 10
+    COMPOSER:
+      added:
+        mean: 15
+        std: 10
+        max: 150
+      deleted:
+        mean: 5
+        std: 4
+        max: 80
+    MANUAL:
+      added:
+        mean: 5
+        std: 3
+        max: 50
+      deleted:
+        mean: 3
+        std: 2
+        max: 40
+  ai_ratio_bands:
+    low:
+      max: 0.3
+    medium:
+      min: 0.3
+      max: 0.6
+    high:
+      min: 0.6
+
+pr_lifecycle:
+  cycle_times:
+    coding_lead_time:
+      base_distribution: lognormal
+      params:
+        mean: 4
+        std: 3
+      modifiers:
+        by_seniority:
+          junior: 1.5
+          mid: 1.0
+          senior: 0.7
+        by_pr_size:
+          small: 0.5
+          medium: 1.0
+          large: 1.8
+    pickup_time:
+      base_distribution: lognormal
+      params:
+        mean: 6
+        std: 4
+      modifiers: {}
+    review_lead_time:
+      base_distribution: lognormal
+      params:
+        mean: 8
+        std: 6
+      modifiers: {}
+  review_patterns:
+    comments_per_100_loc:
+      base: 2.5
+      modifiers:
+        by_reviewer_seniority:
+          senior: 3.0
+          mid: 2.5
+          junior: 2.0
+        by_ai_ratio:
+          high: 1.4
+          medium: 1.0
+          low: 0.8
+    iterations:
+      base_distribution: poisson
+      params:
+        lambda: 1.5
+      modifiers: {}
+    reviewer_count:
+      base: 1.8
+      modifiers: {}
+  quality_outcomes:
+    revert_probability:
+      base: 0.02
+      modifiers:
+        by_author_seniority:
+          junior: 2.0
+          mid: 1.0
+          senior: 0.5
+        by_ai_ratio:
+          high: 1.5
+          medium: 1.0
+          low: 0.8
+        by_review_iterations:
+          "0": 3.0
+          "1": 1.5
+          "2": 1.0
+          "3+": 0.8
+    hotfix_probability:
+      base: 0.08
+      modifiers: {}
+    code_survival_30d:
+      base: 0.85
+      modifiers: {}
+  scope_creep:
+    base_ratio: 0.12
+    modifiers: {}
+  rework_ratio:
+    base_ratio: 0.15
+    modifiers: {}

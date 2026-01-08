@@ -5,275 +5,275 @@ package seed
 
 // SeedData is the root structure of a seed.json file.
 type SeedData struct {
-	Version       string        `json:"version"`
-	Developers    []Developer   `json:"developers"`
-	Repositories  []Repository  `json:"repositories"`
-	TextTemplates TextTemplates `json:"text_templates"`
-	Correlations  Correlations  `json:"correlations"`
-	PRLifecycle   PRLifecycle   `json:"pr_lifecycle"`
+	Version       string        `json:"version" yaml:"version"`
+	Developers    []Developer   `json:"developers" yaml:"developers"`
+	Repositories  []Repository  `json:"repositories" yaml:"repositories"`
+	TextTemplates TextTemplates `json:"text_templates" yaml:"text_templates"`
+	Correlations  Correlations  `json:"correlations" yaml:"correlations"`
+	PRLifecycle   PRLifecycle   `json:"pr_lifecycle" yaml:"pr_lifecycle"`
 }
 
 // Developer represents a team member profile with organizational structure
 // and behavioral parameters for event generation.
 type Developer struct {
-	UserID           string        `json:"user_id"`
-	Email            string        `json:"email"`
-	Name             string        `json:"name"`
-	Org              string        `json:"org"`
-	Division         string        `json:"division"`
-	Team             string        `json:"team"`
-	Role             string        `json:"role"`
-	Region           string        `json:"region"`
-	Timezone         string        `json:"timezone"`
-	Locale           string        `json:"locale"`
-	Seniority        string        `json:"seniority"`
-	ActivityLevel    string        `json:"activity_level"`
-	AcceptanceRate   float64       `json:"acceptance_rate"`
-	PRBehavior       PRBehavior    `json:"pr_behavior"`
-	CodingSpeed      CodingSpeed   `json:"coding_speed"`
-	PreferredModels  []string      `json:"preferred_models"`
-	ChatVsCodeRatio  ChatCodeRatio `json:"chat_vs_code_ratio"`
-	WorkingHoursBand WorkingHours  `json:"working_hours_band"`
+	UserID           string        `json:"user_id" yaml:"user_id"`
+	Email            string        `json:"email" yaml:"email"`
+	Name             string        `json:"name" yaml:"name"`
+	Org              string        `json:"org" yaml:"org"`
+	Division         string        `json:"division" yaml:"division"`
+	Team             string        `json:"team" yaml:"team"`
+	Role             string        `json:"role" yaml:"role"`
+	Region           string        `json:"region" yaml:"region"`
+	Timezone         string        `json:"timezone" yaml:"timezone"`
+	Locale           string        `json:"locale" yaml:"locale"`
+	Seniority        string        `json:"seniority" yaml:"seniority"`
+	ActivityLevel    string        `json:"activity_level" yaml:"activity_level"`
+	AcceptanceRate   float64       `json:"acceptance_rate" yaml:"acceptance_rate"`
+	PRBehavior       PRBehavior    `json:"pr_behavior" yaml:"pr_behavior"`
+	CodingSpeed      CodingSpeed   `json:"coding_speed" yaml:"coding_speed"`
+	PreferredModels  []string      `json:"preferred_models" yaml:"preferred_models"`
+	ChatVsCodeRatio  ChatCodeRatio `json:"chat_vs_code_ratio" yaml:"chat_vs_code_ratio"`
+	WorkingHoursBand WorkingHours  `json:"working_hours_band" yaml:"working_hours_band"`
 }
 
 // PRBehavior defines PR creation and review behavior parameters.
 type PRBehavior struct {
-	PRsPerWeek         float64 `json:"prs_per_week"`
-	AvgPRSizeLOC       int     `json:"avg_pr_size_loc"`
-	AvgFilesPerPR      int     `json:"avg_files_per_pr"`
-	ReviewThoroughness float64 `json:"review_thoroughness"`
-	IterationTolerance int     `json:"iteration_tolerance"`
+	PRsPerWeek         float64 `json:"prs_per_week" yaml:"prs_per_week"`
+	AvgPRSizeLOC       int     `json:"avg_pr_size_loc" yaml:"avg_pr_size_loc"`
+	AvgFilesPerPR      int     `json:"avg_files_per_pr" yaml:"avg_files_per_pr"`
+	ReviewThoroughness float64 `json:"review_thoroughness" yaml:"review_thoroughness"`
+	IterationTolerance int     `json:"iteration_tolerance" yaml:"iteration_tolerance"`
 }
 
 // CodingSpeed represents time from first commit to PR open (in hours).
 type CodingSpeed struct {
-	Mean float64 `json:"mean"`
-	Std  float64 `json:"std"`
+	Mean float64 `json:"mean" yaml:"mean"`
+	Std  float64 `json:"std" yaml:"std"`
 }
 
 // ChatCodeRatio represents the ratio of chat interactions to code completions.
 type ChatCodeRatio struct {
-	Chat float64 `json:"chat"`
-	Code float64 `json:"code"`
+	Chat float64 `json:"chat" yaml:"chat"`
+	Code float64 `json:"code" yaml:"code"`
 }
 
 // WorkingHours defines active hours range based on region.
 type WorkingHours struct {
-	Start int `json:"start"`
-	End   int `json:"end"`
-	Peak  int `json:"peak"`
+	Start int `json:"start" yaml:"start"`
+	End   int `json:"end" yaml:"end"`
+	Peak  int `json:"peak" yaml:"peak"`
 }
 
 // Repository represents a repository with language and service type metadata.
 type Repository struct {
-	RepoName            string              `json:"repo_name"`
-	PrimaryLanguage     string              `json:"primary_language"`
-	ServiceType         string              `json:"service_type"`
-	DefaultBranch       string              `json:"default_branch"`
-	Teams               []string            `json:"teams"`
-	Maturity            Maturity            `json:"maturity"`
-	CodeQualityBaseline CodeQualityBaseline `json:"code_quality_baseline"`
-	CommonFilePatterns  []string            `json:"common_file_patterns"`
+	RepoName            string              `json:"repo_name" yaml:"repo_name"`
+	PrimaryLanguage     string              `json:"primary_language" yaml:"primary_language"`
+	ServiceType         string              `json:"service_type" yaml:"service_type"`
+	DefaultBranch       string              `json:"default_branch" yaml:"default_branch"`
+	Teams               []string            `json:"teams" yaml:"teams"`
+	Maturity            Maturity            `json:"maturity" yaml:"maturity"`
+	CodeQualityBaseline CodeQualityBaseline `json:"code_quality_baseline" yaml:"code_quality_baseline"`
+	CommonFilePatterns  []string            `json:"common_file_patterns" yaml:"common_file_patterns"`
 }
 
 // Maturity represents repository age and maturity characteristics.
 type Maturity struct {
-	AgeDays           int `json:"age_days"`
-	TotalCommits      int `json:"total_commits"`
-	TotalPRs          int `json:"total_prs"`
-	TotalContributors int `json:"total_contributors"`
-	SizeBytes         int `json:"size_bytes"`
+	AgeDays           int `json:"age_days" yaml:"age_days"`
+	TotalCommits      int `json:"total_commits" yaml:"total_commits"`
+	TotalPRs          int `json:"total_prs" yaml:"total_prs"`
+	TotalContributors int `json:"total_contributors" yaml:"total_contributors"`
+	SizeBytes         int `json:"size_bytes" yaml:"size_bytes"`
 }
 
 // CodeQualityBaseline represents baseline code quality characteristics.
 type CodeQualityBaseline struct {
-	AvgFileAgeDays      int     `json:"avg_file_age_days"`
-	GreenfieldFileRatio float64 `json:"greenfield_file_ratio"`
-	RevertRateBaseline  float64 `json:"revert_rate_baseline"`
-	HotfixRateBaseline  float64 `json:"hotfix_rate_baseline"`
+	AvgFileAgeDays      int     `json:"avg_file_age_days" yaml:"avg_file_age_days"`
+	GreenfieldFileRatio float64 `json:"greenfield_file_ratio" yaml:"greenfield_file_ratio"`
+	RevertRateBaseline  float64 `json:"revert_rate_baseline" yaml:"revert_rate_baseline"`
+	HotfixRateBaseline  float64 `json:"hotfix_rate_baseline" yaml:"hotfix_rate_baseline"`
 }
 
 // TextTemplates contains templates for LLM-generated text fields.
 type TextTemplates struct {
-	CommitMessages   CommitMessageTemplates `json:"commit_messages"`
-	PRTitles         []string               `json:"pr_titles"`
-	PRDescriptions   []string               `json:"pr_descriptions"`
-	ReviewComments   ReviewCommentTemplates `json:"review_comments"`
-	ChatPromptThemes ChatPromptThemes       `json:"chat_prompt_themes"`
+	CommitMessages   CommitMessageTemplates `json:"commit_messages" yaml:"commit_messages"`
+	PRTitles         []string               `json:"pr_titles" yaml:"pr_titles"`
+	PRDescriptions   []string               `json:"pr_descriptions" yaml:"pr_descriptions"`
+	ReviewComments   ReviewCommentTemplates `json:"review_comments" yaml:"review_comments"`
+	ChatPromptThemes ChatPromptThemes       `json:"chat_prompt_themes" yaml:"chat_prompt_themes"`
 }
 
 // CommitMessageTemplates contains commit message templates by category.
 type CommitMessageTemplates struct {
-	Feature  []string `json:"feature"`
-	Bugfix   []string `json:"bugfix"`
-	Refactor []string `json:"refactor"`
-	Chore    []string `json:"chore"`
+	Feature  []string `json:"feature" yaml:"feature"`
+	Bugfix   []string `json:"bugfix" yaml:"bugfix"`
+	Refactor []string `json:"refactor" yaml:"refactor"`
+	Chore    []string `json:"chore" yaml:"chore"`
 }
 
 // ReviewCommentTemplates contains review comment templates by category.
 type ReviewCommentTemplates struct {
-	Style      []string `json:"style"`
-	Logic      []string `json:"logic"`
-	Suggestion []string `json:"suggestion"`
-	Approval   []string `json:"approval"`
+	Style      []string `json:"style" yaml:"style"`
+	Logic      []string `json:"logic" yaml:"logic"`
+	Suggestion []string `json:"suggestion" yaml:"suggestion"`
+	Approval   []string `json:"approval" yaml:"approval"`
 }
 
 // ChatPromptThemes contains themes for chat interactions.
 type ChatPromptThemes struct {
-	CodeGeneration []string `json:"code_generation"`
-	Debugging      []string `json:"debugging"`
-	Refactoring    []string `json:"refactoring"`
-	Explanation    []string `json:"explanation"`
-	Learning       []string `json:"learning"`
+	CodeGeneration []string `json:"code_generation" yaml:"code_generation"`
+	Debugging      []string `json:"debugging" yaml:"debugging"`
+	Refactoring    []string `json:"refactoring" yaml:"refactoring"`
+	Explanation    []string `json:"explanation" yaml:"explanation"`
+	Learning       []string `json:"learning" yaml:"learning"`
 }
 
 // Correlations contains pre-computed correlation parameters for cursor-sim.
 type Correlations struct {
-	SeniorityToBehavior map[string]SeniorityBehavior `json:"seniority_to_behavior"`
-	RegionToActivity    map[string]RegionActivity    `json:"region_to_activity"`
-	LinesPerChange      map[string]LineChangeParams  `json:"lines_per_change"`
-	AIRatioBands        AIRatioBands                 `json:"ai_ratio_bands"`
+	SeniorityToBehavior map[string]SeniorityBehavior `json:"seniority_to_behavior" yaml:"seniority_to_behavior"`
+	RegionToActivity    map[string]RegionActivity    `json:"region_to_activity" yaml:"region_to_activity"`
+	LinesPerChange      map[string]LineChangeParams  `json:"lines_per_change" yaml:"lines_per_change"`
+	AIRatioBands        AIRatioBands                 `json:"ai_ratio_bands" yaml:"ai_ratio_bands"`
 }
 
 // SeniorityBehavior defines behavioral parameters by seniority level.
 type SeniorityBehavior struct {
-	EventsPerDay       StatParams `json:"events_per_day"`
-	TabToComposerRatio float64    `json:"tab_to_composer_ratio"`
-	AcceptsPerSession  StatParams `json:"accepts_per_session"`
+	EventsPerDay       StatParams `json:"events_per_day" yaml:"events_per_day"`
+	TabToComposerRatio float64    `json:"tab_to_composer_ratio" yaml:"tab_to_composer_ratio"`
+	AcceptsPerSession  StatParams `json:"accepts_per_session" yaml:"accepts_per_session"`
 }
 
 // StatParams represents mean and standard deviation for a distribution.
 type StatParams struct {
-	Mean float64 `json:"mean"`
-	Std  float64 `json:"std"`
+	Mean float64 `json:"mean" yaml:"mean"`
+	Std  float64 `json:"std" yaml:"std"`
 }
 
 // StatParamsMax extends StatParams with a maximum value.
 type StatParamsMax struct {
-	Mean float64 `json:"mean"`
-	Std  float64 `json:"std"`
-	Max  float64 `json:"max"`
+	Mean float64 `json:"mean" yaml:"mean"`
+	Std  float64 `json:"std" yaml:"std"`
+	Max  float64 `json:"max" yaml:"max"`
 }
 
 // RegionActivity defines activity patterns by region.
 type RegionActivity struct {
-	WeekdayWeight float64 `json:"weekday_weight"`
-	WeekendWeight float64 `json:"weekend_weight"`
-	PeakHours     []int   `json:"peak_hours"`
+	WeekdayWeight float64 `json:"weekday_weight" yaml:"weekday_weight"`
+	WeekendWeight float64 `json:"weekend_weight" yaml:"weekend_weight"`
+	PeakHours     []int   `json:"peak_hours" yaml:"peak_hours"`
 }
 
 // LineChangeParams defines line change parameters by change type.
 type LineChangeParams struct {
-	Added   StatParamsMax `json:"added"`
-	Deleted StatParamsMax `json:"deleted"`
+	Added   StatParamsMax `json:"added" yaml:"added"`
+	Deleted StatParamsMax `json:"deleted" yaml:"deleted"`
 }
 
 // AIRatioBands defines AI ratio classification thresholds.
 type AIRatioBands struct {
-	Low    AIRatioBand `json:"low"`
-	Medium AIRatioBand `json:"medium"`
-	High   AIRatioBand `json:"high"`
+	Low    AIRatioBand `json:"low" yaml:"low"`
+	Medium AIRatioBand `json:"medium" yaml:"medium"`
+	High   AIRatioBand `json:"high" yaml:"high"`
 }
 
 // AIRatioBand defines min/max thresholds for an AI ratio band.
 type AIRatioBand struct {
-	Min float64 `json:"min,omitempty"`
-	Max float64 `json:"max,omitempty"`
+	Min float64 `json:"min,omitempty" yaml:"min,omitempty"`
+	Max float64 `json:"max,omitempty" yaml:"max,omitempty"`
 }
 
 // PRLifecycle contains correlations for PR lifecycle simulation.
 type PRLifecycle struct {
-	CycleTimes      CycleTimes        `json:"cycle_times"`
-	ReviewPatterns  ReviewPatterns    `json:"review_patterns"`
-	QualityOutcomes QualityOutcomes   `json:"quality_outcomes"`
-	ScopeCreep      ScopeCreepParams  `json:"scope_creep"`
-	ReworkRatio     ReworkRatioParams `json:"rework_ratio"`
+	CycleTimes      CycleTimes        `json:"cycle_times" yaml:"cycle_times"`
+	ReviewPatterns  ReviewPatterns    `json:"review_patterns" yaml:"review_patterns"`
+	QualityOutcomes QualityOutcomes   `json:"quality_outcomes" yaml:"quality_outcomes"`
+	ScopeCreep      ScopeCreepParams  `json:"scope_creep" yaml:"scope_creep"`
+	ReworkRatio     ReworkRatioParams `json:"rework_ratio" yaml:"rework_ratio"`
 }
 
 // CycleTimes contains time distributions for PR lifecycle phases.
 type CycleTimes struct {
-	CodingLeadTime TimeDistribution `json:"coding_lead_time"`
-	PickupTime     TimeDistribution `json:"pickup_time"`
-	ReviewLeadTime TimeDistribution `json:"review_lead_time"`
+	CodingLeadTime TimeDistribution `json:"coding_lead_time" yaml:"coding_lead_time"`
+	PickupTime     TimeDistribution `json:"pickup_time" yaml:"pickup_time"`
+	ReviewLeadTime TimeDistribution `json:"review_lead_time" yaml:"review_lead_time"`
 }
 
 // TimeDistribution represents a time distribution with modifiers.
 type TimeDistribution struct {
-	BaseDistribution string        `json:"base_distribution"`
-	Params           StatParams    `json:"params"`
-	Modifiers        TimeModifiers `json:"modifiers"`
+	BaseDistribution string        `json:"base_distribution" yaml:"base_distribution"`
+	Params           StatParams    `json:"params" yaml:"params"`
+	Modifiers        TimeModifiers `json:"modifiers" yaml:"modifiers"`
 }
 
 // TimeModifiers contains modifiers for time distributions.
 type TimeModifiers struct {
-	BySeniority  map[string]float64 `json:"by_seniority,omitempty"`
-	ByPRSize     map[string]float64 `json:"by_pr_size,omitempty"`
-	ByDayOfWeek  map[string]float64 `json:"by_day_of_week,omitempty"`
-	ByTimeOfDay  map[string]float64 `json:"by_time_of_day,omitempty"`
-	ByIterations map[string]float64 `json:"by_iterations,omitempty"`
-	ByAIRatio    map[string]float64 `json:"by_ai_ratio,omitempty"`
+	BySeniority  map[string]float64 `json:"by_seniority,omitempty" yaml:"by_seniority,omitempty"`
+	ByPRSize     map[string]float64 `json:"by_pr_size,omitempty" yaml:"by_pr_size,omitempty"`
+	ByDayOfWeek  map[string]float64 `json:"by_day_of_week,omitempty" yaml:"by_day_of_week,omitempty"`
+	ByTimeOfDay  map[string]float64 `json:"by_time_of_day,omitempty" yaml:"by_time_of_day,omitempty"`
+	ByIterations map[string]float64 `json:"by_iterations,omitempty" yaml:"by_iterations,omitempty"`
+	ByAIRatio    map[string]float64 `json:"by_ai_ratio,omitempty" yaml:"by_ai_ratio,omitempty"`
 }
 
 // ReviewPatterns contains review behavior parameters.
 type ReviewPatterns struct {
-	CommentsPer100LOC CommentDensity      `json:"comments_per_100_loc"`
-	Iterations        IterationParams     `json:"iterations"`
-	ReviewerCount     ReviewerCountParams `json:"reviewer_count"`
+	CommentsPer100LOC CommentDensity      `json:"comments_per_100_loc" yaml:"comments_per_100_loc"`
+	Iterations        IterationParams     `json:"iterations" yaml:"iterations"`
+	ReviewerCount     ReviewerCountParams `json:"reviewer_count" yaml:"reviewer_count"`
 }
 
 // CommentDensity defines review comment density parameters.
 type CommentDensity struct {
-	Base      float64          `json:"base"`
-	Modifiers CommentModifiers `json:"modifiers"`
+	Base      float64          `json:"base" yaml:"base"`
+	Modifiers CommentModifiers `json:"modifiers" yaml:"modifiers"`
 }
 
 // CommentModifiers contains modifiers for comment density.
 type CommentModifiers struct {
-	ByReviewerSeniority map[string]float64 `json:"by_reviewer_seniority,omitempty"`
-	ByAIRatio           map[string]float64 `json:"by_ai_ratio,omitempty"`
+	ByReviewerSeniority map[string]float64 `json:"by_reviewer_seniority,omitempty" yaml:"by_reviewer_seniority,omitempty"`
+	ByAIRatio           map[string]float64 `json:"by_ai_ratio,omitempty" yaml:"by_ai_ratio,omitempty"`
 }
 
 // IterationParams defines review iteration parameters.
 type IterationParams struct {
-	BaseDistribution string             `json:"base_distribution"`
-	Params           map[string]float64 `json:"params"`
-	Modifiers        TimeModifiers      `json:"modifiers,omitempty"`
+	BaseDistribution string             `json:"base_distribution" yaml:"base_distribution"`
+	Params           map[string]float64 `json:"params" yaml:"params"`
+	Modifiers        TimeModifiers      `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }
 
 // ReviewerCountParams defines reviewer count parameters.
 type ReviewerCountParams struct {
-	Base      float64       `json:"base"`
-	Modifiers TimeModifiers `json:"modifiers,omitempty"`
+	Base      float64       `json:"base" yaml:"base"`
+	Modifiers TimeModifiers `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }
 
 // QualityOutcomes contains quality outcome parameters.
 type QualityOutcomes struct {
-	RevertProbability OutcomeParams `json:"revert_probability"`
-	HotfixProbability OutcomeParams `json:"hotfix_probability"`
-	CodeSurvival30D   OutcomeParams `json:"code_survival_30d"`
+	RevertProbability OutcomeParams `json:"revert_probability" yaml:"revert_probability"`
+	HotfixProbability OutcomeParams `json:"hotfix_probability" yaml:"hotfix_probability"`
+	CodeSurvival30D   OutcomeParams `json:"code_survival_30d" yaml:"code_survival_30d"`
 }
 
 // OutcomeParams defines outcome probability parameters.
 type OutcomeParams struct {
-	Base      float64          `json:"base"`
-	Modifiers OutcomeModifiers `json:"modifiers,omitempty"`
+	Base      float64          `json:"base" yaml:"base"`
+	Modifiers OutcomeModifiers `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }
 
 // OutcomeModifiers contains modifiers for outcome probabilities.
 type OutcomeModifiers struct {
-	ByAuthorSeniority  map[string]float64 `json:"by_author_seniority,omitempty"`
-	ByAIRatio          map[string]float64 `json:"by_ai_ratio,omitempty"`
-	ByReviewIterations map[string]float64 `json:"by_review_iterations,omitempty"`
+	ByAuthorSeniority  map[string]float64 `json:"by_author_seniority,omitempty" yaml:"by_author_seniority,omitempty"`
+	ByAIRatio          map[string]float64 `json:"by_ai_ratio,omitempty" yaml:"by_ai_ratio,omitempty"`
+	ByReviewIterations map[string]float64 `json:"by_review_iterations,omitempty" yaml:"by_review_iterations,omitempty"`
 }
 
 // ScopeCreepParams defines scope creep parameters.
 type ScopeCreepParams struct {
-	BaseRatio float64       `json:"base_ratio"`
-	Modifiers TimeModifiers `json:"modifiers,omitempty"`
+	BaseRatio float64       `json:"base_ratio" yaml:"base_ratio"`
+	Modifiers TimeModifiers `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }
 
 // ReworkRatioParams defines rework ratio parameters.
 type ReworkRatioParams struct {
-	BaseRatio float64       `json:"base_ratio"`
-	Modifiers TimeModifiers `json:"modifiers,omitempty"`
+	BaseRatio float64       `json:"base_ratio" yaml:"base_ratio"`
+	Modifiers TimeModifiers `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
 }

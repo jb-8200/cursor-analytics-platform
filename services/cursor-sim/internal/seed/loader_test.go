@@ -38,7 +38,7 @@ func TestLoadSeed_InvalidJSON(t *testing.T) {
 
 	require.Error(t, err)
 	assert.Nil(t, seed)
-	assert.Contains(t, err.Error(), "failed to parse seed file")
+	assert.Contains(t, err.Error(), "failed to parse")
 }
 
 func TestLoadSeed_InvalidUserID(t *testing.T) {
@@ -475,4 +475,78 @@ func TestLoadSeedWithReplication_InvalidFile(t *testing.T) {
 	assert.Nil(t, seed)
 	assert.Nil(t, developers)
 	assert.Contains(t, err.Error(), "failed to read seed file")
+}
+
+// YAML parsing tests (TASK-PREV-01)
+
+func TestLoadSeed_YAML(t *testing.T) {
+	path := filepath.Join("..", "..", "testdata", "valid_seed.yaml")
+	seed, err := LoadSeed(path)
+
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+
+	assert.Equal(t, "1.0", seed.Version)
+	assert.Len(t, seed.Developers, 2)
+	assert.Equal(t, "user_001", seed.Developers[0].UserID)
+	assert.Equal(t, "alice@example.com", seed.Developers[0].Email)
+	assert.Equal(t, 0.85, seed.Developers[0].AcceptanceRate)
+	assert.Len(t, seed.Repositories, 1)
+}
+
+func TestLoadSeed_YAMLWithComments(t *testing.T) {
+	path := filepath.Join("..", "..", "testdata", "commented.yaml")
+	seed, err := LoadSeed(path)
+
+	require.NoError(t, err)
+	require.NotNil(t, seed)
+
+	// Should have 3 developers (alice, bob, charlie)
+	assert.Len(t, seed.Developers, 3)
+	assert.Equal(t, "user_001", seed.Developers[0].UserID)
+	assert.Equal(t, "user_002", seed.Developers[1].UserID)
+	assert.Equal(t, "user_003", seed.Developers[2].UserID)
+
+	// Verify comments were ignored and data parsed correctly
+	assert.Equal(t, "alice@example.com", seed.Developers[0].Email)
+	assert.Equal(t, "senior", seed.Developers[0].Seniority)
+	assert.Equal(t, 0.85, seed.Developers[0].AcceptanceRate)
+}
+
+func TestLoadSeed_InvalidExtension(t *testing.T) {
+	// Test with .csv extension
+	path := filepath.Join("..", "..", "testdata", "seed.csv")
+	seed, err := LoadSeed(path)
+
+	require.Error(t, err)
+	assert.Nil(t, seed)
+	assert.Contains(t, err.Error(), "unsupported seed file format")
+	assert.Contains(t, err.Error(), ".csv")
+}
+
+func TestLoadSeed_MalformedYAML(t *testing.T) {
+	path := filepath.Join("..", "..", "testdata", "malformed.yaml")
+	seed, err := LoadSeed(path)
+
+	require.Error(t, err)
+	assert.Nil(t, seed)
+	assert.Contains(t, err.Error(), "failed to parse")
+}
+
+func TestLoadSeed_BothFormatsEquivalent(t *testing.T) {
+	jsonPath := filepath.Join("..", "..", "testdata", "valid_seed.json")
+	yamlPath := filepath.Join("..", "..", "testdata", "valid_seed.yaml")
+
+	jsonSeed, err := LoadSeed(jsonPath)
+	require.NoError(t, err)
+
+	yamlSeed, err := LoadSeed(yamlPath)
+	require.NoError(t, err)
+
+	// Both should have same structure
+	assert.Equal(t, len(jsonSeed.Developers), len(yamlSeed.Developers))
+	assert.Equal(t, jsonSeed.Developers[0].UserID, yamlSeed.Developers[0].UserID)
+	assert.Equal(t, jsonSeed.Developers[0].Email, yamlSeed.Developers[0].Email)
+	assert.Equal(t, jsonSeed.Developers[0].AcceptanceRate, yamlSeed.Developers[0].AcceptanceRate)
+	assert.Equal(t, jsonSeed.Version, yamlSeed.Version)
 }

@@ -51,7 +51,7 @@ cursor-sim [flags]
 
 Flags:
   --mode string        Operation mode: runtime or replay (default "runtime")
-  --seed string        Path to seed.json file (required for runtime mode)
+  --seed string        Path to seed file (.json, .yaml, or .yml) (required for runtime mode)
   --corpus string      Path to events.parquet (required for replay mode)
   --port int           HTTP server port (default 8080)
   --days int           Days of history to generate (default 90)
@@ -214,7 +214,7 @@ All endpoints return JSON with this structure:
 
 ## Seed File Schema
 
-The seed file defines developers, repositories, and generation parameters:
+The seed file defines developers, repositories, and generation parameters. Both JSON (.json) and YAML (.yaml, .yml) formats are supported:
 
 ```json
 {

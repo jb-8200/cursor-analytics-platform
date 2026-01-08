@@ -1,0 +1,14 @@
+# Malformed YAML file for testing error handling
+
+version: "1.0"
+developers:
+  - user_id: user_001
+    email: alice@example.com
+    name: Alice Developer
+    seniority: senior
+    # Missing closing quote on next line
+    acceptance_rate: "invalid
+    pr_behavior:
+      prs_per_week: [  # Unclosed array
+    coding_speed
+      mean: 2.0  # Missing colon after coding_speed

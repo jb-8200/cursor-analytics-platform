@@ -1,0 +1,221 @@
+# cursor-sim seed file with comments
+# This file demonstrates YAML comment support
+
+version: "1.0"
+
+developers:
+  # Senior backend engineer
+  - user_id: user_001
+    email: alice@example.com
+    name: Alice Developer
+    org: acme-corp
+    division: Engineering
+    team: Backend  # Primary team assignment
+    role: member
+    region: US
+    timezone: America/New_York  # EST timezone
+    locale: en-US
+    seniority: senior  # 5+ years experience
+    activity_level: high
+    acceptance_rate: 0.85
+    pr_behavior:
+      prs_per_week: 5.0
+      avg_pr_size_loc: 200
+      avg_files_per_pr: 6
+      review_thoroughness: 0.85
+      iteration_tolerance: 2
+    coding_speed:
+      mean: 2.0  # hours
+      std: 1.0
+    preferred_models:
+      - gpt-4-turbo  # OpenAI model
+      - claude-3-sonnet  # Anthropic model
+    chat_vs_code_ratio:
+      chat: 0.15
+      code: 0.85  # Prefers code completions
+    working_hours_band:
+      start: 9  # 9 AM
+      end: 18  # 6 PM
+      peak: 14  # 2 PM peak productivity
+
+  # Mid-level frontend engineer
+  - user_id: user_002
+    email: bob@example.com
+    name: Bob Developer
+    org: acme-corp
+    division: Engineering
+    team: Frontend
+    role: member
+    region: EU
+    timezone: Europe/London
+    locale: en-GB
+    seniority: mid
+    activity_level: medium
+    acceptance_rate: 0.75
+    pr_behavior:
+      prs_per_week: 3.0
+      avg_pr_size_loc: 150
+      avg_files_per_pr: 4
+      review_thoroughness: 0.70
+      iteration_tolerance: 3
+    coding_speed:
+      mean: 3.5
+      std: 1.5
+    preferred_models:
+      - gpt-4-turbo
+    chat_vs_code_ratio:
+      chat: 0.25  # Uses chat more than alice
+      code: 0.75
+    working_hours_band:
+      start: 8
+      end: 17
+      peak: 13
+
+  # Junior full-stack engineer
+  - user_id: user_003
+    email: charlie@example.com
+    name: Charlie Developer
+    org: acme-corp
+    division: Engineering
+    team: Backend
+    role: member
+    region: US
+    timezone: America/Los_Angeles  # PST
+    locale: en-US
+    seniority: junior  # < 2 years experience
+    activity_level: high  # Eager to learn
+    acceptance_rate: 0.65  # Still learning when to accept suggestions
+    pr_behavior:
+      prs_per_week: 2.0  # Smaller PRs, less frequently
+      avg_pr_size_loc: 100
+      avg_files_per_pr: 3
+      review_thoroughness: 0.60
+      iteration_tolerance: 4  # More patient with iterations
+    coding_speed:
+      mean: 5.0  # Takes longer
+      std: 2.0
+    preferred_models:
+      - gpt-4-turbo
+      - claude-3-sonnet
+    chat_vs_code_ratio:
+      chat: 0.40  # Uses chat heavily for learning
+      code: 0.60
+    working_hours_band:
+      start: 10  # Later start
+      end: 19  # Later end
+      peak: 15
+
+# Minimal repository configuration for testing
+repositories:
+  - repo_name: acme-corp/test-repo
+    primary_language: Go
+    service_type: api
+    default_branch: main
+    teams:
+      - Backend
+    maturity:
+      age_days: 100
+      total_commits: 200
+      total_prs: 50
+      total_contributors: 3
+      size_bytes: 100000
+    code_quality_baseline:
+      avg_file_age_days: 50
+      greenfield_file_ratio: 0.5
+      revert_rate_baseline: 0.02
+      hotfix_rate_baseline: 0.05
+    common_file_patterns:
+      - "**/*.go"
+
+# Simplified text templates
+text_templates:
+  commit_messages:
+    feature: ["feat: add feature"]
+    bugfix: ["fix: resolve issue"]
+    refactor: ["refactor: improve code"]
+    chore: ["chore: maintenance"]
+  pr_titles: ["feat: new feature"]
+  pr_descriptions: ["## Summary\n\nDescription here."]
+  review_comments:
+    style: ["Style comment"]
+    logic: ["Logic comment"]
+    suggestion: ["Suggestion"]
+    approval: ["LGTM!"]
+  chat_prompt_themes:
+    code_generation: ["implement"]
+    debugging: ["fix error"]
+    refactoring: ["improve code"]
+    explanation: ["explain"]
+    learning: ["how to"]
+
+# Simplified correlations
+correlations:
+  seniority_to_behavior:
+    junior:
+      events_per_day: {mean: 80, std: 30}
+      tab_to_composer_ratio: 0.80
+      accepts_per_session: {mean: 10, std: 5}
+    mid:
+      events_per_day: {mean: 120, std: 40}
+      tab_to_composer_ratio: 0.70
+      accepts_per_session: {mean: 12, std: 5}
+    senior:
+      events_per_day: {mean: 150, std: 50}
+      tab_to_composer_ratio: 0.65
+      accepts_per_session: {mean: 15, std: 6}
+  region_to_activity:
+    US:
+      weekday_weight: 1.0
+      weekend_weight: 0.15
+      peak_hours: [10, 11, 14, 15, 16]
+  lines_per_change:
+    TAB:
+      added: {mean: 3, std: 2, max: 25}
+      deleted: {mean: 0.5, std: 0.8, max: 10}
+  ai_ratio_bands:
+    low: {max: 0.3}
+    medium: {min: 0.3, max: 0.6}
+    high: {min: 0.6}
+
+# Simplified PR lifecycle
+pr_lifecycle:
+  cycle_times:
+    coding_lead_time:
+      base_distribution: lognormal
+      params: {mean: 4, std: 3}
+      modifiers: {}
+    pickup_time:
+      base_distribution: lognormal
+      params: {mean: 6, std: 4}
+      modifiers: {}
+    review_lead_time:
+      base_distribution: lognormal
+      params: {mean: 8, std: 6}
+      modifiers: {}
+  review_patterns:
+    comments_per_100_loc:
+      base: 2.5
+      modifiers: {}
+    iterations:
+      base_distribution: poisson
+      params: {lambda: 1.5}
+      modifiers: {}
+    reviewer_count:
+      base: 1.8
+      modifiers: {}
+  quality_outcomes:
+    revert_probability:
+      base: 0.02
+      modifiers: {}
+    hotfix_probability:
+      base: 0.08
+      modifiers: {}
+    code_survival_30d:
+      base: 0.85
+      modifiers: {}
+  scope_creep:
+    base_ratio: 0.12
+    modifiers: {}
+  rework_ratio:
+    base_ratio: 0.15
+    modifiers: {}

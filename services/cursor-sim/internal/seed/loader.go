@@ -5,11 +5,15 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
-// LoadSeed reads and validates a seed.json file from the specified path.
+// LoadSeed reads and validates a seed file (JSON or YAML) from the specified path.
+// The file format is detected by extension: .json, .yaml, or .yml
 // Returns an error if the file cannot be read, parsed, or if validation fails.
 func LoadSeed(path string) (*SeedData, error) {
 	// Read the file
@@ -18,10 +22,21 @@ func LoadSeed(path string) (*SeedData, error) {
 		return nil, fmt.Errorf("failed to read seed file %q: %w", path, err)
 	}
 
-	// Parse JSON
+	// Detect format by extension
 	var seed SeedData
-	if err := json.Unmarshal(data, &seed); err != nil {
-		return nil, fmt.Errorf("failed to parse seed file %q: %w", path, err)
+	ext := filepath.Ext(path)
+
+	switch ext {
+	case ".json":
+		if err := json.Unmarshal(data, &seed); err != nil {
+			return nil, fmt.Errorf("failed to parse JSON seed file %q: %w", path, err)
+		}
+	case ".yaml", ".yml":
+		if err := yaml.Unmarshal(data, &seed); err != nil {
+			return nil, fmt.Errorf("failed to parse YAML seed file %q: %w", path, err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported seed file format: %s (use .json, .yaml, or .yml)", ext)
 	}
 
 	// Validate the seed data
