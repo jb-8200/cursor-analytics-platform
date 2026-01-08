@@ -17,8 +17,8 @@
 | **Feature 2: Developer Replication** | 3 | ✅ DONE | 3.0h | 2.5h |
 | **Feature 3: Commit Limit** | 3 | ✅ DONE | 2.5h | 2.5h |
 | **Feature 4: Integration** | 2 | ✅ DONE | 2.0h | 2.0h |
-| **Feature 5: Empty Dataset Fix** | 2 | ⏳ TODO | 2.0h | - |
-| **TOTAL** | **14** | **11/14** | **14.0h** | **10.5h** |
+| **Feature 5: Empty Dataset Fix** | 2 | ✅ DONE | 2.0h | 2.5h |
+| **TOTAL** | **14** | **14/14** | **14.0h** | **13.0h** |
 
 ---
 
@@ -509,13 +509,21 @@ func TestE2E_CommitLimit(t *testing.T) {
 **Files**:
 - NOTES: Document root cause in design.md
 
+**Root Cause Identified**:
+- Generators iterated over `g.seed.Developers` (original 2)
+- Should query from storage: `g.store.ListDevelopers()` (replicated 13)
+- Impact: All analytics endpoints returned empty or incomplete data
+- Affected: commit, model, version, extension, feature generators
+
 **Acceptance Criteria**:
 - ✅ Root cause identified
 - ✅ Missing generators documented
 - ✅ Fix strategy determined
 
 **Estimated**: 1.0h
-**Status**: ⏳ TODO
+**Status**: ✅ COMPLETE
+**Actual**: 1.5h (included in TASK-CLI-13)
+**Commit**: df9ffcd
 
 ---
 
@@ -542,6 +550,24 @@ func TestModelGenerator_PopulatesData(t *testing.T) {
 - MODIFY: `internal/generator/*.go` (as needed)
 - MODIFY: `test/e2e/*_test.go`
 
+**Implementation Summary**:
+- Added `ListDevelopers()` method to all 5 Store interfaces
+- Modified all generators to query from storage before iteration
+- Fixed logging in main.go to show correct developer count
+- Updated all mock stores in tests (11 test files)
+- Verified all generators now work with replicated developers
+
+**Changes Made**:
+- CommitGenerator, ModelGenerator, VersionGenerator, ExtensionGenerator, FeatureGenerator
+- All corresponding test files with mock store updates
+- main.go logging fix
+
+**Verification**:
+```bash
+# Before: Generated 343 commits across 2 developers ❌
+# After:  Generated 343 commits across 13 developers ✅
+```
+
 **Acceptance Criteria**:
 - ✅ All 29 endpoints return non-empty data
 - ✅ Model, MCP, Commands analytics populated
@@ -549,7 +575,9 @@ func TestModelGenerator_PopulatesData(t *testing.T) {
 - ✅ No empty `data` arrays in responses
 
 **Estimated**: 1.0h
-**Status**: ⏳ TODO
+**Status**: ✅ COMPLETE
+**Actual**: 1.0h
+**Commit**: df9ffcd
 
 ---
 
