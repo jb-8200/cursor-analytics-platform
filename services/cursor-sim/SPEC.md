@@ -2,7 +2,7 @@
 
 **Version**: 2.0.0
 **Status**: Phase 3 Mostly Complete (Parts A, B, C Done)
-**Last Updated**: January 3, 2026
+**Last Updated**: January 8, 2026
 
 ## Overview
 
@@ -31,6 +31,9 @@ go build -o bin/cursor-sim ./cmd/simulator
 
 # Run with seed file
 ./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json -port 8080 -days 90 -velocity high
+
+# Run with interactive configuration (P4-F02)
+./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json -interactive
 
 # Test health
 curl http://localhost:8080/health

@@ -49,6 +49,20 @@ func main() {
 		log.Fatalf("Config error: %v\n", err)
 	}
 
+	// TASK-CLI-10: If interactive mode is enabled, prompt for configuration
+	if cfg.Interactive {
+		promptConfig := config.NewPromptConfig()
+		params, err := promptConfig.InteractiveConfig()
+		if err != nil {
+			log.Fatalf("Interactive config error: %v\n", err)
+		}
+		// Override config with interactive parameters
+		cfg.GenParams = *params
+		cfg.Days = params.Days
+		log.Printf("Using interactive configuration: %d developers, %d days, max %d commits\n",
+			params.Developers, params.Days, params.MaxCommits)
+	}
+
 	// Run the application
 	if err := run(ctx, cfg); err != nil {
 		log.Fatalf("Error: %v\n", err)

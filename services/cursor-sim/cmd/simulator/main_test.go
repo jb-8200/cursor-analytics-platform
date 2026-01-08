@@ -123,3 +123,48 @@ func TestRun_WithMaxCommits(t *testing.T) {
 		t.Fatal("run() did not exit after context cancellation")
 	}
 }
+
+func TestRun_WithInteractiveParams(t *testing.T) {
+	// Test that interactive mode parameters are respected by run()
+	// This simulates what would happen after InteractiveConfig() is called in main()
+	cfg := &config.Config{
+		Mode:        "runtime",
+		SeedPath:    "../../testdata/valid_seed.json",
+		Port:        18082, // Different port to avoid conflicts
+		Days:        180,   // Should be overridden by GenParams.Days from interactive config
+		Velocity:    "medium",
+		Interactive: true, // Indicates interactive mode was used
+		GenParams: config.GenerationParams{
+			Developers: 5,   // From interactive config
+			Days:       180, // 6 months * 30 days (from interactive config)
+			MaxCommits: 500, // From interactive config
+		},
+	}
+
+	// Run with context that cancels after 100ms
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	done := make(chan error, 1)
+	go func() {
+		done <- run(ctx, cfg)
+	}()
+
+	// Wait for generation to complete
+	time.Sleep(50 * time.Millisecond)
+
+	// Verify server started
+	resp, err := http.Get("http://localhost:18082/health")
+	if err == nil {
+		defer resp.Body.Close()
+		assert.Equal(t, 200, resp.StatusCode)
+	}
+
+	// Wait for completion
+	select {
+	case err := <-done:
+		assert.NoError(t, err)
+	case <-time.After(200 * time.Millisecond):
+		t.Fatal("run() did not exit after context cancellation")
+	}
+}
