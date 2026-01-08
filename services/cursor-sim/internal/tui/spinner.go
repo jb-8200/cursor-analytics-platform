@@ -112,6 +112,13 @@ func (s *Spinner) startNonTTYSpinner() {
 	}()
 }
 
+// IsRunning returns whether the spinner is currently running.
+func (s *Spinner) IsRunning() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.isRunning
+}
+
 // Stop stops the spinner and displays the completion message.
 func (s *Spinner) Stop(message string) {
 	s.mu.Lock()

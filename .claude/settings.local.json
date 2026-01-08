@@ -90,7 +90,9 @@
       "Bash(go get:*)",
       "WebSearch",
       "aprove all",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(go doc:*)",
+      "Bash(go version:*)"
     ],
     "deny": [],
     "ask": []

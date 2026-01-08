@@ -1,7 +1,7 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 3 Mostly Complete (Parts A, B, C Done)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features
 **Last Updated**: January 8, 2026
 
 ## Overview
@@ -19,6 +19,7 @@ cursor-sim is a high-fidelity Cursor Business API simulator that generates synth
 | Phase 1 (P0) | Seed loading, CLI, 29 API endpoints, commit generation | **COMPLETE** ✅ |
 | Phase 2 (P1) | GitHub PR simulation, review cycles, quality outcomes | **COMPLETE** ✅ |
 | Phase 3 (P2) | Research export, code survival, quality analysis | **MOSTLY COMPLETE** ✅ |
+| Phase 4 (P4) | CLI Enhancements: Flags (F01), Interactive Prompts (F02), TUI (F03) | **COMPLETE** ✅ |
 | Phase 3D (Deferred) | Replay mode from corpus files | DEFERRED |
 
 ---
@@ -79,6 +80,143 @@ Flags:
 | CURSOR_SIM_PORT | --port | 8080 |
 | CURSOR_SIM_DAYS | --days | 90 |
 | CURSOR_SIM_VELOCITY | --velocity | medium |
+
+---
+
+## TUI Features (P4-F03)
+
+### Overview
+
+cursor-sim includes a comprehensive Terminal User Interface (TUI) for improved user experience, built with the Charmbracelet stack (Bubble Tea, Bubbles, Lipgloss).
+
+**Architecture**: Event-based Observer pattern decouples business logic from UI, enabling seamless migration to web interface without code changes.
+
+### Components
+
+#### 1. DOXAPI ASCII Banner
+
+- **Display**: Animated ASCII art "DOXAPI" with purple→pink gradient
+- **Shown**: Runtime and interactive modes only
+- **Hidden**: Preview mode, `-help` flag, non-TTY environments
+- **Fallback**: Plain text "DOXAPI v2.0.0" in non-TTY
+
+**Example Output**:
+```
+ ____   ___  ___  ___  ____  _____
+|  _ \ / _ \|  \/  _ \/ _  \/  _  \
+| | | | | | | |_| | | \  __/| | | |
+| | | | | | |  _  | | |  __\| | | |
+| |_| | |_| | | | |_| | |  /| |_| |
+|____/ \___/|_| |_|___/|_|   \_____/
+
+v2.0.0
+```
+
+#### 2. Spinners for Loading Phases
+
+- **Usage**: Loading seed data, generating events, creating indexes
+- **Display**: Animated spinner with message in TTY
+- **Fallback**: Text-based status "⏳ Loading..." in non-TTY
+- **Methods**:
+  - `Start()` - Begin animation
+  - `Stop(message)` - End with completion message ✅
+  - `UpdateMessage(text)` - Change message while running
+
+#### 3. Progress Bar for Generation
+
+- **Tracks**: Commit generation progress by day
+- **Display**: ASCII bar with percentage (e.g., `[████░░░░░] 40%`)
+- **Range**: 0% (start) to 100% (complete)
+- **Updates**: Real-time progress via events
+- **Methods**:
+  - `Update(current)` - Update progress
+  - `GetProgress()` - Current count
+  - `GetPercentage()` - Percentage 0-100
+  - `Render()` - ASCII bar output
+
+#### 4. Interactive Form with Bubble Tea
+
+- **Fields**:
+  - Developers (1-100 people)
+  - Period (1-24 months)
+  - Max Commits (100-2000 per developer)
+- **Navigation**: Tab/Shift+Tab between fields, arrow keys
+- **Validation**: Real-time range checking with error messages
+- **Submit**: Enter key on last field (if valid)
+- **Cancel**: ESC key
+
+**Constraints**:
+```
+Developers:   1-100 (default 10)
+Months:       1-24  (default 6)
+Max Commits:  100-2000 (default 500)
+```
+
+### Event-Based Architecture
+
+**Decoupling Pattern**: Generators emit events; UI subscribes independently.
+
+```
+Generator              Event Emitter            TUI Renderer
+─────────              ─────────────            ────────────
+GenerateCommits() ──→ Emit(ProgressEvent) ──→ HandleEvent()
+                                               ├─ Update spinner
+                                               └─ Update progress bar
+```
+
+**Event Types**:
+- `PhaseStartEvent` - Loading/generating phase begins
+- `PhaseCompleteEvent` - Phase finished successfully
+- `ProgressEvent` - Progress update (current/total)
+- `WarningEvent` - Non-fatal issue
+- `ErrorEvent` - Fatal error
+
+**Benefits**:
+- Generators test without UI
+- Web interface can replace TUI without generator changes
+- Multiple UIs (CLI, web, API) can consume same events
+- Logging/metrics can subscribe without coupling
+
+### Terminal Capability Detection
+
+- **Color Support**: Checks `termenv`, respects `NO_COLOR` env var
+- **TTY Detection**: Distinguishes interactive terminal from piped output
+- **Graceful Fallback**: Text-only output in CI/CD, non-TTY environments
+
+**Functions**:
+- `SupportsColor()` - Color capabilities
+- `IsTTY()` - Interactive terminal
+- `ShouldUseTUI()` - Use animated UI
+
+### Usage Examples
+
+```bash
+# Interactive configuration with TUI
+./bin/cursor-sim -mode runtime -seed seed.json -interactive
+
+# Runtime mode (shows banner, spinners, progress)
+./bin/cursor-sim -mode runtime -seed seed.json -days 90
+
+# Non-TTY (piped to file)
+./bin/cursor-sim -mode runtime -seed seed.json | tee output.log
+
+# Disable colors
+NO_COLOR=1 ./bin/cursor-sim -mode runtime -seed seed.json
+
+# Preview mode (no banner, TUI suppressed)
+./bin/cursor-sim -mode preview -seed seed.json
+```
+
+### Testing
+
+- **Unit Tests**: 92 tests covering all components
+- **E2E Tests**: 11 integration tests verifying full workflow
+- **Manual Verification**:
+  - [ ] TTY with colors: Spinner animates, progress bar visible
+  - [ ] Non-TTY: Text fallback, no spinner animation
+  - [ ] NO_COLOR: Plain ASCII, no color codes
+  - [ ] Interactive: Form navigation and validation work
+  - [ ] Preview: No banner displayed
 
 ---
 

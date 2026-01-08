@@ -342,6 +342,13 @@ func (m *FormModel) IsFieldFocused(fieldIndex int) bool {
 	return m.focusedField == fieldIndex
 }
 
+// FocusedField returns the index of the currently focused field.
+func (m *FormModel) FocusedField() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.focusedField
+}
+
 // GetDays converts months to days (months * 30).
 func (m *FormModel) GetDays() int {
 	return m.Months * 30
