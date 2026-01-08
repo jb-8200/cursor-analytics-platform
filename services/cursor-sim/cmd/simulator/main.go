@@ -119,7 +119,8 @@ func run(ctx context.Context, cfg *config.Config) error {
 
 	// Count generated commits for logging
 	allCommits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
-	log.Printf("Generated %d commits across %d developers\n", len(allCommits), len(seedData.Developers))
+	actualDevelopers := store.ListDevelopers()
+	log.Printf("Generated %d commits across %d developers\n", len(allCommits), len(actualDevelopers))
 
 	// Generate model usage events
 	log.Printf("Generating model usage events...\n")

@@ -27,6 +27,7 @@ func TestFeatureGenerator_GenerateFeatures(t *testing.T) {
 
 	store := &mockFeatureStore{
 		mcpTools: make([]models.MCPToolEvent, 0),
+		developers: seedData.Developers,
 		commands: make([]models.CommandEvent, 0),
 		plans:    make([]models.PlanEvent, 0),
 		askModes: make([]models.AskModeEvent, 0),
@@ -82,6 +83,7 @@ func TestFeatureGenerator_EventDistribution(t *testing.T) {
 
 	store := &mockFeatureStore{
 		mcpTools: make([]models.MCPToolEvent, 0),
+		developers: seedData.Developers,
 		commands: make([]models.CommandEvent, 0),
 		plans:    make([]models.PlanEvent, 0),
 		askModes: make([]models.AskModeEvent, 0),
@@ -116,6 +118,7 @@ func TestFeatureGenerator_EventDistribution(t *testing.T) {
 
 // mockFeatureStore implements the FeatureStore interface for testing
 type mockFeatureStore struct {
+	developers []seed.Developer
 	mcpTools []models.MCPToolEvent
 	commands []models.CommandEvent
 	plans    []models.PlanEvent
@@ -140,4 +143,8 @@ func (m *mockFeatureStore) AddPlan(event models.PlanEvent) error {
 func (m *mockFeatureStore) AddAskMode(event models.AskModeEvent) error {
 	m.askModes = append(m.askModes, event)
 	return nil
+}
+
+func (m *mockFeatureStore) ListDevelopers() []seed.Developer {
+	return m.developers
 }

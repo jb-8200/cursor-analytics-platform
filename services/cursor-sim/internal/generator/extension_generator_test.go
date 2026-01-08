@@ -34,6 +34,7 @@ func TestExtensionGenerator_GenerateFileExtensions(t *testing.T) {
 
 	store := &mockExtensionStore{
 		events: make([]models.FileExtensionEvent, 0),
+		developers: seedData.Developers,
 	}
 
 	gen := NewExtensionGeneratorWithSeed(seedData, store, "medium", 42)
@@ -75,6 +76,7 @@ func TestExtensionGenerator_AcceptanceRatio(t *testing.T) {
 
 	store := &mockExtensionStore{
 		events: make([]models.FileExtensionEvent, 0),
+		developers: seedData.Developers,
 	}
 
 	gen := NewExtensionGeneratorWithSeed(seedData, store, "medium", 99)
@@ -159,10 +161,15 @@ func TestExtensionGenerator_EventStructure(t *testing.T) {
 
 // mockExtensionStore implements the FileExtensionStore interface for testing
 type mockExtensionStore struct {
+	developers []seed.Developer
 	events []models.FileExtensionEvent
 }
 
 func (m *mockExtensionStore) AddFileExtension(event models.FileExtensionEvent) error {
 	m.events = append(m.events, event)
 	return nil
+}
+
+func (m *mockExtensionStore) ListDevelopers() []seed.Developer {
+	return m.developers
 }

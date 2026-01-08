@@ -12,9 +12,10 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
-// Store defines the interface for storing generated commits.
+// Store defines the interface for storing generated commits and querying developers.
 type Store interface {
 	AddCommit(commit models.Commit) error
+	ListDevelopers() []seed.Developer
 }
 
 // CommitGenerator generates synthetic commits based on seed data.
@@ -48,7 +49,10 @@ func (g *CommitGenerator) GenerateCommits(ctx context.Context, days int, maxComm
 	startTime := time.Now().AddDate(0, 0, -days)
 	commitCount := 0
 
-	for _, dev := range g.seed.Developers {
+	// Query developers from storage (includes replicated developers)
+	developers := g.store.ListDevelopers()
+
+	for _, dev := range developers {
 		if maxCommits > 0 && commitCount >= maxCommits {
 			fmt.Printf("Reached max commits limit (%d), stopping generation\n", maxCommits)
 			break

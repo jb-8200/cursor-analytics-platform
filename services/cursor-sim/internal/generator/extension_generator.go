@@ -9,9 +9,10 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
-// FileExtensionStore defines the interface for storing file extension events.
+// FileExtensionStore defines the interface for storing file extension events and querying developers.
 type FileExtensionStore interface {
 	AddFileExtension(event models.FileExtensionEvent) error
+	ListDevelopers() []seed.Developer
 }
 
 // ExtensionGenerator generates synthetic file extension usage events.
@@ -50,7 +51,10 @@ func NewExtensionGeneratorWithSeed(seedData *seed.SeedData, store FileExtensionS
 func (g *ExtensionGenerator) GenerateFileExtensions(ctx context.Context, days int) error {
 	startTime := time.Now().AddDate(0, 0, -days)
 
-	for _, dev := range g.seed.Developers {
+	// Query developers from storage (includes replicated developers)
+	developers := g.store.ListDevelopers()
+
+	for _, dev := range developers {
 		if err := g.generateForDeveloper(ctx, dev, startTime, days); err != nil {
 			return err
 		}

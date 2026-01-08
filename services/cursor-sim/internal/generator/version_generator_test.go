@@ -34,6 +34,7 @@ func TestVersionGenerator_GenerateClientVersions(t *testing.T) {
 
 	store := &mockVersionStore{
 		events: make([]models.ClientVersionEvent, 0),
+		developers: seedData.Developers,
 	}
 
 	gen := NewVersionGeneratorWithSeed(seedData, store, "medium", 42)
@@ -72,6 +73,7 @@ func TestVersionGenerator_VersionUpgrades(t *testing.T) {
 
 	store := &mockVersionStore{
 		events: make([]models.ClientVersionEvent, 0),
+		developers: seedData.Developers,
 	}
 
 	gen := NewVersionGeneratorWithSeed(seedData, store, "medium", 123)
@@ -170,10 +172,15 @@ func TestVersionGenerator_EventStructure(t *testing.T) {
 
 // mockVersionStore implements the ClientVersionStore interface for testing
 type mockVersionStore struct {
+	developers []seed.Developer
 	events []models.ClientVersionEvent
 }
 
 func (m *mockVersionStore) AddClientVersion(event models.ClientVersionEvent) error {
 	m.events = append(m.events, event)
 	return nil
+}
+
+func (m *mockVersionStore) ListDevelopers() []seed.Developer {
+	return m.developers
 }

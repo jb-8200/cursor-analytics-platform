@@ -9,9 +9,10 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
-// ModelStore defines the interface for storing model usage events.
+// ModelStore defines the interface for storing model usage events and querying developers.
 type ModelStore interface {
 	AddModelUsage(usage models.ModelUsageEvent) error
+	ListDevelopers() []seed.Developer
 }
 
 // ModelGenerator generates synthetic model usage events based on seed data.
@@ -42,7 +43,10 @@ func NewModelGeneratorWithSeed(seedData *seed.SeedData, store ModelStore, veloci
 func (g *ModelGenerator) GenerateModelUsage(ctx context.Context, days int) error {
 	startTime := time.Now().AddDate(0, 0, -days)
 
-	for _, dev := range g.seed.Developers {
+	// Query developers from storage (includes replicated developers)
+	developers := g.store.ListDevelopers()
+
+	for _, dev := range developers {
 		if err := g.generateForDeveloper(ctx, dev, startTime); err != nil {
 			return err
 		}

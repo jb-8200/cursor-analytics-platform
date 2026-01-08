@@ -10,9 +10,10 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
-// ClientVersionStore defines the interface for storing client version events.
+// ClientVersionStore defines the interface for storing client version events and querying developers.
 type ClientVersionStore interface {
 	AddClientVersion(event models.ClientVersionEvent) error
+	ListDevelopers() []seed.Developer
 }
 
 // VersionGenerator generates synthetic client version usage events.
@@ -51,9 +52,12 @@ func NewVersionGeneratorWithSeed(seedData *seed.SeedData, store ClientVersionSto
 func (g *VersionGenerator) GenerateClientVersions(ctx context.Context, days int) error {
 	startTime := time.Now().AddDate(0, 0, -days)
 
+	// Query developers from storage (includes replicated developers)
+	developers := g.store.ListDevelopers()
+
 	// Assign each developer an initial version
 	developerVersions := make(map[string]string)
-	for _, dev := range g.seed.Developers {
+	for _, dev := range developers {
 		developerVersions[dev.UserID] = g.selectInitialVersion()
 	}
 
@@ -61,7 +65,7 @@ func (g *VersionGenerator) GenerateClientVersions(ctx context.Context, days int)
 	for day := 0; day < days; day++ {
 		currentDate := startTime.AddDate(0, 0, day)
 
-		for _, dev := range g.seed.Developers {
+		for _, dev := range developers {
 			// Check context cancellation
 			select {
 			case <-ctx.Done():

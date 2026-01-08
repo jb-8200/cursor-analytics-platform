@@ -33,7 +33,8 @@ func TestModelGenerator_GenerateModelUsage(t *testing.T) {
 	}
 
 	store := &mockModelStore{
-		usage: make([]models.ModelUsageEvent, 0),
+		developers: seedData.Developers,
+		usage:      make([]models.ModelUsageEvent, 0),
 	}
 
 	gen := NewModelGeneratorWithSeed(seedData, store, "medium", 42)
@@ -85,7 +86,8 @@ func TestModelGenerator_UsageTypes(t *testing.T) {
 	}
 
 	store := &mockModelStore{
-		usage: make([]models.ModelUsageEvent, 0),
+		developers: seedData.Developers,
+		usage:      make([]models.ModelUsageEvent, 0),
 	}
 
 	gen := NewModelGeneratorWithSeed(seedData, store, "high", 123)
@@ -125,7 +127,10 @@ func TestModelGenerator_EventStructure(t *testing.T) {
 		},
 	}
 
-	store := &mockModelStore{usage: make([]models.ModelUsageEvent, 0)}
+	store := &mockModelStore{
+		developers: seedData.Developers,
+		usage:      make([]models.ModelUsageEvent, 0),
+	}
 	gen := NewModelGeneratorWithSeed(seedData, store, "medium", 999)
 
 	err := gen.GenerateModelUsage(context.Background(), 7)
@@ -147,10 +152,15 @@ func TestModelGenerator_EventStructure(t *testing.T) {
 
 // mockModelStore implements the ModelStore interface for testing
 type mockModelStore struct {
+	developers []seed.Developer
 	usage []models.ModelUsageEvent
 }
 
 func (m *mockModelStore) AddModelUsage(usage models.ModelUsageEvent) error {
 	m.usage = append(m.usage, usage)
 	return nil
+}
+
+func (m *mockModelStore) ListDevelopers() []seed.Developer {
+	return m.developers
 }

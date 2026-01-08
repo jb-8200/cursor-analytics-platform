@@ -9,12 +9,13 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
-// FeatureStore defines the interface for storing feature events.
+// FeatureStore defines the interface for storing feature events and querying developers.
 type FeatureStore interface {
 	AddMCPTool(event models.MCPToolEvent) error
 	AddCommand(event models.CommandEvent) error
 	AddPlan(event models.PlanEvent) error
 	AddAskMode(event models.AskModeEvent) error
+	ListDevelopers() []seed.Developer
 }
 
 // FeatureGenerator generates synthetic feature usage events (MCP, Commands, Plans, Ask Mode).
@@ -59,7 +60,10 @@ func NewFeatureGeneratorWithSeed(seedData *seed.SeedData, store FeatureStore, ve
 func (g *FeatureGenerator) GenerateFeatures(ctx context.Context, days int) error {
 	startTime := time.Now().AddDate(0, 0, -days)
 
-	for _, dev := range g.seed.Developers {
+	// Query developers from storage (includes replicated developers)
+	developers := g.store.ListDevelopers()
+
+	for _, dev := range developers {
 		if err := g.generateMCPTools(ctx, dev, startTime, days); err != nil {
 			return err
 		}

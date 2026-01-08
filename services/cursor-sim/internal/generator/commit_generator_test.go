@@ -13,7 +13,8 @@ import (
 
 // MockStore implements a simple in-memory store for testing
 type MockStore struct {
-	commits []models.Commit
+	commits    []models.Commit
+	developers []seed.Developer
 }
 
 func (m *MockStore) AddCommit(commit models.Commit) error {
@@ -25,13 +26,25 @@ func (m *MockStore) GetCommits() []models.Commit {
 	return m.commits
 }
 
+func (m *MockStore) ListDevelopers() []seed.Developer {
+	return m.developers
+}
+
+// NewMockStore creates a MockStore initialized with developers
+func NewMockStore(developers []seed.Developer) *MockStore {
+	return &MockStore{
+		commits:    []models.Commit{},
+		developers: developers,
+	}
+}
+
 func TestCommitGenerator_New(t *testing.T) {
 	seedData := &seed.SeedData{
 		Developers: []seed.Developer{
 			{UserID: "user_001", Email: "test@example.com"},
 		},
 	}
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 
 	gen := NewCommitGenerator(seedData, store, "medium")
 	assert.NotNil(t, gen)
@@ -70,7 +83,7 @@ func TestCommitGenerator_GenerateCommits(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGeneratorWithSeed(seedData, store, "medium", 42) // Use deterministic seed
 
 	ctx := context.Background()
@@ -118,7 +131,7 @@ func TestCommitGenerator_AIAttribution(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGenerator(seedData, store, "medium")
 
 	ctx := context.Background()
@@ -168,7 +181,7 @@ func TestCommitGenerator_TimeRange(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGenerator(seedData, store, "low")
 
 	days := 5
@@ -215,12 +228,12 @@ func TestCommitGenerator_Reproducibility(t *testing.T) {
 	}
 
 	// Generate twice with same seed
-	store1 := &MockStore{}
+	store1 := NewMockStore(seedData.Developers)
 	gen1 := NewCommitGeneratorWithSeed(seedData, store1, "medium", 12345)
 	err := gen1.GenerateCommits(context.Background(), 2, 0)
 	require.NoError(t, err)
 
-	store2 := &MockStore{}
+	store2 := NewMockStore(seedData.Developers)
 	gen2 := NewCommitGeneratorWithSeed(seedData, store2, "medium", 12345)
 	err = gen2.GenerateCommits(context.Background(), 2, 0)
 	require.NoError(t, err)
@@ -254,7 +267,7 @@ func TestCommitGenerator_CommitMessage(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGenerator(seedData, store, "high")
 
 	ctx := context.Background()
@@ -302,7 +315,7 @@ func TestGenerateCommits_MaxLimit(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGeneratorWithSeed(seedData, store, "high", 42)
 
 	ctx := context.Background()
@@ -336,7 +349,7 @@ func TestGenerateCommits_NoLimit(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGeneratorWithSeed(seedData, store, "medium", 42)
 
 	ctx := context.Background()
@@ -389,7 +402,7 @@ func TestGenerateCommits_LimitDistribution(t *testing.T) {
 		},
 	}
 
-	store := &MockStore{}
+	store := NewMockStore(seedData.Developers)
 	gen := NewCommitGeneratorWithSeed(seedData, store, "high", 42)
 
 	ctx := context.Background()
