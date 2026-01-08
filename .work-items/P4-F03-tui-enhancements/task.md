@@ -14,11 +14,11 @@
 | **Infrastructure** | 2 | ✅ 2/2 DONE | 2.5h | 2.0h |
 | **Feature 1: Events Package** | 1 | ✅ DONE | 1.5h | 1.5h |
 | **Feature 2: ASCII Banner** | 2 | ✅ 2/2 DONE | 2.0h | 2.0h |
-| **Feature 3: Spinner** | 2 | TODO | 3.0h | - |
+| **Feature 3: Spinner** | 2 | 1/2 DONE | 3.0h | 1.0h |
 | **Feature 4: Progress Bar** | 2 | TODO | 3.0h | - |
 | **Feature 5: Interactive TUI** | 1 | TODO | 3.0h | - |
 | **Feature 6: E2E & Docs** | 1 | TODO | 1.0h | - |
-| **TOTAL** | **10** | **5/10** | **16.0h** | **4.5h** |
+| **TOTAL** | **10** | **6/10** | **16.0h** | **5.5h** |
 
 ---
 
@@ -322,55 +322,76 @@ if cfg.Mode == "runtime" || cfg.Interactive {
 
 **Goal**: Create reusable spinner for loading phases
 
+**Status**: ✅ COMPLETE
+**Time**: 1.0h actual / 2.0h estimated
+**Commit**: 7b7d74f
+
+**Completed**:
+- Spinner struct wraps Bubbles spinner component
+- TTY mode: animated spinner with Bubble Tea
+- Non-TTY mode: text-based fallback with ticker
+- Thread-safe: uses sync.RWMutex for concurrent updates
+- Full lifecycle: Start(), Stop(), UpdateMessage()
+- 13 comprehensive tests covering edge cases
+- All 39 TUI tests passing
+
 **TDD Approach**:
 ```go
-func TestSpinner_Start_TTY(t *testing.T) {
-    var buf bytes.Buffer
-    s := tui.NewSpinner("Loading...", &buf)
+func TestSpinner_Start_Stop_TTY(t *testing.T) {
+    output := &bytes.Buffer{}
+    spinner := NewSpinner("Loading...", output)
 
-    s.Start()
-    time.Sleep(100 * time.Millisecond)
-    s.Stop("Done!")
+    spinner.Start()
+    assert.True(t, spinner.isRunning)
 
-    output := buf.String()
-    assert.Contains(t, output, "Done!")
+    time.Sleep(50 * time.Millisecond)
+
+    spinner.Stop("Done!")
+    assert.False(t, spinner.isRunning)
 }
 
-func TestSpinner_NonTTY_Fallback(t *testing.T) {
-    tui.ShouldUseTUI = func() bool { return false }
+func TestSpinner_ThreadSafety(t *testing.T) {
+    output := &bytes.Buffer{}
+    spinner := NewSpinner("Loading...", output)
 
-    var buf bytes.Buffer
-    s := tui.NewSpinner("Loading...", &buf)
+    spinner.Start()
+    defer spinner.Stop("Done!")
 
-    s.Start()
-    s.Stop("Done!")
+    // Launch multiple goroutines to update message
+    done := make(chan bool, 5)
+    for i := 0; i < 5; i++ {
+        go func(idx int) {
+            for j := 0; j < 10; j++ {
+                spinner.UpdateMessage("Message " + string(rune(48+idx)))
+                time.Sleep(5 * time.Millisecond)
+            }
+            done <- true
+        }(i)
+    }
 
-    output := buf.String()
-    assert.Contains(t, output, "Loading...")
-    assert.Contains(t, output, "Done!")
+    // Wait for all goroutines - should complete without panic
+    for i := 0; i < 5; i++ {
+        <-done
+    }
 }
 ```
 
-**Implementation Steps**:
-1. Write tests for spinner lifecycle
-2. Implement Spinner struct with Bubble Tea
-3. Implement Start() method
-4. Implement Stop() method with final message
-5. Add non-TTY fallback
-6. Run tests (GREEN)
+**Testing**:
+- 13 tests: Start/Stop, UpdateMessage, lifecycle, thread safety, edge cases
+- Concurrent operations tested with 5 goroutines × 10 updates
+- Edge cases: nil writer, empty message, multiple starts, rapid stops
+- All 39 TUI tests passing
+
+**Acceptance Criteria**:
+- [x] Spinner animates in TTY
+- [x] Stop shows checkmark + message
+- [x] Non-TTY shows static text fallback
+- [x] Thread-safe concurrent updates
+- [x] All tests pass
 
 **Files**:
 - NEW: `services/cursor-sim/internal/tui/spinner.go`
 - NEW: `services/cursor-sim/internal/tui/spinner_test.go`
-
-**Acceptance Criteria**:
-- [ ] Spinner animates in TTY
-- [ ] Stop shows checkmark + message
-- [ ] Non-TTY shows static text
-- [ ] Thread-safe start/stop
-- [ ] Tests pass
-
-**Estimated**: 2.0h
 
 ---
 
