@@ -38,13 +38,13 @@
 
 ## Next Steps
 
-### In Progress
-- **P3-F04**: Preview Mode & YAML Support - 7/11 tasks complete (Features 1 & 2 done)
+### Recently Completed
+- **P3-F04**: Preview Mode & YAML Support ✅ COMPLETE (11/11 tasks, 7.8h actual vs 10.5h estimated)
   - Inspired by NVIDIA NeMo DataDesigner patterns
   - ✅ Feature 1: YAML seed file support with comments (TASK-PREV-01, TASK-PREV-02, TASK-PREV-03)
   - ✅ Feature 2: Preview mode for quick seed validation (TASK-PREV-04, TASK-PREV-05, TASK-PREV-06, TASK-PREV-07)
-  - ⏳ Feature 3: Validation framework with warnings
-  - Estimated: 10.5h | Actual: 6.5h
+  - ✅ Feature 3: Validation framework with warnings (TASK-PREV-08, TASK-PREV-09)
+  - ✅ Feature 4: E2E tests and documentation (TASK-PREV-10, TASK-PREV-11)
 
 ### Recently Completed
 - **P4-F02**: CLI Enhancement - 14/14 tasks complete ✅ (13.0h total)

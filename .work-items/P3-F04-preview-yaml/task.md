@@ -14,9 +14,10 @@
 | **Setup** | 1 | ✅ DONE | 0.5h | 0.5h |
 | **Feature 1: YAML Support** | 3 | ✅ DONE | 2.5h | 2.0h |
 | **Feature 2: Preview Mode Core** | 4 | ✅ DONE | 4.0h | 4.0h |
-| **Feature 3: Validation Framework** | 2 | ⏳ TODO | 2.0h | - |
-| **Feature 4: Integration & Polish** | 1 | ⏳ TODO | 1.5h | - |
-| **TOTAL** | **11** | **7/11** | **10.5h** | **6.5h** |
+| **Feature 3: Validation Framework** | 2 | ✅ DONE | 2.0h | 0.8h |
+| **Feature 4: Integration & Polish** | 1 | ✅ DONE | 1.0h | 0.5h |
+| **Documentation** | 1 | ✅ DONE | 0.5h | 0.0h |
+| **TOTAL** | **11** | **11/11** | **10.5h** | **7.8h** |
 
 ---
 
@@ -575,7 +576,10 @@ func TestPreview_ValidateSeed_NoDevelopers(t *testing.T) {
 - ✅ All tests pass
 
 **Estimated**: 1.5h
-**Status**: ⏳ TODO
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE
+**Commit**: 0c83aaa
+**Notes**: Added warnings field to Preview struct. Implemented validateSeed() and validateDeveloper() with validation for empty developers (fatal), invalid working hours (0-23), and invalid model names. Added validModels map with 8 supported Claude models. All 4 new tests passing.
 
 ---
 
@@ -632,7 +636,10 @@ func TestPreview_DisplayWarnings_MultipleWarnings(t *testing.T) {
 - ✅ Tests pass
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0.3h
+**Status**: ✅ COMPLETE
+**Commit**: e47e83e
+**Notes**: Added displayWarnings() method with emoji indicators (✅ for no warnings, ⚠️ for warnings). Integrated validation into Run() method. Updated existing test to expect validation error on empty developers. All 15 tests passing.
 
 ---
 
@@ -717,7 +724,10 @@ func TestE2E_PreviewTimeout(t *testing.T) {
 - ✅ E2E tests pass
 
 **Estimated**: 1.0h
-**Status**: ⏳ TODO
+**Actual**: 0.5h
+**Status**: ✅ COMPLETE
+**Commit**: bdc9d75
+**Notes**: Created 3 E2E tests covering basic preview, warnings display, and performance. Used absolute paths for binary and working directory to handle various test execution contexts. All tests passing.
 
 ---
 
@@ -756,7 +766,9 @@ func TestE2E_PreviewTimeout(t *testing.T) {
 - ✅ "Last Updated" date updated
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0.0h (completed incrementally with other tasks)
+**Status**: ✅ COMPLETE
+**Notes**: SPEC.md updated during TASK-PREV-07 with preview mode examples and CLI flags. All documentation complete. Feature fully implemented and documented.
 
 ---
 
