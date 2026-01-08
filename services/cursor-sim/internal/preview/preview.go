@@ -50,8 +50,16 @@ func (p *Preview) Run(ctx context.Context) error {
 	// Display header
 	p.displayHeader()
 
+	// Validate seed data
+	if err := p.validateSeed(); err != nil {
+		return err
+	}
+
 	// Display developer summary
 	p.displayDeveloperSummary()
+
+	// Display validation warnings
+	p.displayWarnings()
 
 	// Generate sample commits (limited)
 	store, err := p.generateSampleData(ctx)
@@ -276,4 +284,19 @@ func (p *Preview) validateDeveloper(dev seed.Developer) {
 				fmt.Sprintf("Developer %s: Unknown model '%s'", dev.UserID, model))
 		}
 	}
+}
+
+// displayWarnings displays validation warnings in a formatted section.
+func (p *Preview) displayWarnings() {
+	fmt.Fprintln(p.writer, "Validation Warnings")
+	fmt.Fprintln(p.writer, strings.Repeat("-", 60))
+
+	if len(p.warnings) == 0 {
+		fmt.Fprintln(p.writer, "  ✅ No validation warnings")
+	} else {
+		for _, warning := range p.warnings {
+			fmt.Fprintf(p.writer, "  ⚠️  %s\n", warning)
+		}
+	}
+	fmt.Fprintln(p.writer)
 }

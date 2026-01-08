@@ -144,7 +144,7 @@ func TestPreview_RunWithTimeout(t *testing.T) {
 }
 
 func TestPreview_RunWithEmptyDevelopers(t *testing.T) {
-	// Test with no developers
+	// Test with no developers - should fail validation
 	seedData := &seed.SeedData{
 		Developers: []seed.Developer{},
 	}
@@ -154,11 +154,8 @@ func TestPreview_RunWithEmptyDevelopers(t *testing.T) {
 	p := New(seedData, cfg, &buf)
 
 	err := p.Run(context.Background())
-	require.NoError(t, err)
-
-	output := buf.String()
-	assert.Contains(t, output, "PREVIEW MODE")
-	assert.Contains(t, output, "0 developers")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "no developers defined")
 }
 
 // TASK-PREV-06: Implement Preview Output Formatters (REFACTOR)
@@ -311,4 +308,52 @@ func TestPreview_ValidateSeed_NoDevelopers(t *testing.T) {
 	err := p.validateSeed()
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "no developers defined")
+}
+
+// TASK-PREV-09: Display Validation Warnings (REFACTOR)
+
+func TestPreview_DisplayWarnings_NoWarnings(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{UserID: "alice", Email: "alice@example.com"},
+		},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+	p.warnings = []string{}
+
+	p.displayWarnings()
+
+	output := buf.String()
+	assert.Contains(t, output, "Validation Warnings")
+	assert.Contains(t, output, "No validation warnings")
+}
+
+func TestPreview_DisplayWarnings_MultipleWarnings(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID:           "alice",
+				WorkingHoursBand: seed.WorkingHours{Start: 25, End: 30},
+				PreferredModels: []string{"gpt-5000"},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+	p.warnings = []string{
+		"Developer alice: Invalid start hour 25",
+		"Developer alice: Unknown model 'gpt-5000'",
+	}
+
+	p.displayWarnings()
+
+	output := buf.String()
+	assert.Contains(t, output, "Validation Warnings")
+	assert.Contains(t, output, "Invalid start hour 25")
+	assert.Contains(t, output, "Unknown model 'gpt-5000'")
 }
