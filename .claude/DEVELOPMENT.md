@@ -1,8 +1,8 @@
 # Development Session Context
 
 **Last Updated**: January 8, 2026
-**Active Features**: P4-F02 (CLI Enhancement - COMPLETE ✅)
-**Primary Focus**: All 14 tasks complete, feature ready for use
+**Active Features**: P3-F04 (Preview Mode & YAML Support - Planning Complete)
+**Primary Focus**: Add preview mode and YAML seed support inspired by NVIDIA DataDesigner
 
 ---
 
@@ -37,6 +37,14 @@
 ---
 
 ## Next Steps
+
+### In Progress
+- **P3-F04**: Preview Mode & YAML Support - 0/11 tasks complete (Planning done)
+  - Inspired by NVIDIA NeMo DataDesigner patterns
+  - Preview mode for quick seed validation (< 5 seconds)
+  - YAML seed file support with comments
+  - Validation framework with warnings
+  - Estimated: 10.5h
 
 ### Recently Completed
 - **P4-F02**: CLI Enhancement - 14/14 tasks complete ✅ (13.0h total)
