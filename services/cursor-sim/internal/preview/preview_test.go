@@ -235,3 +235,80 @@ func TestFormatWorkingHours(t *testing.T) {
 		})
 	}
 }
+
+// TASK-PREV-08: Implement Seed Validators (RED)
+
+func TestPreview_ValidateSeed_ValidData(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "alice",
+				Email:  "alice@example.com",
+				WorkingHoursBand: seed.WorkingHours{Start: 9, End: 17},
+				PreferredModels: []string{"claude-sonnet-4.5"},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+
+	err := p.validateSeed()
+	assert.NoError(t, err)
+	assert.Empty(t, p.warnings)
+}
+
+func TestPreview_ValidateSeed_InvalidModel(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID:          "alice",
+				PreferredModels: []string{"gpt-5000"},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+
+	err := p.validateSeed()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, p.warnings)
+	assert.Contains(t, p.warnings[0], "Unknown model 'gpt-5000'")
+}
+
+func TestPreview_ValidateSeed_InvalidWorkingHours(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID:           "alice",
+				WorkingHoursBand: seed.WorkingHours{Start: 25, End: 30},
+			},
+		},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+
+	err := p.validateSeed()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, p.warnings)
+	assert.Contains(t, p.warnings[0], "Invalid start hour 25")
+}
+
+func TestPreview_ValidateSeed_NoDevelopers(t *testing.T) {
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{},
+	}
+
+	var buf bytes.Buffer
+	cfg := Config{Days: 7, MaxCommits: 10}
+	p := New(seedData, cfg, &buf)
+
+	err := p.validateSeed()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no developers defined")
+}

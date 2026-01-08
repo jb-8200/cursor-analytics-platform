@@ -28,6 +28,7 @@ type Preview struct {
 	seedData *seed.SeedData
 	config   Config
 	writer   io.Writer
+	warnings []string // Validation warnings collected during seed validation
 }
 
 // New creates a new Preview instance.
@@ -220,4 +221,59 @@ func truncate(s string, maxLen int) string {
 // formatWorkingHours formats working hours as "HH:MM - HH:MM".
 func formatWorkingHours(hours seed.WorkingHours) string {
 	return fmt.Sprintf("%02d:00 - %02d:00", hours.Start, hours.End)
+}
+
+// Validation functions
+
+// validModels contains the list of supported Claude models.
+var validModels = map[string]bool{
+	"claude-haiku-4": true,
+	"claude-haiku-4-5-20251001": true,
+	"claude-sonnet-4": true,
+	"claude-sonnet-4.5": true,
+	"claude-sonnet-4-5-20241022": true,
+	"claude-opus-4": true,
+	"claude-opus-4.5": true,
+	"claude-opus-4-5-20251101": true,
+}
+
+// validateSeed validates the seed data and collects warnings.
+// Returns error if seed has fatal issues (e.g., no developers), nil otherwise with warnings in p.warnings.
+func (p *Preview) validateSeed() error {
+	p.warnings = []string{}
+
+	// Fatal validation: must have at least one developer
+	if len(p.seedData.Developers) == 0 {
+		return fmt.Errorf("validation failed: no developers defined")
+	}
+
+	// Validate each developer
+	for _, dev := range p.seedData.Developers {
+		p.validateDeveloper(dev)
+	}
+
+	return nil
+}
+
+// validateDeveloper validates a single developer and adds warnings.
+func (p *Preview) validateDeveloper(dev seed.Developer) {
+	// Validate working hours
+	if dev.WorkingHoursBand.Start < 0 || dev.WorkingHoursBand.Start > 23 {
+		p.warnings = append(p.warnings,
+			fmt.Sprintf("Developer %s: Invalid start hour %d (must be 0-23)",
+				dev.UserID, dev.WorkingHoursBand.Start))
+	}
+	if dev.WorkingHoursBand.End < 0 || dev.WorkingHoursBand.End > 23 {
+		p.warnings = append(p.warnings,
+			fmt.Sprintf("Developer %s: Invalid end hour %d (must be 0-23)",
+				dev.UserID, dev.WorkingHoursBand.End))
+	}
+
+	// Validate models
+	for _, model := range dev.PreferredModels {
+		if !validModels[model] {
+			p.warnings = append(p.warnings,
+				fmt.Sprintf("Developer %s: Unknown model '%s'", dev.UserID, model))
+		}
+	}
 }
