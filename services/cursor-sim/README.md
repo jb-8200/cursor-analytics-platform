@@ -478,20 +478,9 @@ curl -u cursor-sim-dev-key: http://localhost:8080/analytics/ai-code/commits.csv 
 
 ## Docker Deployment
 
-For containerized deployment:
+### Quick Start with Docker
 
-```bash
-# Build Docker image
-docker build -t cursor-sim:latest .
-
-# Run with Docker
-docker run --rm -p 8080:8080 \
-  -e CURSOR_SIM_MODE=runtime \
-  -e CURSOR_SIM_SEED=/app/seed.json \
-  cursor-sim:latest
-```
-
-**Or use the automated script:**
+**Automated script (recommended):**
 
 ```bash
 # From project root
@@ -501,7 +490,33 @@ docker run --rm -p 8080:8080 \
 DAYS=30 VELOCITY=high ./tools/docker-local.sh
 ```
 
-For production deployment to GCP Cloud Run, see [docs/cursor-sim-cloud-run.md](../../docs/cursor-sim-cloud-run.md).
+**Manual Docker commands:**
+
+```bash
+# Build Docker image
+docker build -t cursor-sim:latest services/cursor-sim
+
+# Run with Docker
+docker run --rm -p 8080:8080 \
+  -e CURSOR_SIM_MODE=runtime \
+  -e CURSOR_SIM_SEED=/app/seed.json \
+  cursor-sim:latest
+```
+
+### Complete Docker Documentation
+
+For comprehensive Docker deployment information, see **[DOCKER.md](./DOCKER.md)**:
+
+- Multi-stage build architecture
+- Security features and performance metrics
+- Custom seed file strategies
+- Container management commands
+- Troubleshooting Docker-specific issues
+- Production deployment (Cloud Run, Kubernetes, Docker Compose)
+- Configuration presets
+
+**Also see:**
+- [docs/cursor-sim-cloud-run.md](../../docs/cursor-sim-cloud-run.md) - GCP Cloud Run deployment guide
 
 ---
 
