@@ -11,12 +11,12 @@
 
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
-| **Setup** | 1 | ⏳ TODO | 0.5h | - |
-| **Feature 1: YAML Support** | 3 | ⏳ TODO | 2.5h | - |
+| **Setup** | 1 | ✅ DONE | 0.5h | 0.5h |
+| **Feature 1: YAML Support** | 3 | 🔄 IN PROGRESS | 2.5h | 1.5h |
 | **Feature 2: Preview Mode Core** | 4 | ⏳ TODO | 4.0h | - |
 | **Feature 3: Validation Framework** | 2 | ⏳ TODO | 2.0h | - |
 | **Feature 4: Integration & Polish** | 1 | ⏳ TODO | 1.5h | - |
-| **TOTAL** | **11** | **0/11** | **10.5h** | **-** |
+| **TOTAL** | **11** | **2/11** | **10.5h** | **2.0h** |
 
 ---
 
@@ -100,7 +100,10 @@ func TestLoadSeed_MalformedYAML(t *testing.T) {
 - ✅ All tests pass
 
 **Estimated**: 1.5h
-**Status**: ⏳ TODO
+**Actual**: 1.5h
+**Status**: ✅ COMPLETE
+**Commit**: 2b34cda
+**Notes**: Completed TASK-PREV-01 and TASK-PREV-02 together. Added yaml struct tags to all types during implementation.
 
 ---
 
@@ -156,7 +159,10 @@ func TestSeedData_BothFormatsEquivalent(t *testing.T) {
 - ✅ All tests pass
 
 **Estimated**: 0.5h
-**Status**: ⏳ TODO
+**Actual**: 0h (completed with TASK-PREV-01)
+**Status**: ✅ COMPLETE
+**Commit**: 2b34cda
+**Notes**: Completed together with TASK-PREV-01. All yaml struct tags added, equivalence tests written.
 
 ---
 
