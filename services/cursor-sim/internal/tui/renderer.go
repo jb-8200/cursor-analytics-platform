@@ -15,6 +15,9 @@ type Renderer struct {
 	writer          io.Writer
 	currentSpinner  *Spinner
 	spinnerRunning  bool
+	currentProgress *ProgressBar
+	progressCurrent int
+	progressTotal   int
 	mu              sync.RWMutex
 }
 
@@ -92,10 +95,14 @@ func (r *Renderer) handlePhaseComplete(event events.PhaseCompleteEvent) {
 	}
 }
 
-// handleProgress updates the current spinner's message.
+// handleProgress updates the current spinner's message and tracks progress.
 func (r *Renderer) handleProgress(event events.ProgressEvent) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// Track progress for percentage calculation
+	r.progressCurrent = event.Current
+	r.progressTotal = event.Total
 
 	if r.currentSpinner != nil && r.spinnerRunning {
 		message := event.Message
@@ -132,4 +139,16 @@ func (r *Renderer) handleError(event events.ErrorEvent) {
 		}
 		fmt.Fprintf(r.writer, "\n")
 	}
+}
+
+// GetProgressPercentage returns the current progress as a percentage (0-100).
+func (r *Renderer) GetProgressPercentage() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if r.progressTotal == 0 {
+		return 0
+	}
+
+	return (r.progressCurrent * 100) / r.progressTotal
 }

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 	"time"
 
@@ -340,4 +341,74 @@ func TestRenderer_ThreadSafety(t *testing.T) {
 
 	// Should complete without panic or race condition
 	assert.True(t, true)
+}
+
+func TestRenderer_ProgressTracking(t *testing.T) {
+	output := &bytes.Buffer{}
+	renderer := NewRenderer(output)
+
+	// Start phase with progress bar
+	startEvent := events.PhaseStartEvent{
+		BaseEvent: events.BaseEvent{
+			EventType: events.EventTypePhaseStart,
+			Time:      time.Now(),
+		},
+		Phase:   "generating",
+		Message: "Generating commits...",
+	}
+	renderer.HandleEvent(startEvent)
+
+	// Send progress events
+	for i := 1; i <= 10; i++ {
+		progressEvent := events.ProgressEvent{
+			BaseEvent: events.BaseEvent{
+				EventType: events.EventTypeProgress,
+				Time:      time.Now(),
+			},
+			Phase:   "generating",
+			Current: i,
+			Total:   10,
+			Message: fmt.Sprintf("Generated %d commits", i),
+		}
+		renderer.HandleEvent(progressEvent)
+
+		// Verify progress bar is tracking
+		pct := renderer.GetProgressPercentage()
+		assert.Equal(t, i*10, pct)
+	}
+}
+
+func TestRenderer_GetProgressPercentage(t *testing.T) {
+	output := &bytes.Buffer{}
+	renderer := NewRenderer(output)
+
+	// No progress started
+	assert.Equal(t, 0, renderer.GetProgressPercentage())
+
+	// Start phase
+	startEvent := events.PhaseStartEvent{
+		BaseEvent: events.BaseEvent{
+			EventType: events.EventTypePhaseStart,
+			Time:      time.Now(),
+		},
+		Message: "Working...",
+	}
+	renderer.HandleEvent(startEvent)
+
+	// Progress 50%
+	progressEvent := events.ProgressEvent{
+		BaseEvent: events.BaseEvent{
+			EventType: events.EventTypeProgress,
+			Time:      time.Now(),
+		},
+		Current: 5,
+		Total:   10,
+	}
+	renderer.HandleEvent(progressEvent)
+	assert.Equal(t, 50, renderer.GetProgressPercentage())
+
+	// Progress 100%
+	progressEvent.Current = 10
+	renderer.HandleEvent(progressEvent)
+	assert.Equal(t, 100, renderer.GetProgressPercentage())
 }
