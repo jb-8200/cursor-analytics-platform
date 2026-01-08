@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,4 +159,79 @@ func TestPreview_RunWithEmptyDevelopers(t *testing.T) {
 	output := buf.String()
 	assert.Contains(t, output, "PREVIEW MODE")
 	assert.Contains(t, output, "0 developers")
+}
+
+// TASK-PREV-06: Implement Preview Output Formatters (REFACTOR)
+
+func TestTruncate(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		maxLen   int
+		expected string
+	}{
+		{
+			name:     "short string unchanged",
+			input:    "short",
+			maxLen:   50,
+			expected: "short",
+		},
+		{
+			name:     "exact length unchanged",
+			input:    "exactly fifty characters in this string here now!",
+			maxLen:   50,
+			expected: "exactly fifty characters in this string here now!",
+		},
+		{
+			name:     "long string truncated",
+			input:    "This is a very long commit message that should be truncated to fit nicely",
+			maxLen:   50,
+			expected: "This is a very long commit message that should...",
+		},
+		{
+			name:     "very long truncated",
+			input:    strings.Repeat("a", 100),
+			maxLen:   20,
+			expected: strings.Repeat("a", 17) + "...",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := truncate(tt.input, tt.maxLen)
+			assert.Equal(t, tt.expected, result)
+			assert.LessOrEqual(t, len(result), tt.maxLen, "truncated string should not exceed maxLen")
+		})
+	}
+}
+
+func TestFormatWorkingHours(t *testing.T) {
+	tests := []struct {
+		name     string
+		hours    seed.WorkingHours
+		expected string
+	}{
+		{
+			name:     "standard hours",
+			hours:    seed.WorkingHours{Start: 9, End: 17, Peak: 14},
+			expected: "09:00 - 17:00",
+		},
+		{
+			name:     "early hours",
+			hours:    seed.WorkingHours{Start: 6, End: 14, Peak: 10},
+			expected: "06:00 - 14:00",
+		},
+		{
+			name:     "late hours",
+			hours:    seed.WorkingHours{Start: 13, End: 21, Peak: 17},
+			expected: "13:00 - 21:00",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := formatWorkingHours(tt.hours)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

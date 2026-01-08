@@ -91,13 +91,23 @@ func (p *Preview) displayDeveloperSummary() {
 			fmt.Fprintf(p.writer, "  ... and %d more\n", len(p.seedData.Developers)-5)
 			break
 		}
-		fmt.Fprintf(p.writer, "  • %s (%s)\n", dev.Name, dev.Email)
+		// Truncate name and email for 80-column display
+		displayName := truncate(dev.Name, 30)
+		displayEmail := truncate(dev.Email, 35)
+		fmt.Fprintf(p.writer, "  • %s (%s)\n", displayName, displayEmail)
+
+		// Display ID and seniority
 		if dev.UserID != "" {
 			fmt.Fprintf(p.writer, "    ID: %s", dev.UserID)
 			if dev.Seniority != "" {
 				fmt.Fprintf(p.writer, " | Seniority: %s", dev.Seniority)
 			}
 			fmt.Fprintln(p.writer)
+		}
+
+		// Display working hours if configured
+		if dev.WorkingHoursBand.Start > 0 || dev.WorkingHoursBand.End > 0 {
+			fmt.Fprintf(p.writer, "    Hours: %s\n", formatWorkingHours(dev.WorkingHoursBand))
 		}
 	}
 	fmt.Fprintln(p.writer)
@@ -147,8 +157,14 @@ func (p *Preview) displaySampleCommits(store *storage.MemoryStore) {
 
 	for i := 0; i < showCount; i++ {
 		commit := commits[i]
-		fmt.Fprintf(p.writer, "  [%s] %s\n", commit.CommitTs.Format("15:04:05"), commit.Message)
-		fmt.Fprintf(p.writer, "    Author: %s | Repo: %s\n", commit.UserName, commit.RepoName)
+		// Truncate commit message to fit 80-column display
+		displayMsg := truncate(commit.Message, 55)
+		fmt.Fprintf(p.writer, "  [%s] %s\n", commit.CommitTs.Format("15:04:05"), displayMsg)
+
+		// Truncate author and repo names
+		displayAuthor := truncate(commit.UserName, 20)
+		displayRepo := truncate(commit.RepoName, 25)
+		fmt.Fprintf(p.writer, "    Author: %s | Repo: %s\n", displayAuthor, displayRepo)
 	}
 
 	if len(commits) > showCount {
@@ -166,7 +182,42 @@ func (p *Preview) displayStatistics(store *storage.MemoryStore) {
 	fmt.Fprintf(p.writer, "  Total commits generated: %d\n", len(commits))
 	fmt.Fprintf(p.writer, "  Developers: %d\n", len(p.seedData.Developers))
 	fmt.Fprintf(p.writer, "  Repositories: %d\n", len(p.seedData.Repositories))
+
+	// Calculate average commits per developer
+	if len(p.seedData.Developers) > 0 {
+		avgCommits := float64(len(commits)) / float64(len(p.seedData.Developers))
+		fmt.Fprintf(p.writer, "  Avg commits/dev: %.1f\n", avgCommits)
+	}
+
+	// Calculate total lines changed
+	totalAdded, totalDeleted := 0, 0
+	for _, commit := range commits {
+		totalAdded += commit.TotalLinesAdded
+		totalDeleted += commit.TotalLinesDeleted
+	}
+	fmt.Fprintf(p.writer, "  Total lines: +%d / -%d\n", totalAdded, totalDeleted)
+
 	fmt.Fprintf(p.writer, "  Preview duration: %d day(s)\n", p.config.Days)
 	fmt.Fprintln(p.writer)
 	fmt.Fprintln(p.writer, strings.Repeat("=", 60))
+}
+
+// Helper functions for formatting
+
+// truncate truncates a string to maxLen, adding "..." if truncated.
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	if maxLen < 3 {
+		return s[:maxLen]
+	}
+	// Trim trailing spaces before adding ellipsis
+	truncated := strings.TrimRight(s[:maxLen-3], " ")
+	return truncated + "..."
+}
+
+// formatWorkingHours formats working hours as "HH:MM - HH:MM".
+func formatWorkingHours(hours seed.WorkingHours) string {
+	return fmt.Sprintf("%02d:00 - %02d:00", hours.Start, hours.End)
 }
