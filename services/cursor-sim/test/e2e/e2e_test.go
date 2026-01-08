@@ -503,3 +503,134 @@ func TestE2E_QualityOutcomeCorrelations(t *testing.T) {
 		t.Logf("High AI ratio revert rate: %.2f%% (%d/%d)", highRate*100, highAIReverts, highAITotal)
 	}
 }
+
+// YAML Seed E2E Tests (TASK-PREV-03)
+
+// setupTestServerWithSeed starts a test server with a specific seed file.
+func setupTestServerWithSeed(t *testing.T, seedPath string, port int) (context.CancelFunc, *storage.MemoryStore) {
+	// Load test seed data
+	seedData, err := seed.LoadSeed(seedPath)
+	require.NoError(t, err)
+
+	// Initialize storage
+	store := storage.NewMemoryStore()
+	err = store.LoadDevelopers(seedData.Developers)
+	require.NoError(t, err)
+
+	// Generate sample commits (1 day of history)
+	gen := generator.NewCommitGenerator(seedData, store, "medium")
+	ctx := context.Background()
+	err = gen.GenerateCommits(ctx, 1, 0)
+	require.NoError(t, err)
+
+	// Create and start HTTP server
+	router := server.NewRouter(store, seedData, testAPIKey)
+	httpServer := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: router,
+	}
+
+	// Start server in background
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			t.Logf("Server error: %v", err)
+		}
+	}()
+
+	// Wait for server to be ready
+	time.Sleep(50 * time.Millisecond)
+
+	// Return cleanup function
+	cleanup := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		httpServer.Shutdown(ctx)
+	}
+
+	return cleanup, store
+}
+
+func TestE2E_YAMLSeedRuntimeMode(t *testing.T) {
+	// Test that YAML seed files work end-to-end in runtime mode
+	cleanup, store := setupTestServerWithSeed(t, "../../testdata/valid_seed.yaml", testPort)
+	defer cleanup()
+
+	// Verify server started successfully
+	resp := makeRequest(t, "GET", "/health", false)
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+
+	// Verify API endpoints return data from YAML seed
+	resp = makeRequest(t, "GET", "/teams/members", true)
+	defer resp.Body.Close()
+	assert.Equal(t, 200, resp.StatusCode)
+
+	var result map[string]interface{}
+	err := json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+	assert.Contains(t, result, "teamMembers")
+
+	// Verify commits were generated from YAML seed
+	commits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
+	assert.Greater(t, len(commits), 0, "YAML seed should generate commits")
+
+	t.Logf("YAML seed runtime mode: %d commits generated", len(commits))
+}
+
+func TestE2E_YAMLvsJSONEquivalence(t *testing.T) {
+	// Start server with JSON seed on port 19080
+	jsonCleanup, jsonStore := setupTestServerWithSeed(t, "../../testdata/valid_seed.json", 19080)
+	defer jsonCleanup()
+
+	// Start server with YAML seed on port 19081
+	yamlCleanup, yamlStore := setupTestServerWithSeed(t, "../../testdata/valid_seed.yaml", 19081)
+	defer yamlCleanup()
+
+	// Compare team members response
+	jsonResp := makeRequest(t, "GET", "/teams/members", true)
+	defer jsonResp.Body.Close()
+	assert.Equal(t, 200, jsonResp.StatusCode)
+
+	var jsonResult map[string]interface{}
+	err := json.NewDecoder(jsonResp.Body).Decode(&jsonResult)
+	require.NoError(t, err)
+
+	// YAML server request
+	yamlReq, err := http.NewRequest("GET", "http://localhost:19081/teams/members", nil)
+	require.NoError(t, err)
+	yamlReq.SetBasicAuth(testAPIKey, "")
+
+	client := &http.Client{Timeout: 2 * time.Second}
+	yamlResp, err := client.Do(yamlReq)
+	require.NoError(t, err)
+	defer yamlResp.Body.Close()
+	assert.Equal(t, 200, yamlResp.StatusCode)
+
+	var yamlResult map[string]interface{}
+	err = json.NewDecoder(yamlResp.Body).Decode(&yamlResult)
+	require.NoError(t, err)
+
+	// Compare responses structure
+	assert.Contains(t, yamlResult, "teamMembers")
+	jsonMembers := jsonResult["teamMembers"].([]interface{})
+	yamlMembers := yamlResult["teamMembers"].([]interface{})
+
+	// Both should have same number of team members
+	assert.Equal(t, len(jsonMembers), len(yamlMembers), "JSON and YAML should produce same number of team members")
+
+	// Compare commit counts
+	jsonCommits := jsonStore.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
+	yamlCommits := yamlStore.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
+
+	// Both should have generated commits
+	assert.Greater(t, len(jsonCommits), 0, "JSON seed should generate commits")
+	assert.Greater(t, len(yamlCommits), 0, "YAML seed should generate commits")
+
+	// Commit counts should be similar (not exact due to randomness, but within reasonable range)
+	if len(jsonCommits) > 0 && len(yamlCommits) > 0 {
+		ratio := float64(len(yamlCommits)) / float64(len(jsonCommits))
+		assert.Greater(t, ratio, 0.4, "YAML should generate reasonable number of commits")
+		assert.LessOrEqual(t, ratio, 2.5, "YAML should not generate excessive commits")
+		t.Logf("JSON commits: %d, YAML commits: %d (ratio: %.2f)", len(jsonCommits), len(yamlCommits), ratio)
+	}
+}
