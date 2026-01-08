@@ -19,6 +19,7 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/server"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/tui"
 )
 
 // Version indicates the current release of cursor-sim.
@@ -48,6 +49,11 @@ func main() {
 	cfg, err := config.ParseFlags()
 	if err != nil {
 		log.Fatalf("Config error: %v\n", err)
+	}
+
+	// Display DOXAPI banner for runtime and interactive modes (skip preview and help)
+	if cfg.Mode == "runtime" || cfg.Interactive {
+		tui.DisplayBanner(Version)
 	}
 
 	// TASK-CLI-10: If interactive mode is enabled, prompt for configuration
