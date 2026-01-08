@@ -83,7 +83,9 @@
       "Bash(docker-compose build:*)",
       "Skill(start-feature)",
       "Bash(python3:*)",
-      "Skill(status)"
+      "Skill(status)",
+      "Bash(timeout 5s bash -c 'echo -e \"\"\"\"\\\\n\\\\n\\\\n\"\"\"\" | ./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json -interactive -port 19010')",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []
