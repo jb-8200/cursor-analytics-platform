@@ -13,12 +13,12 @@
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 DONE | 2.5h | 2.0h |
 | **Feature 1: Events Package** | 1 | ✅ DONE | 1.5h | 1.5h |
-| **Feature 2: ASCII Banner** | 2 | TODO | 2.0h | - |
+| **Feature 2: ASCII Banner** | 2 | 1/2 DONE | 2.0h | 1.5h |
 | **Feature 3: Spinner** | 2 | TODO | 3.0h | - |
 | **Feature 4: Progress Bar** | 2 | TODO | 3.0h | - |
 | **Feature 5: Interactive TUI** | 1 | TODO | 3.0h | - |
 | **Feature 6: E2E & Docs** | 1 | TODO | 1.0h | - |
-| **TOTAL** | **10** | **3/10** | **16.0h** | **2.5h** |
+| **TOTAL** | **10** | **4/10** | **16.0h** | **4.0h** |
 
 ---
 
@@ -201,6 +201,18 @@ func TestNullEmitter_DiscardEvents(t *testing.T) {
 #### TASK-TUI-02: Implement ASCII Banner with Gradient
 
 **Goal**: Render "DOXAPI" with purple→pink gradient
+
+**Status**: ✅ COMPLETE
+**Time**: 1.5h actual / 1.5h estimated
+**Commit**: afb74b1
+
+**Completed**:
+- ASCII art banner using go-figure
+- Purple-to-pink gradient using go-colorful Lab color space
+- Plain text fallback for NO_COLOR and non-TTY
+- 11 tests for banner functionality
+- Color interpolation tested (0, 0.5, 1.0 ratios)
+- All 26 TUI tests passing (83.3% coverage)
 
 **TDD Approach**:
 ```go
