@@ -1,0 +1,28 @@
+version: "1.0"
+developers:
+  - user_id: user_001
+    email: alice@example.com
+    name: Alice Developer
+    org: acme-corp
+    division: Engineering
+    team: Backend
+    role: member
+    region: US
+    timezone: America/New_York
+    locale: en-US
+    seniority: senior
+    activity_level: high
+    acceptance_rate: 0.85
+    pr_behavior:
+      prs_per_week: 5.0
+      avg_pr_size_loc: 200
+      avg_files_per_pr: 6
+      review_thoroughness: 0.85
+    preferred_models:
+      - gpt-5000
+      - claude-sonnet-4.5
+repositories:
+  - repo_name: acme-corp/backend
+    primary_language: Go
+    description: Backend services
+    pr_frequency: 10

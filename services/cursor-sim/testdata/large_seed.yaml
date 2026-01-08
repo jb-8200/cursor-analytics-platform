@@ -1,0 +1,75 @@
+version: "1.0"
+developers:
+  - user_id: user_001
+    email: alice@example.com
+    name: Alice Developer
+    org: acme-corp
+    division: Engineering
+    team: Backend
+    role: member
+    region: US
+    timezone: America/New_York
+    locale: en-US
+    seniority: senior
+    activity_level: high
+    acceptance_rate: 0.85
+    pr_behavior:
+      prs_per_week: 5.0
+      avg_pr_size_loc: 200
+      avg_files_per_pr: 6
+      review_thoroughness: 0.85
+    preferred_models:
+      - claude-opus-4
+  - user_id: user_002
+    email: bob@example.com
+    name: Bob Developer
+    org: acme-corp
+    division: Engineering
+    team: Frontend
+    role: member
+    region: US
+    timezone: America/Los_Angeles
+    locale: en-US
+    seniority: mid
+    activity_level: medium
+    acceptance_rate: 0.75
+    pr_behavior:
+      prs_per_week: 3.0
+      avg_pr_size_loc: 150
+      avg_files_per_pr: 4
+      review_thoroughness: 0.7
+    preferred_models:
+      - claude-sonnet-4.5
+  - user_id: user_003
+    email: carol@example.com
+    name: Carol Developer
+    org: acme-corp
+    division: Infrastructure
+    team: DevOps
+    role: member
+    region: EU
+    timezone: Europe/London
+    locale: en-GB
+    seniority: senior
+    activity_level: high
+    acceptance_rate: 0.9
+    pr_behavior:
+      prs_per_week: 4.0
+      avg_pr_size_loc: 100
+      avg_files_per_pr: 8
+      review_thoroughness: 0.95
+    preferred_models:
+      - claude-opus-4
+repositories:
+  - repo_name: acme-corp/backend
+    primary_language: Go
+    description: Backend services
+    pr_frequency: 10
+  - repo_name: acme-corp/frontend
+    primary_language: TypeScript
+    description: Frontend application
+    pr_frequency: 8
+  - repo_name: acme-corp/infrastructure
+    primary_language: Terraform
+    description: Infrastructure as code
+    pr_frequency: 5
