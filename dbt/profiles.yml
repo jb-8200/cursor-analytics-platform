@@ -1,0 +1,25 @@
+cursor_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: '../data/analytics.duckdb'
+      schema: main
+      threads: 4
+
+    ci:
+      type: duckdb
+      path: ':memory:'
+      schema: main
+      threads: 4
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER
+      warehouse: TRANSFORM_WH
+      database: CURSOR_ANALYTICS
+      schema: RAW
+      threads: 8

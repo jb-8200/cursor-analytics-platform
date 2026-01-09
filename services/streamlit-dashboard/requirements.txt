@@ -1,0 +1,24 @@
+# Streamlit Dashboard Dependencies
+# P9-F01: Streamlit Analytics Dashboard
+
+# Core Dashboard Framework
+streamlit>=1.30.0
+
+# Data Processing
+pandas>=2.0.0
+pyarrow>=14.0.0
+
+# Visualization
+plotly>=5.18.0
+
+# Database Connectors
+duckdb>=0.9.0
+snowflake-connector-python>=3.5.0
+
+# HTTP Requests (for ETL pipeline)
+requests>=2.31.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0

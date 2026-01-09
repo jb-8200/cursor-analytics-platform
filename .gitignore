@@ -54,6 +54,18 @@ logs/
 *.db
 *.sqlite
 *.sqlite3
+*.duckdb
+*.duckdb.wal
+
+# Data files (P8: Data Tier)
+data/
+!data/.gitkeep
+*.parquet
+
+# dbt artifacts
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
 
 # Temporary files
 tmp/

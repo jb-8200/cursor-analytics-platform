@@ -1,0 +1,24 @@
+# Streamlit Configuration
+# P9-F01: DOXAPI Analytics Dashboard
+
+[theme]
+# DOXAPI brand colors
+primaryColor = "#9B59B6"           # Purple accent
+backgroundColor = "#FFFFFF"         # White background
+secondaryBackgroundColor = "#F8F9FA" # Light gray for cards
+textColor = "#262730"               # Dark text
+font = "sans serif"
+
+[server]
+headless = true                     # Run without browser
+port = 8501                         # Standard Streamlit port
+enableCORS = false                  # Disable CORS for simplicity
+maxUploadSize = 200                 # Max file upload size (MB)
+
+[browser]
+gatherUsageStats = false            # Disable telemetry
+serverAddress = "0.0.0.0"           # Listen on all interfaces
+
+[logger]
+level = "info"                      # Log level
+messageFormat = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
