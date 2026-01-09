@@ -8,6 +8,7 @@ Specialized agents for parallel development with isolated scope constraints.
 
 | Agent | Service | Phase | Model | Scope | Key Skills |
 |-------|---------|-------|-------|-------|-----------|
+| `planning-dev` | Any | Any | **Opus** | Research, design, task breakdown | sdd-checklist |
 | `data-tier-dev` | data-tier | P8 | **Sonnet** | ETL, dbt, DuckDB/Snowflake | api-contract, sdd-checklist |
 | `streamlit-dev` | streamlit-dashboard | P9 | **Sonnet** | Dashboard, Plotly | sdd-checklist |
 | `quick-fix` | Any | - | **Haiku** | Small fixes only | sdd-checklist |
@@ -23,6 +24,37 @@ Specialized agents for parallel development with isolated scope constraints.
 | **Haiku** | Quick fixes, simple tasks | Fast | Low |
 | **Sonnet** | Feature implementation, complex tasks | Medium | Medium |
 | **Opus** | Architecture, orchestration, review | Slower | Higher |
+
+---
+
+## Planning Agent (Opus)
+
+### planning-dev
+
+Research and design specialist using Opus model.
+
+**Purpose**:
+- Research external APIs and documentation
+- Create work item files (user-story.md, design.md, task.md)
+- Break down features into tasks with subagent assignments
+- Design API contracts and data models
+
+**Key Responsibility**:
+- Every task created must include a **recommended subagent**
+- Follow SDD methodology for all work items
+- Fetch and analyze external documentation before designing
+
+**Output Format**:
+```markdown
+#### TASK-XX-##: Task Name (Est: X.Xh)
+**Assigned Subagent**: `{subagent-name}`
+**Goal**: One sentence describing the deliverable
+```
+
+**NEVER**:
+- Write implementation code (design only)
+- Skip researching external API documentation
+- Create tasks without subagent assignments
 
 ---
 
