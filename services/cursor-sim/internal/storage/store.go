@@ -33,9 +33,28 @@ type Store interface {
 	GetNextPRNumber(repoName string) int
 	ListRepositories() []string
 
+	// PR operations (GitHub Simulation - P2-F01)
+	StorePR(pr models.PullRequest) error
+	GetPRByID(id int) (*models.PullRequest, error)
+	GetPRsByStatus(status models.PRState) ([]models.PullRequest, error)
+	GetPRsByAuthorEmail(authorEmail string) ([]models.PullRequest, error)
+	GetPRsByRepoWithPagination(repoName string, state string, page, pageSize int) ([]models.PullRequest, int, error)
+
 	// Review comment operations
 	AddReviewComment(comment models.ReviewComment) error
 	GetReviewComments(repoName string, prNumber int) []models.ReviewComment
+
+	// Review operations (GitHub Simulation - P2-F01)
+	StoreReview(review models.Review) error
+	GetReviewsByPRID(prID int64) ([]models.Review, error)
+	GetReviewsByReviewer(reviewerEmail string) ([]models.Review, error)
+	GetReviewsByRepoPR(repoName string, prNumber int) ([]models.Review, error)
+
+	// Issue operations (GitHub Simulation - P2-F01)
+	StoreIssue(issue models.Issue) error
+	GetIssueByNumber(repoName string, number int) (*models.Issue, error)
+	GetIssuesByState(repoName string, state models.IssueState) ([]models.Issue, error)
+	GetIssuesByRepo(repoName string) ([]models.Issue, error)
 
 	// Model usage operations
 	AddModelUsage(usage models.ModelUsageEvent) error

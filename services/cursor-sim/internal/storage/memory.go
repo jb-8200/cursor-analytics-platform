@@ -33,6 +33,17 @@ type MemoryStore struct {
 	// PR data with indexes
 	prsByRepo   map[string]map[int]*models.PullRequest // repo -> number -> PR
 	prsByAuthor map[string][]*models.PullRequest       // author index
+	prsByID     map[int]*models.PullRequest            // ID index for GitHub simulation
+	prsByEmail  map[string][]*models.PullRequest       // email index for GitHub simulation
+
+	// Review data (GitHub Simulation - P2-F01)
+	reviewsByID       map[int]*models.Review      // review ID index
+	reviewsByPRID     map[int][]*models.Review    // PR ID index
+	reviewsByReviewer map[string][]*models.Review // reviewer email index
+
+	// Issue data (GitHub Simulation - P2-F01)
+	issuesByRepo  map[string]map[int]*models.Issue                 // repo -> number -> Issue
+	issuesByState map[string]map[models.IssueState][]*models.Issue // repo -> state -> issues
 
 	// ReviewComment data
 	reviewComments map[string]map[int][]*models.ReviewComment // repo -> pr_number -> comments
@@ -47,31 +58,38 @@ type MemoryStore struct {
 	fileExtensions []*models.FileExtensionEvent // time-sorted for range queries
 
 	// Feature usage data
-	mcpTools  []*models.MCPToolEvent   // MCP tool usage events
-	commands  []*models.CommandEvent   // Command usage events
-	plans     []*models.PlanEvent      // Plan usage events
-	askModes  []*models.AskModeEvent   // Ask mode usage events
+	mcpTools []*models.MCPToolEvent // MCP tool usage events
+	commands []*models.CommandEvent // Command usage events
+	plans    []*models.PlanEvent    // Plan usage events
+	askModes []*models.AskModeEvent // Ask mode usage events
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
 func NewMemoryStore() *MemoryStore {
 	return &MemoryStore{
-		developers:      make(map[string]*seed.Developer),
-		developerEmails: make(map[string]string),
-		commits:         make([]*models.Commit, 0, 1000),
-		commitsByHash:   make(map[string]*models.Commit),
-		commitsByUser:   make(map[string][]*models.Commit),
-		commitsByRepo:   make(map[string][]*models.Commit),
-		prsByRepo:       make(map[string]map[int]*models.PullRequest),
-		prsByAuthor:     make(map[string][]*models.PullRequest),
-		reviewComments:  make(map[string]map[int][]*models.ReviewComment),
-		modelUsage:      make([]*models.ModelUsageEvent, 0, 1000),
-		clientVersions:  make([]*models.ClientVersionEvent, 0, 1000),
-		fileExtensions:  make([]*models.FileExtensionEvent, 0, 5000), // Higher capacity for file events
-		mcpTools:        make([]*models.MCPToolEvent, 0, 2000),
-		commands:        make([]*models.CommandEvent, 0, 2000),
-		plans:           make([]*models.PlanEvent, 0, 1500),
-		askModes:        make([]*models.AskModeEvent, 0, 1500),
+		developers:        make(map[string]*seed.Developer),
+		developerEmails:   make(map[string]string),
+		commits:           make([]*models.Commit, 0, 1000),
+		commitsByHash:     make(map[string]*models.Commit),
+		commitsByUser:     make(map[string][]*models.Commit),
+		commitsByRepo:     make(map[string][]*models.Commit),
+		prsByRepo:         make(map[string]map[int]*models.PullRequest),
+		prsByAuthor:       make(map[string][]*models.PullRequest),
+		prsByID:           make(map[int]*models.PullRequest),
+		prsByEmail:        make(map[string][]*models.PullRequest),
+		reviewsByID:       make(map[int]*models.Review),
+		reviewsByPRID:     make(map[int][]*models.Review),
+		reviewsByReviewer: make(map[string][]*models.Review),
+		issuesByRepo:      make(map[string]map[int]*models.Issue),
+		issuesByState:     make(map[string]map[models.IssueState][]*models.Issue),
+		reviewComments:    make(map[string]map[int][]*models.ReviewComment),
+		modelUsage:        make([]*models.ModelUsageEvent, 0, 1000),
+		clientVersions:    make([]*models.ClientVersionEvent, 0, 1000),
+		fileExtensions:    make([]*models.FileExtensionEvent, 0, 5000), // Higher capacity for file events
+		mcpTools:          make([]*models.MCPToolEvent, 0, 2000),
+		commands:          make([]*models.CommandEvent, 0, 2000),
+		plans:             make([]*models.PlanEvent, 0, 1500),
+		askModes:          make([]*models.AskModeEvent, 0, 1500),
 	}
 }
 
@@ -503,6 +521,7 @@ func (m *MemoryStore) GetClientVersionsByTimeRange(from, to time.Time) []models.
 
 	return result
 }
+
 // AddFileExtension stores a file extension event.
 func (m *MemoryStore) AddFileExtension(event models.FileExtensionEvent) error {
 	m.mu.Lock()
@@ -627,4 +646,287 @@ func (m *MemoryStore) GetAskModeByTimeRange(from, to time.Time) []models.AskMode
 		return result[i].Timestamp.Before(result[j].Timestamp)
 	})
 	return result
+}
+
+// GitHub Simulation Storage Methods (P2-F01)
+
+// StorePR stores a pull request by ID for GitHub simulation.
+func (m *MemoryStore) StorePR(pr models.PullRequest) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	prPtr := &pr
+
+	// Store by ID
+	m.prsByID[pr.ID] = prPtr
+
+	// Store by email for author lookup
+	m.prsByEmail[pr.AuthorEmail] = append(m.prsByEmail[pr.AuthorEmail], prPtr)
+
+	// Also maintain repo/number index (compatibility with existing AddPR)
+	if m.prsByRepo[pr.RepoName] == nil {
+		m.prsByRepo[pr.RepoName] = make(map[int]*models.PullRequest)
+	}
+	m.prsByRepo[pr.RepoName][pr.Number] = prPtr
+
+	// Maintain author index
+	m.prsByAuthor[pr.AuthorID] = append(m.prsByAuthor[pr.AuthorID], prPtr)
+
+	return nil
+}
+
+// GetPRByID retrieves a pull request by its internal ID.
+func (m *MemoryStore) GetPRByID(id int) (*models.PullRequest, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	pr, ok := m.prsByID[id]
+	if !ok {
+		return nil, fmt.Errorf("PR not found: %d", id)
+	}
+
+	return pr, nil
+}
+
+// GetPRsByStatus returns all PRs with the given state across all repos.
+func (m *MemoryStore) GetPRsByStatus(status models.PRState) ([]models.PullRequest, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	result := make([]models.PullRequest, 0)
+	for _, pr := range m.prsByID {
+		if pr.State == status {
+			result = append(result, *pr)
+		}
+	}
+
+	return result, nil
+}
+
+// GetPRsByAuthorEmail returns all PRs by a specific author email.
+func (m *MemoryStore) GetPRsByAuthorEmail(authorEmail string) ([]models.PullRequest, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	prs, ok := m.prsByEmail[authorEmail]
+	if !ok {
+		return []models.PullRequest{}, nil
+	}
+
+	result := make([]models.PullRequest, 0, len(prs))
+	for _, pr := range prs {
+		result = append(result, *pr)
+	}
+
+	return result, nil
+}
+
+// GetPRsByRepoWithPagination returns PRs for a repo with pagination support.
+// state can be empty string for all states, or "open", "closed", "merged".
+func (m *MemoryStore) GetPRsByRepoWithPagination(repoName string, state string, page, pageSize int) ([]models.PullRequest, int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok {
+		return []models.PullRequest{}, 0, nil
+	}
+
+	// Collect all PRs (optionally filtered by state)
+	allPRs := make([]models.PullRequest, 0)
+	for _, pr := range repoPRs {
+		if state == "" || string(pr.State) == state {
+			allPRs = append(allPRs, *pr)
+		}
+	}
+
+	total := len(allPRs)
+
+	// Calculate pagination
+	startIdx := (page - 1) * pageSize
+	endIdx := startIdx + pageSize
+
+	if startIdx >= total {
+		return []models.PullRequest{}, total, nil
+	}
+
+	if endIdx > total {
+		endIdx = total
+	}
+
+	result := allPRs[startIdx:endIdx]
+	return result, total, nil
+}
+
+// StoreReview stores a review.
+func (m *MemoryStore) StoreReview(review models.Review) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	reviewPtr := &review
+
+	// Store by review ID
+	m.reviewsByID[review.ID] = reviewPtr
+
+	// Store by PR ID
+	m.reviewsByPRID[review.PRID] = append(m.reviewsByPRID[review.PRID], reviewPtr)
+
+	// Store by reviewer email
+	m.reviewsByReviewer[review.Reviewer] = append(m.reviewsByReviewer[review.Reviewer], reviewPtr)
+
+	return nil
+}
+
+// GetReviewsByPRID retrieves all reviews for a specific PR by PR ID.
+func (m *MemoryStore) GetReviewsByPRID(prID int64) ([]models.Review, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	reviews, ok := m.reviewsByPRID[int(prID)]
+	if !ok {
+		return []models.Review{}, nil
+	}
+
+	result := make([]models.Review, 0, len(reviews))
+	for _, review := range reviews {
+		result = append(result, *review)
+	}
+
+	return result, nil
+}
+
+// GetReviewsByReviewer retrieves all reviews by a specific reviewer email.
+func (m *MemoryStore) GetReviewsByReviewer(reviewerEmail string) ([]models.Review, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	reviews, ok := m.reviewsByReviewer[reviewerEmail]
+	if !ok {
+		return []models.Review{}, nil
+	}
+
+	result := make([]models.Review, 0, len(reviews))
+	for _, review := range reviews {
+		result = append(result, *review)
+	}
+
+	return result, nil
+}
+
+// GetReviewsByRepoPR retrieves all reviews for a specific PR by repo name and PR number.
+func (m *MemoryStore) GetReviewsByRepoPR(repoName string, prNumber int) ([]models.Review, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	// First, find the PR by repo and number to get its ID
+	repoPRs, ok := m.prsByRepo[repoName]
+	if !ok {
+		return []models.Review{}, nil
+	}
+
+	pr, ok := repoPRs[prNumber]
+	if !ok {
+		return []models.Review{}, nil
+	}
+
+	// Get reviews by PR ID
+	reviews, ok := m.reviewsByPRID[pr.ID]
+	if !ok {
+		return []models.Review{}, nil
+	}
+
+	result := make([]models.Review, 0, len(reviews))
+	for _, review := range reviews {
+		result = append(result, *review)
+	}
+
+	return result, nil
+}
+
+// StoreIssue stores an issue.
+func (m *MemoryStore) StoreIssue(issue models.Issue) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	issuePtr := &issue
+
+	// Ensure repo map exists
+	if m.issuesByRepo[issue.RepoName] == nil {
+		m.issuesByRepo[issue.RepoName] = make(map[int]*models.Issue)
+	}
+
+	// Store by repo and number
+	m.issuesByRepo[issue.RepoName][issue.Number] = issuePtr
+
+	// Ensure state map exists
+	if m.issuesByState[issue.RepoName] == nil {
+		m.issuesByState[issue.RepoName] = make(map[models.IssueState][]*models.Issue)
+	}
+
+	// Store by state
+	m.issuesByState[issue.RepoName][issue.State] = append(
+		m.issuesByState[issue.RepoName][issue.State],
+		issuePtr,
+	)
+
+	return nil
+}
+
+// GetIssueByNumber retrieves an issue by repo name and number.
+func (m *MemoryStore) GetIssueByNumber(repoName string, number int) (*models.Issue, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoIssues, ok := m.issuesByRepo[repoName]
+	if !ok {
+		return nil, fmt.Errorf("issue not found: %s#%d", repoName, number)
+	}
+
+	issue, ok := repoIssues[number]
+	if !ok {
+		return nil, fmt.Errorf("issue not found: %s#%d", repoName, number)
+	}
+
+	return issue, nil
+}
+
+// GetIssuesByState retrieves all issues for a repo filtered by state.
+func (m *MemoryStore) GetIssuesByState(repoName string, state models.IssueState) ([]models.Issue, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoStates, ok := m.issuesByState[repoName]
+	if !ok {
+		return []models.Issue{}, nil
+	}
+
+	issues, ok := repoStates[state]
+	if !ok {
+		return []models.Issue{}, nil
+	}
+
+	result := make([]models.Issue, 0, len(issues))
+	for _, issue := range issues {
+		result = append(result, *issue)
+	}
+
+	return result, nil
+}
+
+// GetIssuesByRepo retrieves all issues for a repo (all states).
+func (m *MemoryStore) GetIssuesByRepo(repoName string) ([]models.Issue, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	repoIssues, ok := m.issuesByRepo[repoName]
+	if !ok {
+		return []models.Issue{}, nil
+	}
+
+	result := make([]models.Issue, 0, len(repoIssues))
+	for _, issue := range repoIssues {
+		result = append(result, *issue)
+	}
+
+	return result, nil
 }
