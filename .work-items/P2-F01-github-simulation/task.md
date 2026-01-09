@@ -13,9 +13,9 @@
 | **Models** | 3 | ✅ 3/3 | 2.5h | 1.25h |
 | **Generators** | 3 | ✅ 3/3 | 8.0h | 3.0h |
 | **Storage** | 2 | ✅ 2/2 | 3.0h | 2.0h |
-| **API Handlers** | 5 | 🔄 1/5 | 5.0h | 0.5h |
+| **API Handlers** | 5 | 🔄 2/5 | 5.0h | 1.5h |
 | **Testing & Docs** | 2 | ⬜ 0/2 | 3.5h | - |
-| **TOTAL** | **15** | **9/15** | **22.0h** | **6.75h** |
+| **TOTAL** | **15** | **10/15** | **22.0h** | **7.75h** |
 
 ---
 
@@ -278,16 +278,29 @@
 
 #### TASK-GH-10: Implement `/analytics/github/reviews` Endpoint (1.0h)
 
+**Status**: COMPLETE
+**Time**: 1.0h actual / 1.0h estimated
+**Completed**: 2026-01-09
+
 **Goal**: Review activity listing
 
 **Files**:
 - NEW: `internal/api/github/reviews.go`
 - NEW: `internal/api/github/reviews_test.go`
+- MODIFIED: `internal/server/router.go` (registered endpoint)
+- MODIFIED: `SPEC.md` (added GitHub Analytics API section)
 
 **Acceptance Criteria**:
-- [ ] Query params: pr_id, reviewer
-- [ ] Returns review list
-- [ ] Handler tests pass
+- [x] Query params: pr_id, reviewer
+- [x] Pagination support (page, page_size)
+- [x] Returns review list with filtering
+- [x] Handler tests pass (11 test cases)
+
+**Implementation Notes**:
+- Follows same pattern as PRs endpoint
+- Uses existing storage methods: GetReviewsByPRID, GetReviewsByReviewer
+- Response format: `{ data: [...], pagination: {...}, params: {...} }`
+- Comprehensive test coverage: all filters, pagination, combined filters, error cases
 
 ---
 
