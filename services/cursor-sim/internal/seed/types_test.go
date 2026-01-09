@@ -401,3 +401,269 @@ func TestMaturity_MapFields(t *testing.T) {
 	assert.Equal(t, 10, m.TotalContributors)
 	assert.Equal(t, 1000000, m.SizeBytes)
 }
+
+// Tests for External Data Sources (P4-F04)
+
+func TestHarveySeedConfig_JSONRoundtrip(t *testing.T) {
+	config := HarveySeedConfig{
+		Enabled:       true,
+		TotalUsage:    UsageRange{Min: 100, Max: 500},
+		ModelsUsed:    []string{"gpt-4", "claude-3-sonnet"},
+		PracticeAreas: []string{"corporate", "litigation"},
+	}
+
+	data, err := json.Marshal(config)
+	require.NoError(t, err)
+
+	var parsed HarveySeedConfig
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, config.Enabled, parsed.Enabled)
+	assert.Equal(t, config.TotalUsage.Min, parsed.TotalUsage.Min)
+	assert.Equal(t, config.TotalUsage.Max, parsed.TotalUsage.Max)
+	assert.Equal(t, config.ModelsUsed, parsed.ModelsUsed)
+	assert.Equal(t, config.PracticeAreas, parsed.PracticeAreas)
+}
+
+func TestHarveySeedConfig_JSONTags(t *testing.T) {
+	jsonStr := `{
+		"enabled": true,
+		"total_usage": {
+			"min": 100,
+			"max": 500
+		},
+		"models_used": ["gpt-4", "claude-3-sonnet"],
+		"practice_areas": ["corporate", "litigation"]
+	}`
+
+	var config HarveySeedConfig
+	err := json.Unmarshal([]byte(jsonStr), &config)
+	require.NoError(t, err)
+
+	assert.True(t, config.Enabled)
+	assert.Equal(t, 100, config.TotalUsage.Min)
+	assert.Equal(t, 500, config.TotalUsage.Max)
+	assert.Equal(t, []string{"gpt-4", "claude-3-sonnet"}, config.ModelsUsed)
+	assert.Equal(t, []string{"corporate", "litigation"}, config.PracticeAreas)
+}
+
+func TestCopilotSeedConfig_JSONRoundtrip(t *testing.T) {
+	config := CopilotSeedConfig{
+		Enabled:            true,
+		TotalLicenses:      50,
+		ActiveUsers:        35,
+		AdoptionPercentage: 70.0,
+		TopApps:            []string{"teams", "outlook", "word"},
+	}
+
+	data, err := json.Marshal(config)
+	require.NoError(t, err)
+
+	var parsed CopilotSeedConfig
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, config.Enabled, parsed.Enabled)
+	assert.Equal(t, config.TotalLicenses, parsed.TotalLicenses)
+	assert.Equal(t, config.ActiveUsers, parsed.ActiveUsers)
+	assert.Equal(t, config.AdoptionPercentage, parsed.AdoptionPercentage)
+	assert.Equal(t, config.TopApps, parsed.TopApps)
+}
+
+func TestCopilotSeedConfig_JSONTags(t *testing.T) {
+	jsonStr := `{
+		"enabled": true,
+		"total_licenses": 50,
+		"active_users": 35,
+		"adoption_percentage": 70.0,
+		"top_apps": ["teams", "outlook", "word"]
+	}`
+
+	var config CopilotSeedConfig
+	err := json.Unmarshal([]byte(jsonStr), &config)
+	require.NoError(t, err)
+
+	assert.True(t, config.Enabled)
+	assert.Equal(t, 50, config.TotalLicenses)
+	assert.Equal(t, 35, config.ActiveUsers)
+	assert.Equal(t, 70.0, config.AdoptionPercentage)
+	assert.Equal(t, []string{"teams", "outlook", "word"}, config.TopApps)
+}
+
+func TestQualtricsSeedConfig_JSONRoundtrip(t *testing.T) {
+	config := QualtricsSeedConfig{
+		Enabled:       true,
+		SurveyID:      "SV_abc123",
+		SurveyName:    "AI Tools Survey Q1 2026",
+		ResponseCount: 150,
+	}
+
+	data, err := json.Marshal(config)
+	require.NoError(t, err)
+
+	var parsed QualtricsSeedConfig
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, config.Enabled, parsed.Enabled)
+	assert.Equal(t, config.SurveyID, parsed.SurveyID)
+	assert.Equal(t, config.SurveyName, parsed.SurveyName)
+	assert.Equal(t, config.ResponseCount, parsed.ResponseCount)
+}
+
+func TestQualtricsSeedConfig_JSONTags(t *testing.T) {
+	jsonStr := `{
+		"enabled": true,
+		"survey_id": "SV_abc123",
+		"survey_name": "AI Tools Survey Q1 2026",
+		"response_count": 150
+	}`
+
+	var config QualtricsSeedConfig
+	err := json.Unmarshal([]byte(jsonStr), &config)
+	require.NoError(t, err)
+
+	assert.True(t, config.Enabled)
+	assert.Equal(t, "SV_abc123", config.SurveyID)
+	assert.Equal(t, "AI Tools Survey Q1 2026", config.SurveyName)
+	assert.Equal(t, 150, config.ResponseCount)
+}
+
+func TestExternalDataSourcesSeed_JSONRoundtrip(t *testing.T) {
+	external := ExternalDataSourcesSeed{
+		Harvey: &HarveySeedConfig{
+			Enabled:    true,
+			TotalUsage: UsageRange{Min: 100, Max: 500},
+		},
+		Copilot: &CopilotSeedConfig{
+			Enabled:       true,
+			TotalLicenses: 50,
+		},
+		Qualtrics: &QualtricsSeedConfig{
+			Enabled:  true,
+			SurveyID: "SV_test",
+		},
+	}
+
+	data, err := json.Marshal(external)
+	require.NoError(t, err)
+
+	var parsed ExternalDataSourcesSeed
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	require.NotNil(t, parsed.Harvey)
+	require.NotNil(t, parsed.Copilot)
+	require.NotNil(t, parsed.Qualtrics)
+	assert.True(t, parsed.Harvey.Enabled)
+	assert.Equal(t, 50, parsed.Copilot.TotalLicenses)
+	assert.Equal(t, "SV_test", parsed.Qualtrics.SurveyID)
+}
+
+func TestExternalDataSourcesSeed_OptionalFields(t *testing.T) {
+	// Test with only Harvey configured
+	jsonStr := `{
+		"harvey": {
+			"enabled": true,
+			"total_usage": {
+				"min": 100,
+				"max": 500
+			},
+			"models_used": ["gpt-4"],
+			"practice_areas": ["corporate"]
+		}
+	}`
+
+	var external ExternalDataSourcesSeed
+	err := json.Unmarshal([]byte(jsonStr), &external)
+	require.NoError(t, err)
+
+	require.NotNil(t, external.Harvey)
+	assert.Nil(t, external.Copilot)
+	assert.Nil(t, external.Qualtrics)
+	assert.True(t, external.Harvey.Enabled)
+}
+
+func TestSeedData_WithExternalDataSources(t *testing.T) {
+	seed := SeedData{
+		Version: "1.0",
+		Developers: []Developer{
+			{
+				UserID: "user_001",
+				Email:  "dev@example.com",
+			},
+		},
+		ExternalDataSources: &ExternalDataSourcesSeed{
+			Harvey: &HarveySeedConfig{
+				Enabled:    true,
+				TotalUsage: UsageRange{Min: 100, Max: 500},
+			},
+			Copilot: &CopilotSeedConfig{
+				Enabled:       true,
+				TotalLicenses: 50,
+			},
+			Qualtrics: &QualtricsSeedConfig{
+				Enabled:       true,
+				SurveyID:      "SV_abc123",
+				ResponseCount: 100,
+			},
+		},
+	}
+
+	data, err := json.Marshal(seed)
+	require.NoError(t, err)
+
+	var parsed SeedData
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, "1.0", parsed.Version)
+	require.NotNil(t, parsed.ExternalDataSources)
+	require.NotNil(t, parsed.ExternalDataSources.Harvey)
+	require.NotNil(t, parsed.ExternalDataSources.Copilot)
+	require.NotNil(t, parsed.ExternalDataSources.Qualtrics)
+	assert.True(t, parsed.ExternalDataSources.Harvey.Enabled)
+	assert.Equal(t, 50, parsed.ExternalDataSources.Copilot.TotalLicenses)
+	assert.Equal(t, "SV_abc123", parsed.ExternalDataSources.Qualtrics.SurveyID)
+}
+
+func TestSeedData_WithoutExternalDataSources(t *testing.T) {
+	// Test backward compatibility - seed without external data sources
+	seed := SeedData{
+		Version: "1.0",
+		Developers: []Developer{
+			{
+				UserID: "user_001",
+				Email:  "dev@example.com",
+			},
+		},
+	}
+
+	data, err := json.Marshal(seed)
+	require.NoError(t, err)
+
+	var parsed SeedData
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, "1.0", parsed.Version)
+	assert.Nil(t, parsed.ExternalDataSources)
+}
+
+func TestUsageRange_JSONRoundtrip(t *testing.T) {
+	usageRange := UsageRange{
+		Min: 100,
+		Max: 500,
+	}
+
+	data, err := json.Marshal(usageRange)
+	require.NoError(t, err)
+
+	var parsed UsageRange
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, usageRange.Min, parsed.Min)
+	assert.Equal(t, usageRange.Max, parsed.Max)
+}
