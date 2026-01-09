@@ -23,22 +23,35 @@ type ReviewStore interface {
 
 // ReviewGenerator generates code reviews for pull requests.
 type ReviewGenerator struct {
-	seed  *seed.SeedData
-	store ReviewStore
-	rng   *rand.Rand
+	seed          *seed.SeedData
+	store         ReviewStore
+	rng           *rand.Rand
+	reviewCounter int // Auto-incrementing ID for reviews
 }
 
-// NewReviewGenerator creates a new review generator with a random seed.
-func NewReviewGenerator(seedData *seed.SeedData, store ReviewStore) *ReviewGenerator {
+// NewReviewGenerator creates a new review generator with seedData and RNG (no store required).
+// This constructor is used for the simpler GenerateReviewsForPR(pr) []Review pattern.
+func NewReviewGenerator(seedData *seed.SeedData, rng *rand.Rand) *ReviewGenerator {
+	return &ReviewGenerator{
+		seed:          seedData,
+		store:         nil,
+		rng:           rng,
+		reviewCounter: 1,
+	}
+}
+
+// NewReviewGeneratorWithStore creates a new review generator with a store for persistent operations.
+func NewReviewGeneratorWithStore(seedData *seed.SeedData, store ReviewStore) *ReviewGenerator {
 	return NewReviewGeneratorWithSeed(seedData, store, time.Now().UnixNano())
 }
 
 // NewReviewGeneratorWithSeed creates a new review generator with a specific seed for reproducibility.
 func NewReviewGeneratorWithSeed(seedData *seed.SeedData, store ReviewStore, randSeed int64) *ReviewGenerator {
 	return &ReviewGenerator{
-		seed:  seedData,
-		store: store,
-		rng:   rand.New(rand.NewSource(randSeed)),
+		seed:          seedData,
+		store:         store,
+		rng:           rand.New(rand.NewSource(randSeed)),
+		reviewCounter: 1,
 	}
 }
 
@@ -303,4 +316,170 @@ func (g *ReviewGenerator) GenerateReviewsForRepo(repoName string) (int, error) {
 	}
 
 	return reviewedCount, nil
+}
+
+// GenerateReviewsForPR generates reviews for a given pull request.
+// This method doesn't require a store - it uses seed data developers directly.
+// Returns a slice of Review objects with timing based on PR lifecycle.
+// State distribution: 70% approved, 20% changes_requested, 10% pending.
+func (g *ReviewGenerator) GenerateReviewsForPR(pr models.PullRequest) []models.Review {
+	// Get available reviewers from seed data (excluding PR author)
+	availableReviewers := g.getAvailableReviewers(pr.AuthorEmail)
+	if len(availableReviewers) == 0 {
+		return []models.Review{}
+	}
+
+	// Determine number of reviewers (1-3, capped by available)
+	numReviewers := 1 + g.rng.Intn(3) // 1-3 reviewers
+	if numReviewers > len(availableReviewers) {
+		numReviewers = len(availableReviewers)
+	}
+
+	// Shuffle and select reviewers
+	g.rng.Shuffle(len(availableReviewers), func(i, j int) {
+		availableReviewers[i], availableReviewers[j] = availableReviewers[j], availableReviewers[i]
+	})
+	selectedReviewers := availableReviewers[:numReviewers]
+
+	// Calculate PR end time for review timing
+	prEndTime := g.calculatePREndTime(pr)
+
+	reviews := make([]models.Review, 0, numReviewers)
+	for _, reviewerEmail := range selectedReviewers {
+		review := g.generateReview(pr, reviewerEmail, prEndTime)
+		reviews = append(reviews, review)
+	}
+
+	return reviews
+}
+
+// getAvailableReviewers returns emails of developers who can review (not the author).
+func (g *ReviewGenerator) getAvailableReviewers(authorEmail string) []string {
+	if g.seed == nil || len(g.seed.Developers) == 0 {
+		return nil
+	}
+
+	var reviewers []string
+	for _, dev := range g.seed.Developers {
+		if dev.Email != authorEmail {
+			reviewers = append(reviewers, dev.Email)
+		}
+	}
+	return reviewers
+}
+
+// calculatePREndTime returns the end time to use for review timing.
+// Uses MergedAt for merged PRs, ClosedAt for closed PRs, or 7 days from creation for open PRs.
+func (g *ReviewGenerator) calculatePREndTime(pr models.PullRequest) time.Time {
+	if pr.MergedAt != nil {
+		return *pr.MergedAt
+	}
+	if pr.ClosedAt != nil {
+		return *pr.ClosedAt
+	}
+	// For open PRs, use 7 days from creation as max review time
+	return pr.CreatedAt.Add(7 * 24 * time.Hour)
+}
+
+// generateReview creates a single review for a PR.
+func (g *ReviewGenerator) generateReview(pr models.PullRequest, reviewerEmail string, prEndTime time.Time) models.Review {
+	// Generate review timing between PR creation and end time
+	duration := prEndTime.Sub(pr.CreatedAt)
+	if duration <= 0 {
+		duration = time.Hour // Minimum 1 hour window
+	}
+
+	// Reviews typically happen within the first half of the PR lifecycle
+	reviewOffset := time.Duration(g.rng.Int63n(int64(duration)))
+	submittedAt := pr.CreatedAt.Add(reviewOffset)
+
+	// Generate review state: 70% approved, 20% changes_requested, 10% pending
+	state := g.generateReviewState()
+
+	// Generate review ID
+	reviewID := g.reviewCounter
+	g.reviewCounter++
+
+	// Create the review
+	review := models.Review{
+		ID:          reviewID,
+		PRID:        pr.Number,
+		Reviewer:    reviewerEmail,
+		State:       state,
+		SubmittedAt: submittedAt,
+	}
+
+	// Add body and comments for non-approved reviews
+	if state != models.ReviewStateApproved {
+		review.Body = g.generateReviewBody(state)
+		review.Comments = g.generateReviewComments(pr, reviewerEmail, submittedAt)
+	} else {
+		// Approved reviews often have a short positive message
+		review.Body = g.generateApprovalBody()
+	}
+
+	return review
+}
+
+// generateReviewState generates a review state based on distribution:
+// 70% approved, 20% changes_requested, 10% pending.
+func (g *ReviewGenerator) generateReviewState() models.ReviewState {
+	roll := g.rng.Float64()
+	if roll < 0.70 {
+		return models.ReviewStateApproved
+	} else if roll < 0.90 {
+		return models.ReviewStateChangesRequested
+	}
+	return models.ReviewStatePending
+}
+
+// generateReviewBody generates appropriate body text based on review state.
+func (g *ReviewGenerator) generateReviewBody(state models.ReviewState) string {
+	if g.seed == nil || len(g.seed.TextTemplates.ReviewComments.Suggestion) == 0 {
+		if state == models.ReviewStateChangesRequested {
+			return "Please address the requested changes."
+		}
+		return "Reviewing..."
+	}
+
+	templates := g.seed.TextTemplates.ReviewComments.Suggestion
+	if state == models.ReviewStateChangesRequested && len(g.seed.TextTemplates.ReviewComments.Logic) > 0 {
+		templates = g.seed.TextTemplates.ReviewComments.Logic
+	}
+
+	return templates[g.rng.Intn(len(templates))]
+}
+
+// generateApprovalBody generates body text for approved reviews.
+func (g *ReviewGenerator) generateApprovalBody() string {
+	if g.seed == nil || len(g.seed.TextTemplates.ReviewComments.Approval) == 0 {
+		return "LGTM!"
+	}
+
+	templates := g.seed.TextTemplates.ReviewComments.Approval
+	return templates[g.rng.Intn(len(templates))]
+}
+
+// generateReviewComments generates inline comments for non-approved reviews.
+func (g *ReviewGenerator) generateReviewComments(pr models.PullRequest, reviewerEmail string, baseTime time.Time) []models.ReviewComment {
+	// Generate 0-5 comments for non-approved reviews
+	numComments := g.rng.Intn(6) // 0-5 comments
+	if numComments == 0 {
+		return nil
+	}
+
+	comments := make([]models.ReviewComment, numComments)
+	for i := 0; i < numComments; i++ {
+		comments[i] = models.ReviewComment{
+			ID:        g.rng.Intn(1000000),
+			PRNumber:  pr.Number,
+			RepoName:  pr.RepoName,
+			AuthorID:  reviewerEmail,
+			Body:      g.selectCommentTemplate(),
+			State:     models.ReviewStateChangesRequested,
+			CreatedAt: baseTime.Add(time.Duration(i) * time.Minute),
+		}
+	}
+
+	return comments
 }
