@@ -2,7 +2,7 @@
 
 **Feature ID**: P8-F01-data-tier
 **Created**: January 9, 2026
-**Status**: IN_PROGRESS (3/14 tasks)
+**Status**: IN_PROGRESS (4/14 tasks)
 **Approach**: TDD (Test-Driven Development)
 
 ---
@@ -12,11 +12,11 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 1.5h |
-| **Extract Layer** | 4 | 🔄 1/4 | 6.0h | 1.0h |
+| **Extract Layer** | 4 | 🔄 2/4 | 6.0h | 2.5h |
 | **Load Layer** | 2 | ⬜ 0/2 | 2.0h | - |
 | **Transform Layer (dbt)** | 4 | ⬜ 0/4 | 8.0h | - |
 | **Orchestration & Docker** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **14** | **3/14** | **21.0h** | **2.5h** |
+| **TOTAL** | **14** | **4/14** | **21.0h** | **4.0h** |
 
 ---
 
@@ -223,12 +223,14 @@ class CursorAPIExtractor:
 
 ---
 
-#### TASK-P8-04: Implement GitHub API Extractor
+#### TASK-P8-04: Implement Specific Extractors
 
-**Goal**: Extract repos, PRs, and reviews from cursor-sim GitHub-style endpoints
+**Goal**: Extract repos, PRs, reviews, and commits from cursor-sim endpoints
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 2.0h
+**Actual**: 1.5h
+**Commit**: (pending)
 
 **TDD Approach**:
 ```python
@@ -324,16 +326,34 @@ class GitHubAPIExtractor:
         return pd.DataFrame(all_reviews)
 ```
 
-**Files**:
-- NEW: `tools/api-loader/extractors/github_api.py`
-- NEW: `tools/api-loader/tests/test_github_api.py`
+**Files Created**:
+- NEW: `tools/api-loader/extractors/repos.py` - ReposExtractor for /repos endpoint
+- NEW: `tools/api-loader/extractors/commits.py` - CommitsExtractor for /analytics/ai-code/commits
+- NEW: `tools/api-loader/extractors/prs.py` - PRsExtractor for /repos/{o}/{r}/pulls
+- NEW: `tools/api-loader/extractors/reviews.py` - ReviewsExtractor for /repos/{o}/{r}/pulls/{n}/reviews
+- NEW: `tools/api-loader/tests/test_specific_extractors.py` - Comprehensive test suite
+- MODIFY: `tools/api-loader/extractors/__init__.py` - Export all extractors
+
+**Implementation Details**:
+- Created 4 specific extractor classes that extend BaseAPIExtractor
+- ReposExtractor: Fetches repositories using GitHub-style endpoint (raw array, non-paginated)
+- CommitsExtractor: Fetches commits using Cursor-style endpoint (wrapped, paginated with hasNextPage)
+- PRsExtractor: Fetches PRs for multiple repos using GitHub-style (raw array, paginated with empty termination)
+- ReviewsExtractor: Fetches reviews for multiple PRs using GitHub-style (raw array, non-paginated per PR)
+- All extractors write output to Parquet files in specified directory
+- Tests follow TDD approach with mock responses for each endpoint style
+- Added proper exports to __init__.py for cleaner imports
 
 **Acceptance Criteria**:
-- [ ] Tests written before implementation
-- [ ] Handles raw array responses (NOT wrapper objects)
-- [ ] Pagination for PRs handled
-- [ ] repo_name and pr_number added to reviews
-- [ ] All tests pass
+- [x] Tests written before implementation (TDD)
+- [x] Handles raw array responses for GitHub-style endpoints (repos, PRs, reviews)
+- [x] Handles wrapped responses for Cursor-style endpoints (commits)
+- [x] Pagination handled correctly for PRs (GitHub-style)
+- [x] Pagination handled correctly for commits (Cursor-style)
+- [x] repo_name added to PRs DataFrame
+- [x] repo_name and pr_number added to reviews DataFrame
+- [x] All extractors write to Parquet files
+- [x] Proper code organization with __init__.py exports
 
 ---
 
