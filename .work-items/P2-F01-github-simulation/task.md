@@ -10,12 +10,12 @@
 
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
-| **Models** | 3 | 1/3 | 2.5h | 0.5h |
+| **Models** | 3 | 2/3 | 2.5h | 1.0h |
 | **Generators** | 3 | 0/3 | 8.0h | - |
 | **Storage** | 2 | 0/2 | 3.0h | - |
 | **API Handlers** | 5 | 0/5 | 5.0h | - |
 | **Testing & Docs** | 2 | 0/2 | 3.5h | - |
-| **TOTAL** | **15** | **1/15** | **22.0h** | **0.5h** |
+| **TOTAL** | **15** | **2/15** | **22.0h** | **1.0h** |
 
 ---
 
@@ -53,7 +53,11 @@
 
 ---
 
-#### TASK-GH-02: Create Review Model (0.75h)
+#### TASK-GH-02: Create Review Model (0.75h) ✅ COMPLETE
+
+**Status**: COMPLETE
+**Time**: 0.5h actual / 0.75h estimated
+**Commit**: bfa3f64
 
 **Goal**: Define Review struct with comments
 
@@ -62,11 +66,18 @@
 - NEW: `internal/models/review_test.go`
 
 **Acceptance Criteria**:
-- [ ] Review struct with state
-- [ ] ReviewComment struct
-- [ ] ReviewState enum (approved, changes_requested, commented)
-- [ ] JSON marshaling works
-- [ ] Tests pass
+- [x] Review struct with state
+- [x] ReviewComment struct (already in pr.go)
+- [x] ReviewState enum (approved, changes_requested, pending)
+- [x] JSON marshaling works
+- [x] Tests pass (6 test functions, 19 subtests)
+
+**Implementation Notes**:
+- Review model with ID, PRID, Reviewer, State, SubmittedAt, Body, Comments
+- Validate() method checks pr_id, reviewer, state, submitted_at
+- IsApproval() and CommentCount() helper methods
+- 93.9% coverage for internal/models package
+- ReviewState and ReviewComment already existed in pr.go, used those definitions
 
 ---
 

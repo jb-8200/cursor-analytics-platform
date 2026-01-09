@@ -65,7 +65,7 @@ func TestConfig_Validate_InvalidMode(t *testing.T) {
 
 	err := cfg.Validate()
 	require.Error(t, err)
-	assert.Contains(t, err.Error(), "mode must be 'runtime' or 'replay'")
+	assert.Contains(t, err.Error(), "mode must be 'runtime', 'replay', or 'preview'")
 }
 
 func TestConfig_Validate_InvalidPort(t *testing.T) {

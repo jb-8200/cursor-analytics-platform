@@ -161,9 +161,14 @@ func TestPRGenerationIntegration(t *testing.T) {
 			}
 		}
 
-		// Verify PR state
-		if pr.State != models.PRStateOpen {
-			t.Errorf("PR %d has state %s, expected open", pr.Number, pr.State)
+		// Verify PR state is valid (generator uses 85% merged, 10% closed, 5% open distribution)
+		validStates := map[models.PRState]bool{
+			models.PRStateOpen:   true,
+			models.PRStateMerged: true,
+			models.PRStateClosed: true,
+		}
+		if !validStates[pr.State] {
+			t.Errorf("PR %d has invalid state %s", pr.Number, pr.State)
 		}
 
 		// Verify timestamps

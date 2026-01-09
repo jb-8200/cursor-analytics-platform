@@ -86,7 +86,7 @@ func (g *PRGenerator) GroupCommitsIntoPRs(commits []models.Commit) []models.Pull
 	}
 
 	// Generate PRs for each group
-	var prs []models.PullRequest
+	prs := make([]models.PullRequest, 0)
 	for _, groupCommits := range groups {
 		if len(groupCommits) == 0 {
 			continue
@@ -157,12 +157,14 @@ func (g *PRGenerator) finalizePR(session *Session) models.PullRequest {
 	// Aggregate metrics
 	var totalAdditions, totalDeletions, totalTabLines, totalComposerLines int
 	var firstCommitTime, lastCommitTime time.Time
+	commitIDs := make([]string, len(commits))
 
 	for i, commit := range commits {
 		totalAdditions += commit.TotalLinesAdded
 		totalDeletions += commit.TotalLinesDeleted
 		totalTabLines += commit.TabLinesAdded
 		totalComposerLines += commit.ComposerLinesAdded
+		commitIDs[i] = commit.CommitHash
 
 		if i == 0 {
 			firstCommitTime = commit.CommitTs
@@ -180,28 +182,104 @@ func (g *PRGenerator) finalizePR(session *Session) models.PullRequest {
 	prNumber := g.prCounter
 	g.prCounter++
 
+	// Assign PR status: 85% merged, 10% closed, 5% open
+	state := g.assignPRStatus()
+
+	// Generate PR timestamps
+	createdAt := firstCommitTime.Add(-time.Duration(g.rng.Intn(60)) * time.Minute) // PR created up to 1h before first commit
+	var mergedAt, closedAt *time.Time
+
+	if state == models.PRStateMerged {
+		// Merge happens 1-7 days after creation
+		daysToMerge := 1 + g.rng.Intn(7)
+		merged := createdAt.Add(time.Duration(daysToMerge) * 24 * time.Hour)
+		mergedAt = &merged
+	} else if state == models.PRStateClosed {
+		// Close happens 1-14 days after creation
+		daysToClosed := 1 + g.rng.Intn(14)
+		closed := createdAt.Add(time.Duration(daysToClosed) * 24 * time.Hour)
+		closedAt = &closed
+	}
+
+	// Generate PR title from branch name and commits
+	title := g.generatePRTitle(session.Branch, commits)
+
 	pr := models.PullRequest{
 		Number:        prNumber,
-		Title:         fmt.Sprintf("PR #%d: %s", prNumber, session.Branch),
+		Title:         title,
 		Body:          fmt.Sprintf("Auto-generated PR from %d commits", len(commits)),
-		State:         models.PRStateOpen,
+		State:         state,
 		AuthorID:      session.Developer.UserID,
 		AuthorEmail:   session.Developer.Email,
 		AuthorName:    session.Developer.Name,
 		RepoName:      session.Repo.RepoName,
 		BaseBranch:    session.Repo.DefaultBranch,
 		HeadBranch:    session.Branch,
+		CommitIDs:     commitIDs,
 		Additions:     totalAdditions,
 		Deletions:     totalDeletions,
 		CommitCount:   len(commits),
 		AIRatio:       aiRatio,
 		TabLines:      totalTabLines,
 		ComposerLines: totalComposerLines,
-		CreatedAt:     firstCommitTime,
+		CreatedAt:     createdAt,
 		UpdatedAt:     lastCommitTime,
+		MergedAt:      mergedAt,
+		ClosedAt:      closedAt,
 	}
 
 	return pr
+}
+
+// assignPRStatus assigns a PR status based on distribution: 85% merged, 10% closed, 5% open.
+func (g *PRGenerator) assignPRStatus() models.PRState {
+	roll := g.rng.Float64()
+	if roll < 0.85 {
+		return models.PRStateMerged
+	} else if roll < 0.95 {
+		return models.PRStateClosed
+	}
+	return models.PRStateOpen
+}
+
+// generatePRTitle creates a descriptive PR title from branch name and commit messages.
+func (g *PRGenerator) generatePRTitle(branch string, commits []models.Commit) string {
+	// Extract feature name from branch (e.g., "feature/auth-login" -> "Auth login")
+	// If branch has format "type/name", use the name part
+	parts := []rune(branch)
+	var featureName string
+
+	slashIdx := -1
+	for i, ch := range parts {
+		if ch == '/' {
+			slashIdx = i
+			break
+		}
+	}
+
+	if slashIdx >= 0 && slashIdx+1 < len(parts) {
+		featureName = string(parts[slashIdx+1:])
+		// Replace dashes/underscores with spaces and capitalize first letter
+		nameRunes := []rune(featureName)
+		if len(nameRunes) > 0 {
+			nameRunes[0] = []rune(string(nameRunes[0]))[0] // Keep original case
+			for i, ch := range nameRunes {
+				if ch == '-' || ch == '_' {
+					nameRunes[i] = ' '
+				}
+			}
+			featureName = string(nameRunes)
+		}
+	} else {
+		featureName = branch
+	}
+
+	// Use first commit message as base if available
+	if len(commits) > 0 && commits[0].Message != "" {
+		return commits[0].Message
+	}
+
+	return fmt.Sprintf("Implement %s", featureName)
 }
 
 // getDeveloper returns the developer with the given userID.
