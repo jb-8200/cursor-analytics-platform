@@ -1,8 +1,8 @@
 # Development Session Context
 
 **Last Updated**: January 9, 2026
-**Active Features**: P2-F01, P4-F04, P8-F01, P9-F01 (Parallel Development)
-**Primary Focus**: GitHub Simulation, External Data Sources, Data Tier ETL, Streamlit Dashboard
+**Active Features**: P2-F01, P4-F04, P8-F01 (Parallel Development)
+**Primary Focus**: GitHub Simulation, External Data Sources, Data Tier ETL
 
 ---
 
@@ -14,18 +14,18 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (10/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (11/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 6/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 8/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (12/14 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (13/14 tasks) |
 | **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (10/15 tasks - 67%)
+#### P2-F01: GitHub Simulation (11/15 tasks - 73%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -40,11 +40,12 @@
 | TASK-GH-08 | ✅ COMPLETE | Generator Storage Integration |
 | TASK-GH-09 | ✅ COMPLETE | PR Analytics Endpoint |
 | TASK-GH-10 | ✅ COMPLETE | Reviews Analytics Endpoint |
-| TASK-GH-11-15 | ⬜ PENDING | Issues Endpoint, Cycle Time, Review Quality, E2E |
+| TASK-GH-11 | ✅ COMPLETE | Issues Analytics Endpoint |
+| TASK-GH-12-15 | ⬜ PENDING | Cycle Time, Review Quality, E2E |
 
-**Next**: TASK-GH-11 (Issues Analytics Endpoint) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-12 (Cycle Time Analytics) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (6/16 tasks - 38%)
+#### P4-F04: External Data Sources (8/16 tasks - 50%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -56,11 +57,14 @@
 | TASK-DS-04 | ✅ COMPLETE | Harvey Generator (96% coverage) |
 | TASK-DS-05 | ✅ COMPLETE | Harvey API Handler |
 | TASK-DS-06 | ✅ COMPLETE | Harvey Router Integration |
-| TASK-DS-07-16 | ⬜ PENDING | Harvey E2E, Copilot Model/Gen/Handler/Router, Qualtrics |
+| TASK-DS-07 | ✅ COMPLETE | Copilot Usage Model (100% coverage) |
+| TASK-DS-11 | ✅ COMPLETE | Qualtrics Export Models (73.7% coverage) |
+| TASK-DS-08-10 | ⬜ PENDING | Copilot Generator/Handler/Router |
+| TASK-DS-12-16 | ⬜ PENDING | Qualtrics Generator/Handler/Router, E2E |
 
-**Next**: TASK-DS-07 (Harvey E2E Tests) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-08 (Copilot Generator) - use `cursor-sim-api-dev` agent
 
-#### P8-F01: Data Tier ETL (12/14 tasks - 86%)
+#### P8-F01: Data Tier ETL (13/14 tasks - 93%)
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -76,9 +80,10 @@
 | TASK-P8-09 | ✅ COMPLETE | dbt Source Definitions |
 | TASK-P8-10 | ✅ COMPLETE | dbt Staging Models |
 | TASK-P8-11 | ✅ COMPLETE | dbt Intermediate Models |
-| TASK-P8-12-14 | ⬜ PENDING | Marts, Pipeline |
+| TASK-P8-12 | ✅ COMPLETE | dbt Mart Models (4 marts, all tests pass) |
+| TASK-P8-13-14 | ⬜ PENDING | Pipeline orchestration |
 
-**Next**: TASK-P8-12 (dbt Mart Models) - use `data-tier-dev` agent
+**Next**: TASK-P8-13 (Pipeline Scripts) - use `data-tier-dev` agent
 
 #### P9-F01: Streamlit Dashboard (12/12 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
@@ -105,13 +110,13 @@
 ## Recent Commits (January 9, 2026)
 
 ```
+92e719b feat(data-tier): complete TASK-P8-12 - dbt Mart Models
+d246bef feat(cursor-sim): complete TASK-GH-11 - Issues Analytics Endpoint
+0a9edb1 feat(cursor-sim): complete TASK-DS-07 - Create Copilot Usage Model
+091b72c feat(cursor-sim): complete TASK-DS-11 - Qualtrics Export Models
+3f8f535 feat: complete parallel tasks TASK-GH-08, TASK-DS-05, TASK-P8-09, TASK-P9-11
+1268fbb docs: update DEVELOPMENT.md with parallel task completion progress
 7fd4d44 feat(streamlit): complete TASK-P9-10 - Refresh Pipeline
-d4f5982 feat(cursor-sim): complete TASK-GH-07 - Storage Methods for GitHub Data
-71d226f feat(data-tier): complete TASK-P8-08 - Snowflake loading scripts
-7b73668 feat(cursor-sim): implement Harvey generator (TASK-DS-04)
-de3218a setting
-ca1f69d feat: parallel implementation of P2, P4, P8, P9 tasks
-91a4808 chore: update P8 task progress + add P4-F04 seed tests
 ```
 
 ---
@@ -136,10 +141,9 @@ ca1f69d feat: parallel implementation of P2, P4, P8, P9 tasks
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P4-F04** | TASK-DS-04 (Harvey Generator) | cursor-sim-api-dev |
-| **P8** | TASK-P8-08 (Snowflake Loader) | data-tier-dev |
-| **P9** | TASK-P9-10 (Refresh Pipeline) | streamlit-dev |
-| **P2** | TASK-GH-07 (Storage Methods) | cursor-sim-api-dev |
+| **P2** | TASK-GH-12 (Cycle Time Analytics) | cursor-sim-api-dev |
+| **P4-F04** | TASK-DS-08 (Copilot Generator) | cursor-sim-api-dev |
+| **P8** | TASK-P8-13 (Pipeline Scripts) | data-tier-dev |
 
 ### Subagent Orchestration
 

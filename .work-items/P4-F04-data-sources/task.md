@@ -13,10 +13,10 @@
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 | 3.0h | 2.5h |
 | **Harvey API** | 4 | ✅ 4/4 | 6.0h | 4.5h |
-| **Microsoft Copilot API** | 4 | Pending | 6.5h | - |
+| **Microsoft Copilot API** | 4 | 🔄 1/4 | 6.5h | 0.5h |
 | **Qualtrics API** | 4 | 🔄 1/4 | 8.0h | 1.5h |
 | **Integration & E2E** | 2 | Pending | 3.5h | - |
-| **TOTAL** | **16** | **7/16** | **27.0h** | 8.5h |
+| **TOTAL** | **16** | **8/16** | **27.0h** | 9.5h |
 
 ---
 
