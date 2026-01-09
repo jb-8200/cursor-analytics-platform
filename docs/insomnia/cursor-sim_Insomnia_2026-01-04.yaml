@@ -1506,8 +1506,8 @@ environments:
     apiKey: "cursor-sim-dev-key"
     startDate: "2025-12-01"
     endDate: "2026-01-03"
-    repoOwner: "acme"
-    repoName: "platform"
+    repoOwner: "acme-corp"
+    repoName: "payment-service"
     prNumber: "1"
     commitSha: "abc123"
   subEnvironments:

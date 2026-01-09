@@ -145,9 +145,10 @@ func ListPullReviews(store storage.Store) http.Handler {
 			return
 		}
 
-		reviews := store.GetReviewComments(repoName, prNumber)
-		if reviews == nil {
-			reviews = []models.ReviewComment{}
+		// Get reviews by repo and PR number
+		reviews, err := store.GetReviewsByRepoPR(repoName, prNumber)
+		if err != nil || reviews == nil {
+			reviews = []models.Review{}
 		}
 
 		respondJSON(w, http.StatusOK, reviews)

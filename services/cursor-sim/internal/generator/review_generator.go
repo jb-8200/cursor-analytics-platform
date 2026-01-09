@@ -403,7 +403,7 @@ func (g *ReviewGenerator) generateReview(pr models.PullRequest, reviewerEmail st
 	// Create the review
 	review := models.Review{
 		ID:          reviewID,
-		PRID:        pr.Number,
+		PRID:        pr.ID,
 		Reviewer:    reviewerEmail,
 		State:       state,
 		SubmittedAt: submittedAt,

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -163,6 +164,49 @@ func runRuntimeMode(ctx context.Context, cfg *config.Config) error {
 	allCommits := store.GetCommitsByTimeRange(time.Time{}, time.Now().Add(24*time.Hour))
 	actualDevelopers := store.ListDevelopers()
 	log.Printf("Generated %d commits across %d developers\n", len(allCommits), len(actualDevelopers))
+
+	// Generate PRs from commits
+	log.Printf("Generating PRs from commits...\n")
+	prGen := generator.NewPRGeneratorWithSeed(seedData, store, time.Now().UnixNano())
+	startDate := time.Now().AddDate(0, 0, -cfg.Days)
+	endDate := time.Now().Add(24 * time.Hour)
+	if err := prGen.GeneratePRsFromCommits(startDate, endDate); err != nil {
+		return fmt.Errorf("failed to generate PRs: %w", err)
+	}
+	repos := store.ListRepositories()
+	log.Printf("Generated PRs across %d repositories\n", len(repos))
+
+	// Generate reviews for PRs
+	log.Printf("Generating reviews for PRs...\n")
+	reviewGen := generator.NewReviewGenerator(seedData, rand.New(rand.NewSource(time.Now().UnixNano())))
+	totalReviews := 0
+	for _, repoName := range repos {
+		prs := store.GetPRsByRepo(repoName)
+		for _, pr := range prs {
+			reviews := reviewGen.GenerateReviewsForPR(pr)
+			for _, review := range reviews {
+				if err := store.StoreReview(review); err != nil {
+					log.Printf("Warning: failed to store review: %v", err)
+				}
+				totalReviews++
+			}
+		}
+	}
+	log.Printf("Generated %d reviews\n", totalReviews)
+
+	// Generate issues for PRs
+	log.Printf("Generating issues for PRs...\n")
+	issueGen := generator.NewIssueGeneratorWithStore(seedData, store, time.Now().UnixNano())
+	totalIssues := 0
+	for _, repoName := range repos {
+		prs := store.GetPRsByRepo(repoName)
+		count, err := issueGen.GenerateAndStoreIssuesForPRs(prs, repoName)
+		if err != nil {
+			log.Printf("Warning: failed to generate issues for %s: %v", repoName, err)
+		}
+		totalIssues += count
+	}
+	log.Printf("Generated %d issues\n", totalIssues)
 
 	// Generate model usage events
 	log.Printf("Generating model usage events...\n")

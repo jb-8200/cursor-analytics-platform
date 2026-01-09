@@ -62,6 +62,9 @@ type MemoryStore struct {
 	commands []*models.CommandEvent // Command usage events
 	plans    []*models.PlanEvent    // Plan usage events
 	askModes []*models.AskModeEvent // Ask mode usage events
+
+	// Counters for auto-generating IDs
+	nextPRID int // Auto-incrementing PR ID counter
 }
 
 // NewMemoryStore creates a new thread-safe in-memory store.
@@ -90,6 +93,7 @@ func NewMemoryStore() *MemoryStore {
 		commands:          make([]*models.CommandEvent, 0, 2000),
 		plans:             make([]*models.PlanEvent, 0, 1500),
 		askModes:          make([]*models.AskModeEvent, 0, 1500),
+		nextPRID:          1, // Start PR IDs at 1
 	}
 }
 
@@ -274,6 +278,12 @@ func (m *MemoryStore) AddPR(pr models.PullRequest) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Auto-generate ID if not set
+	if pr.ID == 0 {
+		pr.ID = m.nextPRID
+		m.nextPRID++
+	}
+
 	prPtr := &pr
 
 	// Ensure repo map exists
@@ -286,6 +296,12 @@ func (m *MemoryStore) AddPR(pr models.PullRequest) error {
 
 	// Add to author index
 	m.prsByAuthor[pr.AuthorID] = append(m.prsByAuthor[pr.AuthorID], prPtr)
+
+	// Add to ID index for GitHub simulation
+	m.prsByID[pr.ID] = prPtr
+
+	// Add to email index for GitHub simulation
+	m.prsByEmail[pr.AuthorEmail] = append(m.prsByEmail[pr.AuthorEmail], prPtr)
 
 	return nil
 }
