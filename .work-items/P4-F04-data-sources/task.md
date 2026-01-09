@@ -107,7 +107,7 @@ qualtrics:
 #### TASK-DS-02: Extend Storage Layer for External Data (Est: 1.5h)
 **Status**: ✅ COMPLETE
 **Actual**: 1.0h
-**Commit**: bb61fb0
+**Commit**: 198df5f
 
 **Goal**: Add storage methods for Harvey events, Copilot usage, and export jobs
 
