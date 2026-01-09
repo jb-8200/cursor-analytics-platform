@@ -6,6 +6,24 @@ React-based visualization dashboard for Cursor AI analytics.
 
 Interactive web dashboard that consumes the cursor-analytics-core GraphQL API to display AI coding assistant usage analytics, team performance metrics, and code quality insights.
 
+### Alternative Dashboard: Streamlit (P9)
+
+The platform now includes an alternative analytics dashboard using **Streamlit + dbt + DuckDB/Snowflake** (P9). Both dashboards are maintained:
+
+| Feature | cursor-viz-spa (P6) | streamlit-dashboard (P9) |
+|---------|---------------------|--------------------------|
+| **Framework** | React + Vite | Python Streamlit |
+| **Data Source** | GraphQL API (cursor-analytics-core) | Direct database queries |
+| **Backend** | PostgreSQL via GraphQL | DuckDB (dev) / Snowflake (prod) |
+| **Best For** | Interactive web apps, mobile apps | Data analysis, reporting, embedded ETL |
+| **Port** | 3000 | 8501 |
+
+**Choose based on your needs:**
+- **cursor-viz-spa (this service)**: Complex interactive dashboards, external API consumers, mobile apps
+- **streamlit-dashboard**: Internal analytics, ad-hoc data exploration, rapid prototyping
+
+See [streamlit-dashboard README](../streamlit-dashboard/README.md) for the alternative path.
+
 ## Tech Stack
 
 - **Framework**: React 18+ with TypeScript

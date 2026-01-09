@@ -27,22 +27,29 @@ RUN go build \
     -o /out/cursor-sim \
     ./cmd/simulator
 
-# Runtime stage
-FROM gcr.io/distroless/static:nonroot
+# Runtime stage - use alpine for wget health check support
+FROM alpine:3.19
+
+# Install wget for health checks and CA certificates
+RUN apk add --no-cache wget ca-certificates && \
+    adduser -D -u 1000 appuser
 
 WORKDIR /app
 
-# Copy binary from builder with proper ownership
-COPY --from=builder --chown=nonroot:nonroot /out/cursor-sim /app/cursor-sim
+# Copy binary from builder
+COPY --from=builder /out/cursor-sim /app/cursor-sim
 
-# Copy default seed file with proper ownership (optional - can be overridden with volume mount)
-COPY --chown=nonroot:nonroot testdata/valid_seed.json /app/seed.json
+# Copy default seed file (can be overridden with volume mount)
+COPY testdata/valid_seed.json /app/seed.json
+
+# Set ownership
+RUN chown -R appuser:appuser /app
 
 # Expose HTTP port
 EXPOSE 8080
 
-# Run as non-root user (defined in distroless base)
-USER nonroot:nonroot
+# Run as non-root user
+USER appuser
 
 # Set entrypoint
 ENTRYPOINT ["/app/cursor-sim"]

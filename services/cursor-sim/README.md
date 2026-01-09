@@ -503,6 +503,34 @@ docker run --rm -p 8080:8080 \
   cursor-sim:latest
 ```
 
+### GCP Cloud Run Deployment
+
+Deploy cursor-sim to Google Cloud Run with automated SSL and custom domains:
+
+```bash
+# Deploy to staging (default .run.app URL)
+./tools/deploy-cursor-sim.sh staging
+
+# Deploy with custom domain
+CUSTOM_DOMAIN=dox-a3.jishutech.io ./tools/deploy-cursor-sim.sh staging
+
+# Deploy to production
+CUSTOM_DOMAIN=api.yourdomain.com ./tools/deploy-cursor-sim.sh production
+```
+
+**Features:**
+- Automatic SSL certificate provisioning
+- Custom domain mapping support
+- Zero-downtime deployments
+- Auto-scaling (scale-to-zero for staging)
+- Managed infrastructure
+
+**Current Deployment:**
+- **Staging URL**: https://cursor-sim-7m3ityidxa-uc.a.run.app
+- **Custom Domain**: https://dox-a3.jishutech.io
+- **Region**: us-central1
+- **Project**: cursor-sim
+
 ### Complete Docker Documentation
 
 For comprehensive Docker deployment information, see **[DOCKER.md](./DOCKER.md)**:
@@ -516,7 +544,7 @@ For comprehensive Docker deployment information, see **[DOCKER.md](./DOCKER.md)*
 - Configuration presets
 
 **Also see:**
-- [docs/cursor-sim-cloud-run.md](../../docs/cursor-sim-cloud-run.md) - GCP Cloud Run deployment guide
+- [docs/cursor-sim-cloud-run.md](../../docs/cursor-sim-cloud-run.md) - Complete GCP Cloud Run deployment guide with custom domains
 
 ---
 
@@ -611,7 +639,9 @@ curl -u cursor-sim-dev-key: http://localhost:8080/teams/members
 
 ## Platform Integration
 
-cursor-sim is part of the Cursor Analytics Platform:
+cursor-sim is part of the Cursor Analytics Platform with two analytics paths:
+
+### Path 1: GraphQL Analytics (Original)
 
 ```
 ┌─────────────┐       ┌──────────────────┐       ┌─────────────┐
@@ -627,10 +657,63 @@ cursor-sim is part of the Cursor Analytics Platform:
                       └─────────────┘
 ```
 
+### Path 2: dbt + Streamlit Analytics (New)
+
+```
+┌─────────────┐       ┌───────────────────┐
+│ cursor-sim  │──────▶│ streamlit-dash    │
+│   (P4)      │ REST  │     (P9)          │
+│  Port 8080  │       │  Port 8501        │
+└─────────────┘       │                   │
+                      │ ┌───────────────┐ │
+                      │ │ dbt (P8)      │ │
+                      │ │ Transforms    │ │
+                      │ └───────────────┘ │
+                      │        ▼          │
+                      │ ┌───────────────┐ │
+                      │ │ DuckDB        │ │
+                      │ │ Analytics DB  │ │
+                      │ └───────────────┘ │
+                      └───────────────────┘
+```
+
 ### Related Services
 
-- **cursor-analytics-core** - GraphQL aggregation layer
-- **cursor-viz-spa** - React dashboard for visualizations
+- **cursor-analytics-core (P5)** - GraphQL aggregation layer (PostgreSQL backend)
+- **cursor-viz-spa (P6)** - React dashboard for visualizations
+- **streamlit-dashboard (P9)** - Python analytics dashboard with embedded dbt pipeline (DuckDB/Snowflake backend)
+
+### Running with Docker Compose
+
+The complete platform (cursor-sim + streamlit-dashboard) can be started with:
+
+```bash
+# Start cursor-sim + streamlit-dashboard
+docker-compose up -d cursor-sim streamlit-dashboard
+
+# Access services
+# - cursor-sim API: http://localhost:8080
+# - Streamlit Dashboard: http://localhost:8501
+
+# View logs
+docker-compose logs -f cursor-sim streamlit-dashboard
+
+# Stop services
+docker-compose down cursor-sim streamlit-dashboard
+```
+
+For the complete 4-service stack (including GraphQL path):
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Services available:
+# - cursor-sim: http://localhost:8080
+# - cursor-analytics-core: http://localhost:4000/graphql
+# - cursor-viz-spa: http://localhost:3000
+# - streamlit-dashboard: http://localhost:8501
+```
 
 ### Related Documentation
 

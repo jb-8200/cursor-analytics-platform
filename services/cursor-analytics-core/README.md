@@ -275,7 +275,9 @@ src/
 
 ## Platform Integration
 
-cursor-analytics-core (P5) is the middle tier of the Cursor Analytics Platform:
+cursor-analytics-core (P5) is the middle tier of the **GraphQL Analytics Path** in the Cursor Analytics Platform:
+
+### GraphQL Analytics Path (Original)
 
 ```
 cursor-sim (P4) → cursor-analytics-core (P5) → cursor-viz-spa (P6)
@@ -283,6 +285,30 @@ cursor-sim (P4) → cursor-analytics-core (P5) → cursor-viz-spa (P6)
   Port 8080       Port 4000 (GraphQL)        Port 3000
                   Port 5432 (PostgreSQL)
 ```
+
+### Alternative: dbt + Streamlit Analytics Path (New - January 2026)
+
+The platform now includes an alternative analytics path using dbt + Streamlit:
+
+```
+cursor-sim (P4) → streamlit-dashboard (P9)
+  Docker          Docker (includes dbt P8 + DuckDB)
+  Port 8080       Port 8501
+```
+
+**Key Differences:**
+
+| Feature | GraphQL Path (P5+P6) | Streamlit Path (P9) |
+|---------|---------------------|---------------------|
+| **Backend** | PostgreSQL + Prisma | DuckDB (dev) or Snowflake (prod) |
+| **Transform** | TypeScript services | dbt SQL models |
+| **API** | GraphQL | Direct database queries |
+| **Frontend** | React + Apollo Client | Streamlit Python |
+| **Use Case** | Interactive dashboards, complex queries | Data analysis, reporting, embedded ETL |
+
+**Both paths are maintained** - choose based on your use case:
+- **GraphQL path**: Interactive web dashboards, mobile apps, external API consumers
+- **Streamlit path**: Internal analytics, data exploration, ad-hoc reporting
 
 ### Integration Status (January 4, 2026)
 

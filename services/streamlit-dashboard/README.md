@@ -8,6 +8,24 @@
 
 Production-ready Streamlit dashboard for visualizing AI coding analytics. Supports both DuckDB (local development) and Snowflake (production) backends.
 
+### Platform Architecture
+
+This service (P9) provides an alternative analytics path using **dbt + DuckDB/Snowflake**, complementing the original GraphQL path:
+
+```
+Path 1 (GraphQL):   cursor-sim → cursor-analytics-core → cursor-viz-spa
+                    (P4)         (P5 GraphQL)            (P6 React)
+
+Path 2 (dbt):       cursor-sim → streamlit-dashboard
+                    (P4)         (P9 Streamlit + P8 dbt)
+```
+
+**Key differences:**
+- **Streamlit path (this service)**: Embedded dbt transformations, direct SQL queries, Python-based analytics
+- **GraphQL path**: TypeScript services, GraphQL API, React frontend
+
+Both paths consume the same cursor-sim data but use different transformation and presentation layers.
+
 ## Features
 
 - **Velocity Metrics**: PR cycle times, throughput, and developer activity
@@ -63,15 +81,44 @@ streamlit run app.py
 
 ## Docker
 
+### Docker Compose (Recommended)
+
+Run with cursor-sim using Docker Compose:
+
+```bash
+# Start cursor-sim + streamlit-dashboard
+docker-compose up -d cursor-sim streamlit-dashboard
+
+# Access dashboard
+open http://localhost:8501
+
+# View logs
+docker-compose logs -f streamlit-dashboard
+
+# Stop services
+docker-compose down cursor-sim streamlit-dashboard
+```
+
+The docker-compose.yml automatically:
+- Starts cursor-sim on port 8080
+- Starts streamlit-dashboard on port 8501
+- Mounts dbt project at `/app/dbt`
+- Persists DuckDB data in `analytics_data` volume
+- Configures environment variables
+
+### Manual Docker Build
+
 ```bash
 # Build image
 docker build -t streamlit-dashboard .
 
-# Run container
+# Run container (requires cursor-sim running)
 docker run -p 8501:8501 \
   -e DB_MODE=duckdb \
   -e DUCKDB_PATH=/data/analytics.duckdb \
-  -v /path/to/data:/data \
+  -e CURSOR_SIM_URL=http://host.docker.internal:8080 \
+  -v analytics_data:/data \
+  -v $(pwd)/../../dbt:/app/dbt:ro \
   streamlit-dashboard
 ```
 

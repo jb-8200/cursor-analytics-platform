@@ -156,8 +156,172 @@ gcloud run services describe cursor-sim \
   --format="value(status.url)" \
   --project <PROJECT_ID>
 ```
-Test: `curl -u cursor-sim-dev-key: https://<service-url>/health` (or with an identity token if private).  
+Test: `curl -u cursor-sim-dev-key: https://<service-url>/health` (or with an identity token if private).
 Console: Cloud Run → Logs for stdout/stderr; Metrics for latency/CPU/requests. Use Cloud Monitoring/Logging for alerts.
+
+## Step 7: (Optional) Configure Custom Domain
+
+Map a custom domain (e.g., `dox-a3.jishutech.io`) to your Cloud Run service for production-ready endpoints.
+
+### Prerequisites
+
+1. **Domain ownership**: You must own or control the domain
+2. **DNS access**: Ability to create CNAME records
+3. **gcloud beta**: Install beta components if not already installed
+   ```bash
+   gcloud components install beta --quiet
+   ```
+
+### DNS Configuration
+
+Create a CNAME record in your DNS provider pointing to Google's load balancer:
+
+| Record Type | Name | Value |
+|-------------|------|-------|
+| CNAME | your-subdomain (e.g., `dox-a3`) | `ghs.googlehosted.com` |
+
+**Example DNS Record:**
+```
+dox-a3.jishutech.io  →  CNAME  →  ghs.googlehosted.com
+```
+
+**DNS Propagation**: Wait 5-15 minutes for worldwide DNS propagation. Verify with:
+```bash
+dig your-domain.com CNAME +short
+# Should return: ghs.googlehosted.com.
+```
+
+### Create Domain Mapping
+
+Map your custom domain to the Cloud Run service:
+
+```bash
+CUSTOM_DOMAIN=dox-a3.jishutech.io
+SERVICE_NAME=cursor-sim
+REGION=us-central1
+PROJECT_ID=<PROJECT_ID>
+
+gcloud beta run domain-mappings create \
+  --service=${SERVICE_NAME} \
+  --domain=${CUSTOM_DOMAIN} \
+  --region=${REGION} \
+  --project=${PROJECT_ID}
+```
+
+**Output:**
+```
+   DOMAIN               SERVICE     REGION
+✔  dox-a3.jishutech.io  cursor-sim  us-central1
+```
+
+### Verify Domain Mapping
+
+Check the domain mapping status:
+
+```bash
+gcloud beta run domain-mappings describe \
+  --domain=${CUSTOM_DOMAIN} \
+  --region=${REGION} \
+  --project=${PROJECT_ID}
+```
+
+**Key fields to check:**
+- `status.conditions[CertificateProvisioned]`: Should be `True`
+- `status.conditions[Ready]`: Should be `True`
+- `spec.certificateMode`: Should be `AUTOMATIC`
+
+### SSL Certificate Provisioning
+
+Google automatically provisions a managed SSL certificate for your domain. This process:
+
+- **Starts immediately** after domain mapping creation
+- **Takes 5-15 minutes** typically
+- **May take up to 24 hours** in rare cases
+- **Renews automatically** before expiration
+
+**Monitor certificate status:**
+```bash
+gcloud beta run domain-mappings describe \
+  --domain=${CUSTOM_DOMAIN} \
+  --region=${REGION} \
+  --project=${PROJECT_ID} \
+  --format="yaml(status.conditions)"
+```
+
+### Test Custom Domain
+
+After SSL certificate is provisioned (wait 10-15 minutes):
+
+```bash
+# Health check (no auth)
+curl https://${CUSTOM_DOMAIN}/health
+
+# Team members (with auth)
+curl -u cursor-sim-dev-key: https://${CUSTOM_DOMAIN}/teams/members
+
+# Verify SSL certificate
+openssl s_client -connect ${CUSTOM_DOMAIN}:443 -servername ${CUSTOM_DOMAIN} < /dev/null 2>&1 | grep "Verify return code"
+# Expected: Verify return code: 0 (ok)
+```
+
+### Using Deployment Script with Custom Domain
+
+The deployment script supports automatic custom domain configuration:
+
+```bash
+# Deploy with custom domain
+CUSTOM_DOMAIN=dox-a3.jishutech.io ./tools/deploy-cursor-sim.sh staging
+
+# Deploy production with custom domain
+CUSTOM_DOMAIN=api.yourdomain.com ./tools/deploy-cursor-sim.sh production
+```
+
+The script will:
+1. Deploy the Cloud Run service
+2. Create domain mapping (if not exists)
+3. Display DNS configuration instructions
+4. Show both default and custom URLs
+
+### Troubleshooting Custom Domains
+
+#### DNS not propagating
+
+**Symptom**: `dig your-domain.com CNAME` returns nothing
+
+**Solution**:
+- Verify CNAME record in your DNS provider
+- Wait 5-15 minutes for propagation
+- Check with multiple DNS servers: `dig @8.8.8.8 your-domain.com CNAME`
+
+#### SSL certificate not provisioning
+
+**Symptom**: HTTPS connection fails with SSL errors
+
+**Solution**:
+- Verify DNS CNAME points to `ghs.googlehosted.com`
+- Check domain mapping status shows `CertificateProvisioned: True`
+- Wait 10-15 minutes after certificate provisioning
+- Check Cloud Run logs for certificate errors
+
+#### Domain mapping already exists error
+
+**Symptom**: `ERROR: Domain mapping to [domain] already exists`
+
+**Solution**:
+- Domain is already mapped (this is OK!)
+- Update mapping if needed:
+  ```bash
+  gcloud beta run domain-mappings delete --domain=${CUSTOM_DOMAIN} --region=${REGION} --project=${PROJECT_ID}
+  # Then recreate the mapping
+  ```
+
+### Custom Domain Best Practices
+
+1. **Production domains**: Use custom domains for production environments
+2. **Staging**: Use default `.run.app` URLs for staging/testing
+3. **Multiple environments**: Use subdomains (e.g., `staging-api.domain.com`, `api.domain.com`)
+4. **SSL certificates**: Let Google manage certificates automatically
+5. **DNS TTL**: Set low TTL (300-600 seconds) before migration for faster updates
 
 ### Change Params Without Rebuilding
 - Local Docker: restart with new envs/flags, same image:
