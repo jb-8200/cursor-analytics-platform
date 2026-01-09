@@ -14,18 +14,18 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (6/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (7/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 2/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 3/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (7/14 tasks) |
-| **P9** | Streamlit Dashboard | **IN PROGRESS** (8/12 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (8/14 tasks) |
+| **P9** | Streamlit Dashboard | **IN PROGRESS** (9/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (6/15 tasks - 40%)
+#### P2-F01: GitHub Simulation (7/15 tasks - 47%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -35,10 +35,10 @@
 | TASK-GH-03 | ✅ COMPLETE | Issue Model |
 | TASK-GH-04 | ✅ COMPLETE | PR Generator (status distribution) |
 | TASK-GH-05 | ✅ COMPLETE | Review Generator |
-| TASK-GH-06 | ⬜ PENDING | Issue Generator |
+| TASK-GH-06 | ✅ COMPLETE | Issue Generator |
 | TASK-GH-07-15 | ⬜ PENDING | Storage, API Handlers, Integration |
 
-#### P4-F04: External Data Sources (2/16 tasks - 13%)
+#### P4-F04: External Data Sources (3/16 tasks - 19%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -46,12 +46,12 @@
 |------|--------|-------------|
 | TASK-DS-01 | ✅ COMPLETE | Extend Seed Schema |
 | TASK-DS-02 | ✅ COMPLETE | Extend Storage Layer |
-| TASK-DS-03 | ⬜ PENDING | Harvey Model |
+| TASK-DS-03 | ✅ COMPLETE | Harvey Model |
 | TASK-DS-04-16 | ⬜ PENDING | Generators, Handlers, E2E |
 
-**Next**: TASK-DS-03 (Harvey Model) - use `cursor-sim-api-dev` or `general-purpose` agent
+**Next**: TASK-DS-04 (Harvey Generator) - use `cursor-sim-api-dev` or `general-purpose` agent
 
-#### P8-F01: Data Tier ETL (7/14 tasks - 50%)
+#### P8-F01: Data Tier ETL (8/14 tasks - 57%)
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -61,13 +61,13 @@
 | TASK-P8-03 | ✅ COMPLETE | Base API Extractor |
 | TASK-P8-04 | ✅ COMPLETE | Specific Extractors |
 | TASK-P8-05 | ✅ COMPLETE | Main Loader Script |
-| TASK-P8-06 | ⬜ PENDING | Schema Validation |
+| TASK-P8-06 | ✅ COMPLETE | Schema Validation |
 | TASK-P8-07 | ✅ COMPLETE | DuckDB Loader |
 | TASK-P8-08-14 | ⬜ PENDING | Snowflake, dbt transforms, Pipeline |
 
-**Next**: TASK-P8-06 (Schema Validation) - use `data-tier-dev` agent
+**Next**: TASK-P8-08 (Snowflake Loader) - use `data-tier-dev` agent
 
-#### P9-F01: Streamlit Dashboard (8/12 tasks - 67%)
+#### P9-F01: Streamlit Dashboard (9/12 tasks - 75%)
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
 
 | Task | Status | Description |
@@ -77,13 +77,13 @@
 | TASK-P9-03 | ✅ COMPLETE | Database Connector |
 | TASK-P9-04 | ✅ COMPLETE | SQL Query Modules |
 | TASK-P9-05 | ✅ COMPLETE | Sidebar Component |
-| TASK-P9-06 | ⬜ PENDING | Home Page |
+| TASK-P9-06 | ✅ COMPLETE | Home Page |
 | TASK-P9-07 | ✅ COMPLETE | Velocity Page |
 | TASK-P9-08 | ✅ COMPLETE | AI Impact Page |
 | TASK-P9-09 | ✅ COMPLETE | Quality + Review Pages |
 | TASK-P9-10-12 | ⬜ PENDING | Refresh Pipeline, Docker |
 
-**Next**: TASK-P9-06 (Home Page) - use `streamlit-dev` agent
+**Next**: TASK-P9-10 (Refresh Pipeline) - use `streamlit-dev` agent
 
 ---
 
@@ -124,10 +124,10 @@ d81a8b6 feat(data-tier): implement main loader and DuckDB loader
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P4-F04** | TASK-DS-03 (Harvey Model) | general-purpose |
-| **P8** | TASK-P8-06 (Schema Validation) | data-tier-dev |
-| **P9** | TASK-P9-06 (Home Page) | streamlit-dev |
-| **P2** | TASK-GH-06 (Issue Generator) | general-purpose |
+| **P4-F04** | TASK-DS-04 (Harvey Generator) | cursor-sim-api-dev |
+| **P8** | TASK-P8-08 (Snowflake Loader) | data-tier-dev |
+| **P9** | TASK-P9-10 (Refresh Pipeline) | streamlit-dev |
+| **P2** | TASK-GH-07 (Storage Methods) | cursor-sim-api-dev |
 
 ### Subagent Orchestration
 

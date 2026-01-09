@@ -11,11 +11,11 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Models** | 3 | 3/3 | 2.5h | 1.25h |
-| **Generators** | 3 | 1/3 | 8.0h | 1.5h |
+| **Generators** | 3 | 2/3 | 8.0h | 2.5h |
 | **Storage** | 2 | 0/2 | 3.0h | - |
 | **API Handlers** | 5 | 0/5 | 5.0h | - |
 | **Testing & Docs** | 2 | 0/2 | 3.5h | - |
-| **TOTAL** | **15** | **4/15** | **22.0h** | **2.75h** |
+| **TOTAL** | **15** | **5/15** | **22.0h** | **3.75h** |
 
 ---
 
@@ -162,7 +162,11 @@
 
 ---
 
-#### TASK-GH-06: Implement Issue Generator (2.0h)
+#### TASK-GH-06: Implement Issue Generator (2.0h) ✅ COMPLETE
+
+**Status**: COMPLETE
+**Time**: 1.0h actual / 2.0h estimated
+**Completed**: 2026-01-09
 
 **Goal**: Generate issues linked to PRs
 
@@ -171,12 +175,22 @@
 - NEW: `internal/generator/issue_generator_test.go`
 
 **Acceptance Criteria**:
-- [ ] 40% of merged PRs close an issue
-- [ ] 10% of issues remain open
-- [ ] Issue created before PR
-- [ ] Labels assigned (bug, feature, enhancement)
-- [ ] Issue titles match PR titles
-- [ ] Tests pass
+- [x] 40% of merged PRs close an issue
+- [x] 10% of issues remain open
+- [x] Issue created before PR (1-7 days)
+- [x] Labels assigned (bug, feature, enhancement)
+- [x] Issue titles derived from PR titles
+- [x] Tests pass (12 test functions)
+
+**Implementation Notes**:
+- IssueGenerator struct with seed data and RNG
+- GenerateIssuesForPRs(prs, repoName) method
+- 40% of merged PRs get linked issues
+- 10% of generated issues remain open
+- Issues created 1-7 days before PR creation
+- Labels randomly assigned (1-2 from bug/feature/enhancement)
+- Reproducible with seeded RNG
+- Full validation passes on generated issues
 
 ---
 

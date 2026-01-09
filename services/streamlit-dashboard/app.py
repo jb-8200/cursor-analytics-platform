@@ -2,6 +2,7 @@
 DOXAPI Analytics Dashboard - Main Entry Point
 
 Feature: P9-F01 Streamlit Dashboard
+Task: TASK-P9-06 Home Page
 Author: Claude (streamlit-dev agent)
 Created: 2026-01-09
 """
@@ -19,6 +20,24 @@ st.set_page_config(
 # Main content
 st.title("📊 DOXAPI Analytics Dashboard")
 
+# KPI metrics row
+col1, col2, col3, col4 = st.columns(4)
+
+# KPI placeholders (will connect to dbt marts when available)
+with col1:
+    st.metric(label="Total PRs", value="--", delta=None)
+
+with col2:
+    st.metric(label="Avg Cycle Time", value="-- days", delta=None)
+
+with col3:
+    st.metric(label="Avg Revert Rate", value="--%", delta=None)
+
+with col4:
+    st.metric(label="Avg AI Ratio", value="--%", delta=None)
+
+st.markdown("---")
+
 st.markdown("""
 ## Welcome to the AI Code Analytics Dashboard
 
@@ -32,9 +51,7 @@ This dashboard provides insights into AI-assisted coding impact on:
 ### Getting Started
 
 Navigate using the sidebar to explore different metrics.
-
-**Status**: Infrastructure setup complete. Dashboard pages coming soon.
 """)
 
-# Placeholder info
-st.info("📦 P9-F01 TASK-01: Infrastructure setup complete")
+# Status info
+st.info("📦 P9-F01: Home page with KPI metrics. Connect to dbt marts for live data.")

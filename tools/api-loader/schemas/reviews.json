@@ -1,0 +1,9 @@
+{
+  "required_columns": [
+    "id",
+    "repo_name",
+    "pr_number",
+    "state",
+    "submitted_at"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "required_columns": [
+    "full_name",
+    "default_branch",
+    "created_at"
+  ]
+}
