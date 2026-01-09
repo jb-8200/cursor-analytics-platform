@@ -1,0 +1,131 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Raw data from cursor-sim API extraction
+    schema: raw
+    tables:
+      - name: commits
+        description: |
+          Commit-level AI telemetry data from Cursor IDE.
+          Tracks tab completions, Composer usage, and non-AI lines per commit.
+        columns:
+          - name: commit_hash
+            description: Unique commit SHA identifier
+            tests:
+              - unique
+              - not_null
+          - name: repo_name
+            description: Full repository name (org/repo format)
+            tests:
+              - not_null
+          - name: user_email
+            description: Email of commit author
+            tests:
+              - not_null
+          - name: tab_lines_added
+            description: Lines added via Tab completions
+          - name: composer_lines_added
+            description: Lines added via Cursor Composer
+          - name: non_ai_lines_added
+            description: Lines added manually (non-AI)
+          - name: commit_ts
+            description: Commit timestamp
+            tests:
+              - not_null
+          - name: pull_request_number
+            description: Associated PR number (if any)
+          - name: branch_name
+            description: Branch name where commit was made
+
+      - name: pull_requests
+        description: |
+          Pull request lifecycle data including cycle times, AI ratios,
+          and quality indicators (reverts, bug fixes).
+        columns:
+          - name: number
+            description: PR number within repository
+            tests:
+              - not_null
+          - name: repo_name
+            description: Full repository name
+            tests:
+              - not_null
+          - name: author_email
+            description: PR author email
+          - name: state
+            description: PR state (open, merged, closed)
+            tests:
+              - accepted_values:
+                  values: ['open', 'merged', 'closed']
+          - name: additions
+            description: Lines added in PR
+          - name: deletions
+            description: Lines deleted in PR
+          - name: changed_files
+            description: Number of files modified
+          - name: ai_ratio
+            description: Ratio of AI-generated lines (0.0 to 1.0)
+          - name: was_reverted
+            description: Boolean flag if PR was later reverted
+          - name: is_bug_fix
+            description: Boolean flag if PR fixes a bug
+          - name: created_at
+            description: PR creation timestamp
+            tests:
+              - not_null
+          - name: merged_at
+            description: PR merge timestamp (null if not merged)
+          - name: first_commit_at
+            description: Timestamp of first commit in PR
+          - name: first_review_at
+            description: Timestamp of first review
+
+      - name: reviews
+        description: |
+          Code review events on pull requests.
+          Tracks approvals, rejections, and review comments.
+        columns:
+          - name: id
+            description: Unique review event ID
+            tests:
+              - unique
+              - not_null
+          - name: repo_name
+            description: Repository name
+            tests:
+              - not_null
+          - name: pr_number
+            description: PR number being reviewed
+            tests:
+              - not_null
+          - name: reviewer_email
+            description: Email of reviewer
+          - name: state
+            description: Review state (APPROVED, CHANGES_REQUESTED, COMMENTED)
+          - name: submitted_at
+            description: Review submission timestamp
+            tests:
+              - not_null
+          - name: body
+            description: Review comment text
+
+      - name: repos
+        description: |
+          Repository metadata from GitHub-style /repos endpoint.
+        columns:
+          - name: full_name
+            description: Full repository name (org/repo)
+            tests:
+              - unique
+              - not_null
+          - name: default_branch
+            description: Default branch name (typically main or master)
+          - name: language
+            description: Primary programming language
+          - name: is_private
+            description: Boolean flag if repository is private
+          - name: created_at
+            description: Repository creation timestamp
+          - name: updated_at
+            description: Last update timestamp

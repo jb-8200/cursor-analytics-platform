@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: int_pr_with_commits
+    description: |
+      Ephemeral model joining pull requests with aggregated commit data.
+      Provides enriched PR records with commit counts, AI line totals,
+      and calculated AI ratios. Used by mart models for analytics.
+    columns:
+      - name: pr_number
+        description: PR number
+      - name: repo_name
+        description: Repository name
+      - name: commit_count
+        description: Number of commits in this PR
+      - name: pr_ai_lines
+        description: Total AI-generated lines across all commits
+      - name: pr_total_lines
+        description: Total lines added across all commits
+      - name: final_ai_ratio
+        description: |
+          Final AI ratio with fallback logic:
+          1. Use API-provided ai_ratio if available
+          2. Calculate from commit data (ai_lines / total_lines)
+          3. Default to 0 if neither available

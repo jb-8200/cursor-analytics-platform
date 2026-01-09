@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: stg_commits
+    description: |
+      Cleaned and normalized commit-level telemetry.
+      Calculates total AI lines and total lines added per commit.
+    columns:
+      - name: commit_hash
+        description: Unique commit identifier
+        tests:
+          - unique
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: ai_lines_added
+        description: Sum of tab_lines_added + composer_lines_added
+        tests:
+          - not_null
+      - name: total_lines_added
+        description: Sum of all lines added (AI + non-AI)
+        tests:
+          - not_null
+      - name: committed_at
+        description: Commit timestamp
+        tests:
+          - not_null
+
+  - name: stg_pull_requests
+    description: |
+      Cleaned PR data with calculated cycle time metrics.
+      Renames was_reverted to is_reverted for consistency.
+    columns:
+      - name: pr_number
+        description: PR number
+        tests:
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: coding_lead_time_hours
+        description: Time from first commit to PR creation (hours)
+      - name: pickup_time_hours
+        description: Time from PR creation to first review (hours)
+      - name: review_lead_time_hours
+        description: Time from first review to merge (hours)
+      - name: is_reverted
+        description: Boolean flag if PR was later reverted
+      - name: final_ai_ratio
+        description: AI-generated code ratio (0.0 to 1.0)
+        tests:
+          - accepted_values:
+              values: ['low', 'medium', 'high']
+              config:
+                where: "final_ai_ratio IS NOT NULL"
+
+  - name: stg_reviews
+    description: |
+      Cleaned review events with is_approval flag.
+    columns:
+      - name: review_id
+        description: Unique review identifier
+        tests:
+          - unique
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: pr_number
+        description: PR number being reviewed
+        tests:
+          - not_null
+      - name: is_approval
+        description: True if review state is APPROVED
+      - name: submitted_at
+        description: Review submission timestamp
+        tests:
+          - not_null
+
+  - name: stg_repos
+    description: |
+      Cleaned repository metadata.
+    columns:
+      - name: repo_name
+        description: Full repository name (org/repo)
+        tests:
+          - unique
+          - not_null
+      - name: default_branch
+        description: Default branch name
+      - name: language
+        description: Primary programming language

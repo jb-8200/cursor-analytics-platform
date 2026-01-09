@@ -1,0 +1,111 @@
+version: 2
+
+models:
+  - name: mart_velocity
+    description: |
+      Weekly velocity metrics aggregated by repository.
+      Tracks team productivity, PR size, cycle times, and AI adoption.
+      Materialized as table for fast dashboard queries.
+    columns:
+      - name: week
+        description: Week starting date (Monday)
+        tests:
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: active_developers
+        description: Count of distinct developers with merged PRs
+      - name: total_prs
+        description: Number of PRs merged this week
+      - name: avg_pr_size
+        description: Average lines of code per PR
+      - name: avg_coding_lead_time
+        description: Average coding lead time (hours)
+      - name: avg_pickup_time
+        description: Average time to first review (hours)
+      - name: avg_review_lead_time
+        description: Average review to merge time (hours)
+      - name: avg_total_cycle_time
+        description: Average end-to-end cycle time (hours)
+      - name: avg_ai_ratio
+        description: Average AI code ratio (0.0 to 1.0)
+
+  - name: mart_ai_impact
+    description: |
+      AI impact analysis comparing outcomes across low/medium/high AI usage bands.
+      Groups PRs by AI ratio and measures cycle times, quality, and size.
+    columns:
+      - name: ai_usage_band
+        description: AI usage category (low < 0.3, medium 0.3-0.6, high > 0.6)
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['low', 'medium', 'high']
+      - name: week
+        description: Week starting date
+        tests:
+          - not_null
+      - name: pr_count
+        description: Number of PRs in this band
+      - name: avg_ai_ratio
+        description: Average AI ratio within band
+      - name: revert_rate
+        description: Proportion of PRs that were reverted (0.0 to 1.0)
+      - name: bug_fix_rate
+        description: Proportion of PRs that were bug fixes (0.0 to 1.0)
+
+  - name: mart_quality
+    description: |
+      Quality metrics tracking reverts, bug fixes, and review engagement.
+      Aggregated weekly by repository.
+    columns:
+      - name: week
+        description: Week starting date
+        tests:
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: total_prs
+        description: Total PRs merged
+      - name: reverted_prs
+        description: Count of reverted PRs
+      - name: revert_rate
+        description: Proportion reverted (0.0 to 1.0)
+      - name: bug_fix_prs
+        description: Count of bug fix PRs
+      - name: avg_reviews_per_pr
+        description: Average number of reviews per PR
+      - name: unreviewed_prs
+        description: Count of PRs merged without review
+
+  - name: mart_review_costs
+    description: |
+      Review cost analysis estimating time/effort spent in code review.
+      Uses heuristics: base 15 min + 5 min per 100 LOC.
+    columns:
+      - name: week
+        description: Week starting date
+        tests:
+          - not_null
+      - name: repo_name
+        description: Repository name
+        tests:
+          - not_null
+      - name: total_prs
+        description: Total PRs reviewed
+      - name: avg_review_cycle_time
+        description: Average review lead time (hours)
+      - name: avg_review_rounds
+        description: Average number of review iterations
+      - name: avg_reviewers_per_pr
+        description: Average number of distinct reviewers
+      - name: estimated_review_hours_per_pr
+        description: Estimated review time per PR (heuristic)
+      - name: estimated_total_review_hours
+        description: Total estimated review hours for week
+      - name: large_prs
+        description: Count of PRs over 500 LOC
