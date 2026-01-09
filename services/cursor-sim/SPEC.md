@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features
-**Last Updated**: January 8, 2026
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) In Progress
+**Last Updated**: January 9, 2026
 
 ## Overview
 
@@ -554,6 +554,35 @@ rng := rand.New(rand.NewSource(12345))
 - `GET /repos/{owner}/{repo}/pulls/{number}/commits` - PR commits
 - `GET /repos/{owner}/{repo}/analysis/reverts` - Revert analysis
 - `GET /repos/{owner}/{repo}/analysis/hotfixes` - Hotfix detection
+
+### SIM-R011a: GitHub Analytics API (P2-F01) 🚧
+- `GET /analytics/github/prs` - PR analytics with filtering (status, author, date range) and pagination ✅
+- `GET /analytics/github/reviews` - Review analytics with filtering (pr_id, reviewer) and pagination ✅
+- `GET /analytics/github/issues` - Issue analytics (planned)
+- `GET /analytics/github/pr-cycle-time` - PR lifecycle metrics (planned)
+- `GET /analytics/github/review-quality` - Review quality metrics (planned)
+
+**Query Parameters**:
+- `page` (int): Page number (default 1)
+- `page_size` (int): Items per page (default 20, max 100)
+- PRs: `status`, `author`, `start_date`, `end_date`
+- Reviews: `pr_id`, `reviewer`
+
+**Response Format**:
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 100
+  },
+  "params": {
+    "status": "merged",
+    "author": "alice@example.com"
+  }
+}
+```
 
 ### SIM-R012: Quality Outcomes ✅
 - Revert tracking with chain analysis
