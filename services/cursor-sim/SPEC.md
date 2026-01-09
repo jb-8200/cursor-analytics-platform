@@ -2,7 +2,7 @@
 
 **Version**: 2.0.0
 **Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) In Progress
-**Last Updated**: January 9, 2026 (TASK-GH-14: GitHub Analytics E2E Tests)
+**Last Updated**: January 9, 2026 (TASK-GH-15: GitHub Analytics Documentation)
 
 ## Overview
 
@@ -298,6 +298,119 @@ curl -u API_KEY: http://localhost:8080/teams/members
 | GET | `/analytics/by-user/plans` | Yes | ✅ Implemented |
 | GET | `/analytics/by-user/ask-mode` | Yes | ✅ Implemented |
 
+#### GitHub Analytics API (5 endpoints) - P2-F01
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | `/analytics/github/prs` | Yes | ✅ Implemented |
+| GET | `/analytics/github/reviews` | Yes | ✅ Implemented |
+| GET | `/analytics/github/issues` | Yes | ✅ Implemented |
+| GET | `/analytics/github/pr-cycle-time` | Yes | ✅ Implemented |
+| GET | `/analytics/github/review-quality` | Yes | ✅ Implemented |
+
+**Query Parameters:**
+
+**/analytics/github/prs**
+- `status` (string): Filter by PR state (open, merged, closed)
+- `author` (string): Filter by author email
+- `start_date` (string): Start date YYYY-MM-DD
+- `end_date` (string): End date YYYY-MM-DD
+- `page` (int): Page number (default 1)
+- `page_size` (int): Items per page (default 20, max 100)
+
+**/analytics/github/reviews**
+- `pr_id` (int): Filter by PR number
+- `reviewer` (string): Filter by reviewer email
+- `page` (int): Page number (default 1)
+- `page_size` (int): Items per page (default 20, max 100)
+
+**/analytics/github/issues**
+- `state` (string): Filter by issue state (open, closed)
+- `labels` (string): Comma-separated labels (AND logic)
+- `page` (int): Page number (default 1)
+- `page_size` (int): Items per page (default 20, max 100)
+
+**/analytics/github/pr-cycle-time**
+- `from` (string): Start date YYYY-MM-DD
+- `to` (string): End date YYYY-MM-DD
+
+**/analytics/github/review-quality**
+- `from` (string): Start date YYYY-MM-DD
+- `to` (string): End date YYYY-MM-DD
+
+**Response Schemas:**
+
+*Standard List Response (PRs, Reviews, Issues)*:
+```json
+{
+  "data": [
+    {
+      "number": 123,
+      "title": "feat: add authentication handler",
+      "state": "merged",
+      "author_email": "alice@example.com",
+      "author_name": "Alice Developer",
+      "repo_name": "acme/platform",
+      "base_branch": "main",
+      "head_branch": "feature/auth-login",
+      "additions": 250,
+      "deletions": 45,
+      "commit_count": 8,
+      "ai_ratio": 0.68,
+      "created_at": "2026-01-01T10:00:00Z",
+      "merged_at": "2026-01-05T14:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 150
+  },
+  "params": {
+    "status": "merged",
+    "author": "alice@example.com"
+  }
+}
+```
+
+*PR Cycle Time Response*:
+```json
+{
+  "data": {
+    "avgTimeToFirstReview": 172800,
+    "avgTimeToMerge": 518400,
+    "medianTimeToMerge": 432000,
+    "p50TimeToMerge": 432000,
+    "p75TimeToMerge": 604800,
+    "p90TimeToMerge": 777600,
+    "totalPRsAnalyzed": 150
+  },
+  "params": {
+    "from": "2026-01-01",
+    "to": "2026-01-31"
+  }
+}
+```
+
+*Review Quality Response*:
+```json
+{
+  "data": {
+    "approval_rate": 0.70,
+    "avg_reviewers_per_pr": 2.1,
+    "avg_comments_per_review": 2.8,
+    "changes_requested_rate": 0.20,
+    "pending_rate": 0.10,
+    "total_reviews": 315,
+    "total_prs_reviewed": 150
+  },
+  "params": {
+    "from": "2026-01-01",
+    "to": "2026-01-31"
+  }
+}
+```
+
 **Legend**: ✅ Fully implemented
 
 ---
@@ -492,6 +605,67 @@ services/cursor-sim/
    - Commit size: lognormal(mean=avg_pr_size_loc, σ=0.5)
    - AI ratio: based on developer's `acceptance_rate`
    - TAB/COMPOSER split: 60-80% TAB, 20-40% COMPOSER
+
+### PR Generation (Session-Based Grouping)
+
+**Algorithm**: Groups commits into PRs using session-based rules by (repo, branch, author).
+
+1. **Session Creation**:
+   - Commits on same branch by same author form sessions
+   - Session closes after 4+ hour gap or based on developer behavior
+   - Each session becomes one PR
+
+2. **PR Status Distribution**:
+   - 85% merged (merged_at = created_at + 1-7 days)
+   - 10% closed (closed_at = created_at + 1-14 days)
+   - 5% remain open
+
+3. **PR Metrics**:
+   - Aggregates all commits in session (additions, deletions, AI ratio)
+   - Commit count: 3-10 commits per PR (typical)
+   - Branch names: feature/*, bugfix/* patterns
+   - PR titles: Generated from branch name and commit messages
+
+### Review Generation (Per-PR)
+
+**Algorithm**: Generates reviews for PRs based on state and review patterns.
+
+1. **Reviewer Selection**:
+   - 1-3 reviewers per PR (configurable via seed)
+   - Prefers same-team reviewers
+   - Excludes PR author from reviewer pool
+
+2. **Review State Distribution**:
+   - 70% approved (LGTM, Ship it!)
+   - 20% changes_requested (with 0-5 inline comments)
+   - 10% pending (incomplete reviews)
+
+3. **Review Timing**:
+   - Review submitted between PR creation and merge/close
+   - First review typically within 1-2 days
+   - Multiple review iterations for non-approved reviews
+
+4. **Review Comments**:
+   - Approved: Short positive messages
+   - Changes requested: 0-5 inline comments with suggestions
+   - Pending: No comments yet
+
+### Issue Generation (PR-Linked)
+
+**Algorithm**: Generates issues linked to merged PRs.
+
+1. **Issue Creation Rate**:
+   - 40% of merged PRs close an issue
+   - 10% of generated issues remain open
+
+2. **Issue Timing**:
+   - Issues created 1-7 days before PR creation
+   - Closed when PR merges (if linked)
+
+3. **Issue Properties**:
+   - Labels: bug, feature, enhancement (1-2 per issue)
+   - Title: Derived from PR title
+   - State: open or closed based on PR merge status
 
 ### Reproducibility
 
