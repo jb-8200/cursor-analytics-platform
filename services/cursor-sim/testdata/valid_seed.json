@@ -268,5 +268,29 @@
       "base_ratio": 0.15,
       "modifiers": {}
     }
+  },
+  "external_data_sources": {
+    "harvey": {
+      "enabled": true,
+      "total_usage": {
+        "min": 100,
+        "max": 500
+      },
+      "models_used": ["gpt-4", "claude-3-sonnet", "claude-3-opus"],
+      "practice_areas": ["corporate", "litigation", "intellectual_property", "regulatory"]
+    },
+    "copilot": {
+      "enabled": true,
+      "total_licenses": 50,
+      "active_users": 35,
+      "adoption_percentage": 70.0,
+      "top_apps": ["teams", "outlook", "word", "excel", "chat"]
+    },
+    "qualtrics": {
+      "enabled": true,
+      "survey_id": "SV_aitools_q1_2026",
+      "survey_name": "AI Tools Satisfaction Survey Q1 2026",
+      "response_count": 150
+    }
   }
 }

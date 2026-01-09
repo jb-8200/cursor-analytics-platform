@@ -5,12 +5,13 @@ package seed
 
 // SeedData is the root structure of a seed.json file.
 type SeedData struct {
-	Version       string        `json:"version" yaml:"version"`
-	Developers    []Developer   `json:"developers" yaml:"developers"`
-	Repositories  []Repository  `json:"repositories" yaml:"repositories"`
-	TextTemplates TextTemplates `json:"text_templates" yaml:"text_templates"`
-	Correlations  Correlations  `json:"correlations" yaml:"correlations"`
-	PRLifecycle   PRLifecycle   `json:"pr_lifecycle" yaml:"pr_lifecycle"`
+	Version             string                    `json:"version" yaml:"version"`
+	Developers          []Developer               `json:"developers" yaml:"developers"`
+	Repositories        []Repository              `json:"repositories" yaml:"repositories"`
+	TextTemplates       TextTemplates             `json:"text_templates" yaml:"text_templates"`
+	Correlations        Correlations              `json:"correlations" yaml:"correlations"`
+	PRLifecycle         PRLifecycle               `json:"pr_lifecycle" yaml:"pr_lifecycle"`
+	ExternalDataSources *ExternalDataSourcesSeed  `json:"external_data_sources,omitempty" yaml:"external_data_sources,omitempty"`
 }
 
 // Developer represents a team member profile with organizational structure
@@ -276,4 +277,43 @@ type ScopeCreepParams struct {
 type ReworkRatioParams struct {
 	BaseRatio float64       `json:"base_ratio" yaml:"base_ratio"`
 	Modifiers TimeModifiers `json:"modifiers,omitempty" yaml:"modifiers,omitempty"`
+}
+
+// ExternalDataSourcesSeed contains configuration for external data source simulators.
+// This enables simulation of Harvey AI, Microsoft 365 Copilot, and Qualtrics survey data.
+type ExternalDataSourcesSeed struct {
+	Harvey    *HarveySeedConfig    `json:"harvey,omitempty" yaml:"harvey,omitempty"`
+	Copilot   *CopilotSeedConfig   `json:"copilot,omitempty" yaml:"copilot,omitempty"`
+	Qualtrics *QualtricsSeedConfig `json:"qualtrics,omitempty" yaml:"qualtrics,omitempty"`
+}
+
+// HarveySeedConfig configures the Harvey AI legal assistant simulator.
+type HarveySeedConfig struct {
+	Enabled       bool        `json:"enabled" yaml:"enabled"`
+	TotalUsage    UsageRange  `json:"total_usage" yaml:"total_usage"`
+	ModelsUsed    []string    `json:"models_used" yaml:"models_used"`
+	PracticeAreas []string    `json:"practice_areas" yaml:"practice_areas"`
+}
+
+// UsageRange defines a min/max range for usage counts.
+type UsageRange struct {
+	Min int `json:"min" yaml:"min"`
+	Max int `json:"max" yaml:"max"`
+}
+
+// CopilotSeedConfig configures the Microsoft 365 Copilot simulator.
+type CopilotSeedConfig struct {
+	Enabled            bool     `json:"enabled" yaml:"enabled"`
+	TotalLicenses      int      `json:"total_licenses" yaml:"total_licenses"`
+	ActiveUsers        int      `json:"active_users" yaml:"active_users"`
+	AdoptionPercentage float64  `json:"adoption_percentage" yaml:"adoption_percentage"`
+	TopApps            []string `json:"top_apps" yaml:"top_apps"`
+}
+
+// QualtricsSeedConfig configures the Qualtrics survey simulator.
+type QualtricsSeedConfig struct {
+	Enabled       bool   `json:"enabled" yaml:"enabled"`
+	SurveyID      string `json:"survey_id" yaml:"survey_id"`
+	SurveyName    string `json:"survey_name" yaml:"survey_name"`
+	ResponseCount int    `json:"response_count" yaml:"response_count"`
 }
