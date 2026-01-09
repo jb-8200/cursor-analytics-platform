@@ -31,6 +31,15 @@ models:
         description: Average end-to-end cycle time (hours)
       - name: avg_ai_ratio
         description: Average AI code ratio (0.0 to 1.0)
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
+      - name: total_prs
+        description: Number of PRs merged this week
+        tests:
+          - accepted_range:
+              min_value: 0
 
   - name: mart_ai_impact
     description: |
@@ -49,12 +58,27 @@ models:
           - not_null
       - name: pr_count
         description: Number of PRs in this band
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: avg_ai_ratio
         description: Average AI ratio within band
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
       - name: revert_rate
         description: Proportion of PRs that were reverted (0.0 to 1.0)
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
       - name: bug_fix_rate
         description: Proportion of PRs that were bug fixes (0.0 to 1.0)
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
 
   - name: mart_quality
     description: |
@@ -71,16 +95,46 @@ models:
           - not_null
       - name: total_prs
         description: Total PRs merged
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: reverted_prs
         description: Count of reverted PRs
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: revert_rate
         description: Proportion reverted (0.0 to 1.0)
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
       - name: bug_fix_prs
         description: Count of bug fix PRs
+        tests:
+          - accepted_range:
+              min_value: 0
+      - name: bug_fix_rate
+        description: Proportion of bug fixes (0.0 to 1.0)
+        tests:
+          - accepted_range:
+              min_value: 0
+              max_value: 1
       - name: avg_reviews_per_pr
         description: Average number of reviews per PR
+        tests:
+          - accepted_range:
+              min_value: 0
+      - name: avg_reviewers
+        description: Average number of reviewers
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: unreviewed_prs
         description: Count of PRs merged without review
+        tests:
+          - accepted_range:
+              min_value: 0
 
   - name: mart_review_costs
     description: |
@@ -97,15 +151,36 @@ models:
           - not_null
       - name: total_prs
         description: Total PRs reviewed
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: avg_review_cycle_time
         description: Average review lead time (hours)
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: avg_review_rounds
         description: Average number of review iterations
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: avg_reviewers_per_pr
         description: Average number of distinct reviewers
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: estimated_review_hours_per_pr
         description: Estimated review time per PR (heuristic)
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: estimated_total_review_hours
         description: Total estimated review hours for week
+        tests:
+          - accepted_range:
+              min_value: 0
       - name: large_prs
         description: Count of PRs over 500 LOC
+        tests:
+          - accepted_range:
+              min_value: 0

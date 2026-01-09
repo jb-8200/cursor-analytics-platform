@@ -13,7 +13,7 @@ WITH pr_data AS (
 
 SELECT
     -- Time dimension (week starting Monday)
-    DATE_TRUNC('week', merged_at) AS week,
+    {{ date_trunc_week('merged_at') }} AS week,
     repo_name,
 
     -- Team productivity

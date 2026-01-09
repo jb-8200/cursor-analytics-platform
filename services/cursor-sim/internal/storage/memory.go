@@ -403,13 +403,23 @@ func (m *MemoryStore) GetNextPRNumber(repoName string) int {
 	return maxNum + 1
 }
 
-// ListRepositories returns all repository names that have PRs.
+// ListRepositories returns all repository names that have PRs or issues.
 func (m *MemoryStore) ListRepositories() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	repos := make([]string, 0, len(m.prsByRepo))
+	// Create a map to deduplicate repos from both PRs and issues
+	repoSet := make(map[string]bool)
 	for repo := range m.prsByRepo {
+		repoSet[repo] = true
+	}
+	for repo := range m.issuesByRepo {
+		repoSet[repo] = true
+	}
+
+	// Convert to slice
+	repos := make([]string, 0, len(repoSet))
+	for repo := range repoSet {
 		repos = append(repos, repo)
 	}
 

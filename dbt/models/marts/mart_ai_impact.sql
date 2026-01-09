@@ -20,7 +20,7 @@ WITH pr_data AS (
 
 SELECT
     ai_usage_band,
-    DATE_TRUNC('week', merged_at) AS week,
+    {{ date_trunc_week('merged_at') }} AS week,
 
     -- Volume
     COUNT(*) AS pr_count,

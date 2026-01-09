@@ -2,7 +2,7 @@
 
 **Version**: 2.0.0
 **Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) In Progress
-**Last Updated**: January 9, 2026
+**Last Updated**: January 9, 2026 (TASK-GH-11: Issues Analytics Endpoint)
 
 ## Overview
 
@@ -558,7 +558,7 @@ rng := rand.New(rand.NewSource(12345))
 ### SIM-R011a: GitHub Analytics API (P2-F01) 🚧
 - `GET /analytics/github/prs` - PR analytics with filtering (status, author, date range) and pagination ✅
 - `GET /analytics/github/reviews` - Review analytics with filtering (pr_id, reviewer) and pagination ✅
-- `GET /analytics/github/issues` - Issue analytics (planned)
+- `GET /analytics/github/issues` - Issue analytics with filtering (state, labels) and pagination ✅
 - `GET /analytics/github/pr-cycle-time` - PR lifecycle metrics (planned)
 - `GET /analytics/github/review-quality` - Review quality metrics (planned)
 
@@ -567,6 +567,7 @@ rng := rand.New(rand.NewSource(12345))
 - `page_size` (int): Items per page (default 20, max 100)
 - PRs: `status`, `author`, `start_date`, `end_date`
 - Reviews: `pr_id`, `reviewer`
+- Issues: `state` (open/closed), `labels` (comma-separated)
 
 **Response Format**:
 ```json

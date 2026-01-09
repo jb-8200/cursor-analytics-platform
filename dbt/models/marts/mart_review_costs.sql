@@ -22,7 +22,7 @@ review_data AS (
 )
 
 SELECT
-    DATE_TRUNC('week', p.merged_at) AS week,
+    {{ date_trunc_week('p.merged_at') }} AS week,
     p.repo_name,
 
     -- Volume
