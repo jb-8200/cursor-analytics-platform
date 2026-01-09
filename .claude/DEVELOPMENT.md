@@ -14,14 +14,14 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (8/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (9/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 4/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 5/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (9/14 tasks) |
-| **P9** | Streamlit Dashboard | **IN PROGRESS** (10/12 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (10/14 tasks) |
+| **P9** | Streamlit Dashboard | **IN PROGRESS** (11/12 tasks) |
 
 ### Active Work
 

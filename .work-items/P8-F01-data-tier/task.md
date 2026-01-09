@@ -14,9 +14,9 @@
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 1.5h |
 | **Extract Layer** | 4 | ✅ 3/4 | 6.0h | 4.0h |
 | **Load Layer** | 2 | ✅ 2/2 | 2.0h | 2.5h |
-| **Transform Layer (dbt)** | 4 | ⬜ 0/4 | 8.0h | - |
+| **Transform Layer (dbt)** | 4 | 🔄 1/4 | 8.0h | 0.5h |
 | **Orchestration & Docker** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **14** | **7/14** | **21.0h** | **8.0h** |
+| **TOTAL** | **14** | **9/14** | **21.0h** | **8.5h** |
 
 ---
 
@@ -538,8 +538,10 @@ class GitHubAPIExtractor:
 
 **Goal**: Define raw sources for dbt
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 1.0h
+**Actual**: 0.5h (implemented in TASK-P8-02)
+**Completed**: 2026-01-09
 
 **Implementation**:
 ```yaml

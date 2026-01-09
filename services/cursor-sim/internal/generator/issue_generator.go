@@ -9,6 +9,11 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 )
 
+// IssueStore defines the interface for storing issues.
+type IssueStore interface {
+	StoreIssue(issue models.Issue) error
+}
+
 // IssueGenerator generates issues linked to pull requests.
 // - 40% of merged PRs close an issue
 // - 10% of issues remain open
@@ -18,6 +23,7 @@ type IssueGenerator struct {
 	seed       *seed.SeedData
 	rng        *rand.Rand
 	nextNumber int
+	store      IssueStore
 }
 
 // NewIssueGenerator creates a new IssueGenerator with seed data and RNG.
@@ -27,6 +33,32 @@ func NewIssueGenerator(seedData *seed.SeedData, rng *rand.Rand) *IssueGenerator 
 		rng:        rng,
 		nextNumber: 1,
 	}
+}
+
+// NewIssueGeneratorWithStore creates a new IssueGenerator with storage capability.
+func NewIssueGeneratorWithStore(seedData *seed.SeedData, store IssueStore, randSeed int64) *IssueGenerator {
+	return &IssueGenerator{
+		seed:       seedData,
+		rng:        rand.New(rand.NewSource(randSeed)),
+		nextNumber: 1,
+		store:      store,
+	}
+}
+
+// GenerateAndStoreIssuesForPRs generates issues for PRs and stores them.
+// Returns the count of issues generated and any error encountered.
+func (g *IssueGenerator) GenerateAndStoreIssuesForPRs(prs []models.PullRequest, repoName string) (int, error) {
+	if g.store == nil {
+		return 0, nil
+	}
+
+	issues := g.GenerateIssuesForPRs(prs, repoName)
+	for _, issue := range issues {
+		if err := g.store.StoreIssue(issue); err != nil {
+			return 0, err
+		}
+	}
+	return len(issues), nil
 }
 
 // GenerateIssuesForPRs generates issues for a list of PRs.
