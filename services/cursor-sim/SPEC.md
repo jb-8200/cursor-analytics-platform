@@ -555,12 +555,12 @@ rng := rand.New(rand.NewSource(12345))
 - `GET /repos/{owner}/{repo}/analysis/reverts` - Revert analysis
 - `GET /repos/{owner}/{repo}/analysis/hotfixes` - Hotfix detection
 
-### SIM-R011a: GitHub Analytics API (P2-F01) 🚧
+### SIM-R011a: GitHub Analytics API (P2-F01) ✅
 - `GET /analytics/github/prs` - PR analytics with filtering (status, author, date range) and pagination ✅
 - `GET /analytics/github/reviews` - Review analytics with filtering (pr_id, reviewer) and pagination ✅
 - `GET /analytics/github/issues` - Issue analytics with filtering (state, labels) and pagination ✅
 - `GET /analytics/github/pr-cycle-time` - PR lifecycle metrics (time to first review, time to merge, percentiles) ✅
-- `GET /analytics/github/review-quality` - Review quality metrics (planned)
+- `GET /analytics/github/review-quality` - Review quality metrics (approval rate, avg reviewers, avg comments) ✅
 
 **Query Parameters**:
 - `page` (int): Page number (default 1)
@@ -569,6 +569,7 @@ rng := rand.New(rand.NewSource(12345))
 - Reviews: `pr_id`, `reviewer`
 - Issues: `state` (open/closed), `labels` (comma-separated)
 - PR Cycle Time: `from` (YYYY-MM-DD), `to` (YYYY-MM-DD)
+- Review Quality: `from` (YYYY-MM-DD), `to` (YYYY-MM-DD)
 
 **Response Formats**:
 
@@ -603,6 +604,25 @@ rng := rand.New(rand.NewSource(12345))
   "params": {
     "from": "2025-01-01",
     "to": "2025-01-31"
+  }
+}
+```
+
+*Review Quality Response*:
+```json
+{
+  "data": {
+    "approval_rate": 0.75,              // % of reviews that are approvals
+    "avg_reviewers_per_pr": 2.3,        // Avg number of reviewers per merged PR
+    "avg_comments_per_review": 3.1,     // Avg comment count per review
+    "changes_requested_rate": 0.15,     // % of reviews requesting changes
+    "pending_rate": 0.10,               // % of pending reviews
+    "total_reviews": 150,               // Total reviews in period
+    "total_prs_reviewed": 85            // Total PRs with reviews
+  },
+  "params": {
+    "from": "2026-01-01",
+    "to": "2026-01-09"
   }
 }
 ```
