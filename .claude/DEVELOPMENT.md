@@ -14,18 +14,18 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (9/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (10/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 5/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 6/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (11/14 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (12/14 tasks) |
 | **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (9/15 tasks - 60%)
+#### P2-F01: GitHub Simulation (10/15 tasks - 67%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -39,11 +39,12 @@
 | TASK-GH-07 | ✅ COMPLETE | Storage Methods |
 | TASK-GH-08 | ✅ COMPLETE | Generator Storage Integration |
 | TASK-GH-09 | ✅ COMPLETE | PR Analytics Endpoint |
-| TASK-GH-10-15 | ⬜ PENDING | Reviews Endpoint, Issues, E2E |
+| TASK-GH-10 | ✅ COMPLETE | Reviews Analytics Endpoint |
+| TASK-GH-11-15 | ⬜ PENDING | Issues Endpoint, Cycle Time, Review Quality, E2E |
 
-**Next**: TASK-GH-10 (Reviews Analytics Endpoint) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-11 (Issues Analytics Endpoint) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (5/16 tasks - 31%)
+#### P4-F04: External Data Sources (6/16 tasks - 38%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -54,11 +55,12 @@
 | TASK-DS-03 | ✅ COMPLETE | Harvey Model |
 | TASK-DS-04 | ✅ COMPLETE | Harvey Generator (96% coverage) |
 | TASK-DS-05 | ✅ COMPLETE | Harvey API Handler |
-| TASK-DS-06-16 | ⬜ PENDING | Router Integration, E2E Tests |
+| TASK-DS-06 | ✅ COMPLETE | Harvey Router Integration |
+| TASK-DS-07-16 | ⬜ PENDING | Harvey E2E, Copilot Model/Gen/Handler/Router, Qualtrics |
 
-**Next**: TASK-DS-06 (Router Integration) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-07 (Harvey E2E Tests) - use `cursor-sim-api-dev` agent
 
-#### P8-F01: Data Tier ETL (11/14 tasks - 79%)
+#### P8-F01: Data Tier ETL (12/14 tasks - 86%)
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -73,9 +75,10 @@
 | TASK-P8-08 | ✅ COMPLETE | Snowflake Stage/COPY Scripts |
 | TASK-P8-09 | ✅ COMPLETE | dbt Source Definitions |
 | TASK-P8-10 | ✅ COMPLETE | dbt Staging Models |
-| TASK-P8-11-14 | ⬜ PENDING | Intermediate, Marts, Pipeline |
+| TASK-P8-11 | ✅ COMPLETE | dbt Intermediate Models |
+| TASK-P8-12-14 | ⬜ PENDING | Marts, Pipeline |
 
-**Next**: TASK-P8-11 (dbt Intermediate Models) - use `data-tier-dev` agent
+**Next**: TASK-P8-12 (dbt Mart Models) - use `data-tier-dev` agent
 
 #### P9-F01: Streamlit Dashboard (12/12 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
