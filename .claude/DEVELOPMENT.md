@@ -14,9 +14,9 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (12/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (13/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 10/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 12/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
@@ -25,7 +25,7 @@
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (12/15 tasks - 80%)
+#### P2-F01: GitHub Simulation (13/15 tasks - 87%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -42,11 +42,12 @@
 | TASK-GH-10 | ✅ COMPLETE | Reviews Analytics Endpoint |
 | TASK-GH-11 | ✅ COMPLETE | Issues Analytics Endpoint |
 | TASK-GH-12 | ✅ COMPLETE | PR Cycle Time Analytics (8 tests, 100% pass) |
-| TASK-GH-13-15 | ⬜ PENDING | Review Quality, E2E, Documentation |
+| TASK-GH-13 | ✅ COMPLETE | Review Quality Analytics (5 tests, 94%+ coverage) |
+| TASK-GH-14-15 | ⬜ PENDING | E2E Tests, Documentation |
 
-**Next**: TASK-GH-13 (Review Quality Analytics) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-14 (E2E Tests) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (10/16 tasks - 63%)
+#### P4-F04: External Data Sources (12/16 tasks - 75%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -60,11 +61,13 @@
 | TASK-DS-06 | ✅ COMPLETE | Harvey Router Integration |
 | TASK-DS-07 | ✅ COMPLETE | Copilot Usage Model (100% coverage) |
 | TASK-DS-08 | ✅ COMPLETE | Copilot Generator (8 tests, 100% coverage) |
+| TASK-DS-09 | ✅ COMPLETE | Copilot Handler (11 tests, 98.6% coverage) |
 | TASK-DS-11 | ✅ COMPLETE | Qualtrics Export Models (73.7% coverage) |
-| TASK-DS-09-10 | ⬜ PENDING | Copilot Handler/Router |
-| TASK-DS-12-16 | ⬜ PENDING | Qualtrics Generator/Handler/Router, E2E |
+| TASK-DS-12 | ✅ COMPLETE | Survey Generator (12 tests, 96.6% coverage) |
+| TASK-DS-10 | ⬜ PENDING | Copilot Router Integration |
+| TASK-DS-13-16 | ⬜ PENDING | Qualtrics State Machine/Handler/Router, E2E |
 
-**Next**: TASK-DS-09 (Copilot Handler) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-10 (Copilot Router Integration) - use `cursor-sim-api-dev` agent
 
 #### P8-F01: Data Tier ETL (14/14 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P8-F01-data-tier/`
@@ -113,13 +116,13 @@
 ## Recent Commits (January 9, 2026)
 
 ```
+54e337b docs: mark TASK-GH-13 as complete in task.md
+b0667d7 docs: update TASK-DS-09 completion status
+039fc79 feat(cursor-sim): complete TASK-DS-09 - Copilot API Handler
+868bfea feat(cursor-sim): complete TASK-DS-12 - Survey Generator
+2331fdd docs: update progress for TASK-GH-12, TASK-DS-08, TASK-P8-13
 64de277 feat(cursor-sim): complete TASK-DS-08 - Copilot Generator
 4696846 feat(cursor-sim): complete TASK-GH-12 - PR Cycle Time Analytics
-2c30dfa feat(data-tier): complete TASK-P8-13 - Pipeline Script and Makefile
-1f17ed9 docs: update task progress for TASK-GH-11, TASK-DS-07, TASK-DS-11, TASK-P8-12
-92e719b feat(data-tier): complete TASK-P8-12 - dbt Mart Models
-d246bef feat(cursor-sim): complete TASK-GH-11 - Issues Analytics Endpoint
-0a9edb1 feat(cursor-sim): complete TASK-DS-07 - Create Copilot Usage Model
 ```
 
 ---
@@ -144,8 +147,8 @@ d246bef feat(cursor-sim): complete TASK-GH-11 - Issues Analytics Endpoint
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P2** | TASK-GH-13 (Review Quality Analytics) | cursor-sim-api-dev |
-| **P4-F04** | TASK-DS-09 (Copilot Handler) | cursor-sim-api-dev |
+| **P2** | TASK-GH-14 (E2E Tests) | cursor-sim-api-dev |
+| **P4-F04** | TASK-DS-10 (Copilot Router), TASK-DS-13 (Qualtrics State Machine) | cursor-sim-api-dev |
 | **P8** | ✅ COMPLETE | - |
 
 ### Subagent Orchestration
