@@ -14,9 +14,9 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (13/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (14/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 12/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 14/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
@@ -25,7 +25,7 @@
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (13/15 tasks - 87%)
+#### P2-F01: GitHub Simulation (14/15 tasks - 93%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -43,11 +43,12 @@
 | TASK-GH-11 | ✅ COMPLETE | Issues Analytics Endpoint |
 | TASK-GH-12 | ✅ COMPLETE | PR Cycle Time Analytics (8 tests, 100% pass) |
 | TASK-GH-13 | ✅ COMPLETE | Review Quality Analytics (5 tests, 94%+ coverage) |
-| TASK-GH-14-15 | ⬜ PENDING | E2E Tests, Documentation |
+| TASK-GH-14 | ✅ COMPLETE | E2E Tests (8 test functions, all passing) |
+| TASK-GH-15 | ⬜ PENDING | Documentation |
 
-**Next**: TASK-GH-14 (E2E Tests) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-15 (Documentation) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (12/16 tasks - 75%)
+#### P4-F04: External Data Sources (14/16 tasks - 88%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -62,12 +63,13 @@
 | TASK-DS-07 | ✅ COMPLETE | Copilot Usage Model (100% coverage) |
 | TASK-DS-08 | ✅ COMPLETE | Copilot Generator (8 tests, 100% coverage) |
 | TASK-DS-09 | ✅ COMPLETE | Copilot Handler (11 tests, 98.6% coverage) |
+| TASK-DS-10 | ✅ COMPLETE | Copilot Router Integration (5 tests) |
 | TASK-DS-11 | ✅ COMPLETE | Qualtrics Export Models (73.7% coverage) |
 | TASK-DS-12 | ✅ COMPLETE | Survey Generator (12 tests, 96.6% coverage) |
-| TASK-DS-10 | ⬜ PENDING | Copilot Router Integration |
-| TASK-DS-13-16 | ⬜ PENDING | Qualtrics State Machine/Handler/Router, E2E |
+| TASK-DS-13 | ✅ COMPLETE | Qualtrics Export State Machine (5 tests) |
+| TASK-DS-14-16 | ⬜ PENDING | Qualtrics Handler/Router, E2E |
 
-**Next**: TASK-DS-10 (Copilot Router Integration) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-14 (Qualtrics API Handlers) - use `cursor-sim-api-dev` agent
 
 #### P8-F01: Data Tier ETL (14/14 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P8-F01-data-tier/`
@@ -115,14 +117,14 @@
 
 ## Recent Commits (January 9, 2026)
 
-```
-54e337b docs: mark TASK-GH-13 as complete in task.md
-b0667d7 docs: update TASK-DS-09 completion status
-039fc79 feat(cursor-sim): complete TASK-DS-09 - Copilot API Handler
+```bash
+252300c docs: update task.md for TASK-GH-14 completion
+ae34d6f feat(cursor-sim): complete TASK-GH-14 - GitHub Analytics E2E Tests
+c14ef89 feat(cursor-sim): complete TASK-DS-10 - Copilot Router Integration
+d8a5b15 docs: update task.md with TASK-DS-13 completion
+59a89d6 feat(cursor-sim): complete TASK-DS-13 - Qualtrics Export State Machine
 868bfea feat(cursor-sim): complete TASK-DS-12 - Survey Generator
-2331fdd docs: update progress for TASK-GH-12, TASK-DS-08, TASK-P8-13
-64de277 feat(cursor-sim): complete TASK-DS-08 - Copilot Generator
-4696846 feat(cursor-sim): complete TASK-GH-12 - PR Cycle Time Analytics
+039fc79 feat(cursor-sim): complete TASK-DS-09 - Copilot API Handler
 ```
 
 ---
@@ -147,8 +149,8 @@ b0667d7 docs: update TASK-DS-09 completion status
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P2** | TASK-GH-14 (E2E Tests) | cursor-sim-api-dev |
-| **P4-F04** | TASK-DS-10 (Copilot Router), TASK-DS-13 (Qualtrics State Machine) | cursor-sim-api-dev |
+| **P2** | TASK-GH-15 (Documentation) | cursor-sim-api-dev |
+| **P4-F04** | TASK-DS-14 (Qualtrics Handlers), TASK-DS-15 (Qualtrics Router), TASK-DS-16 (E2E) | cursor-sim-api-dev |
 | **P8** | ✅ COMPLETE | - |
 
 ### Subagent Orchestration
