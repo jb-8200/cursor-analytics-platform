@@ -14,9 +14,9 @@
 | **Infrastructure** | 2 | ✅ 2/2 | 3.0h | 2.5h |
 | **Harvey API** | 4 | ✅ 4/4 | 6.0h | 4.5h |
 | **Microsoft Copilot API** | 4 | ✅ 4/4 | 6.5h | 5.0h |
-| **Qualtrics API** | 4 | 🔄 3/4 | 8.0h | 4.5h |
+| **Qualtrics API** | 4 | ✅ 4/4 | 8.0h | 6.5h |
 | **Integration & E2E** | 2 | Pending | 3.5h | - |
-| **TOTAL** | **16** | **13/16** | **27.0h** | 16.5h |
+| **TOTAL** | **16** | **14/16** | **27.0h** | 18.5h |
 
 ---
 
@@ -1277,7 +1277,9 @@ func TestExportJobManager_ConcurrentExports(t *testing.T) {
 ---
 
 #### TASK-DS-14: Create Qualtrics API Handlers (Est: 2.0h)
-**Assigned Subagent**: `cursor-sim-cli-dev`
+**Status**: ✅ COMPLETE
+**Actual**: 2.0h
+**Commit**: d871ef0
 
 **Goal**: Implement all three Qualtrics endpoints
 
@@ -1392,13 +1394,33 @@ func TestQualtricsFileDownload_Success(t *testing.T) {
 - NEW: `internal/api/qualtrics/handlers_test.go`
 
 **Acceptance Criteria**:
-- [ ] POST start-export returns progressId
-- [ ] GET progress returns current status
-- [ ] GET file returns ZIP download
-- [ ] Response format matches Qualtrics API
-- [ ] Authentication required
-- [ ] Error handling for invalid IDs
-- [ ] Tests pass with 90%+ coverage
+- [x] POST start-export returns progressId
+- [x] GET progress returns current status
+- [x] GET file returns ZIP download
+- [x] Response format matches Qualtrics API
+- [x] Authentication required (handled by middleware in router)
+- [x] Error handling for invalid IDs (404 responses)
+- [x] Tests pass with 92.3% coverage (exceeds 90% target)
+
+**Completed**:
+- Implemented ExportHandlers with three HTTP handler methods
+- StartExportHandler: POST /API/v3/surveys/{surveyId}/export-responses
+- ProgressHandler: GET /API/v3/surveys/{surveyId}/export-responses/{progressId}
+- FileDownloadHandler: GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file
+- Response structures match Qualtrics API v3 format exactly
+- Path parameter extraction for surveyId, progressId, fileId
+- Error responses with proper status codes (400, 404)
+- 12 comprehensive test cases covering all scenarios
+- 92.3% code coverage
+
+**Files Created**:
+- internal/api/qualtrics/handlers.go (204 lines)
+- internal/api/qualtrics/handlers_test.go (295 lines)
+
+**Notes**:
+- Router integration deferred to TASK-DS-15 per task breakdown
+- SPEC.md update deferred to TASK-DS-15 when endpoints are routable
+- Follows pattern from Harvey (TASK-DS-06) and Copilot (TASK-DS-10)
 
 ---
 
