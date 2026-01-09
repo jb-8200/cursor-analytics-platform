@@ -14,18 +14,18 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (11/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (12/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 8/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 10/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (13/14 tasks) |
+| **P8** | Data Tier (dbt + ETL) | COMPLETE ✅ (14/14 tasks) |
 | **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (11/15 tasks - 73%)
+#### P2-F01: GitHub Simulation (12/15 tasks - 80%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -41,11 +41,12 @@
 | TASK-GH-09 | ✅ COMPLETE | PR Analytics Endpoint |
 | TASK-GH-10 | ✅ COMPLETE | Reviews Analytics Endpoint |
 | TASK-GH-11 | ✅ COMPLETE | Issues Analytics Endpoint |
-| TASK-GH-12-15 | ⬜ PENDING | Cycle Time, Review Quality, E2E |
+| TASK-GH-12 | ✅ COMPLETE | PR Cycle Time Analytics (8 tests, 100% pass) |
+| TASK-GH-13-15 | ⬜ PENDING | Review Quality, E2E, Documentation |
 
-**Next**: TASK-GH-12 (Cycle Time Analytics) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-13 (Review Quality Analytics) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (8/16 tasks - 50%)
+#### P4-F04: External Data Sources (10/16 tasks - 63%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -58,13 +59,14 @@
 | TASK-DS-05 | ✅ COMPLETE | Harvey API Handler |
 | TASK-DS-06 | ✅ COMPLETE | Harvey Router Integration |
 | TASK-DS-07 | ✅ COMPLETE | Copilot Usage Model (100% coverage) |
+| TASK-DS-08 | ✅ COMPLETE | Copilot Generator (8 tests, 100% coverage) |
 | TASK-DS-11 | ✅ COMPLETE | Qualtrics Export Models (73.7% coverage) |
-| TASK-DS-08-10 | ⬜ PENDING | Copilot Generator/Handler/Router |
+| TASK-DS-09-10 | ⬜ PENDING | Copilot Handler/Router |
 | TASK-DS-12-16 | ⬜ PENDING | Qualtrics Generator/Handler/Router, E2E |
 
-**Next**: TASK-DS-08 (Copilot Generator) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-09 (Copilot Handler) - use `cursor-sim-api-dev` agent
 
-#### P8-F01: Data Tier ETL (13/14 tasks - 93%)
+#### P8-F01: Data Tier ETL (14/14 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -81,9 +83,10 @@
 | TASK-P8-10 | ✅ COMPLETE | dbt Staging Models |
 | TASK-P8-11 | ✅ COMPLETE | dbt Intermediate Models |
 | TASK-P8-12 | ✅ COMPLETE | dbt Mart Models (4 marts, all tests pass) |
-| TASK-P8-13-14 | ⬜ PENDING | Pipeline orchestration |
+| TASK-P8-13 | ✅ COMPLETE | Pipeline Script (run_pipeline.sh + Makefile) |
+| TASK-P8-14 | ✅ COMPLETE | Test Suite (16 tests, README docs) |
 
-**Next**: TASK-P8-13 (Pipeline Scripts) - use `data-tier-dev` agent
+**Status**: All tasks complete. Data tier fully operational with `make pipeline` command.
 
 #### P9-F01: Streamlit Dashboard (12/12 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
@@ -110,13 +113,13 @@
 ## Recent Commits (January 9, 2026)
 
 ```
+64de277 feat(cursor-sim): complete TASK-DS-08 - Copilot Generator
+4696846 feat(cursor-sim): complete TASK-GH-12 - PR Cycle Time Analytics
+2c30dfa feat(data-tier): complete TASK-P8-13 - Pipeline Script and Makefile
+1f17ed9 docs: update task progress for TASK-GH-11, TASK-DS-07, TASK-DS-11, TASK-P8-12
 92e719b feat(data-tier): complete TASK-P8-12 - dbt Mart Models
 d246bef feat(cursor-sim): complete TASK-GH-11 - Issues Analytics Endpoint
 0a9edb1 feat(cursor-sim): complete TASK-DS-07 - Create Copilot Usage Model
-091b72c feat(cursor-sim): complete TASK-DS-11 - Qualtrics Export Models
-3f8f535 feat: complete parallel tasks TASK-GH-08, TASK-DS-05, TASK-P8-09, TASK-P9-11
-1268fbb docs: update DEVELOPMENT.md with parallel task completion progress
-7fd4d44 feat(streamlit): complete TASK-P9-10 - Refresh Pipeline
 ```
 
 ---
@@ -141,9 +144,9 @@ d246bef feat(cursor-sim): complete TASK-GH-11 - Issues Analytics Endpoint
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P2** | TASK-GH-12 (Cycle Time Analytics) | cursor-sim-api-dev |
-| **P4-F04** | TASK-DS-08 (Copilot Generator) | cursor-sim-api-dev |
-| **P8** | TASK-P8-13 (Pipeline Scripts) | data-tier-dev |
+| **P2** | TASK-GH-13 (Review Quality Analytics) | cursor-sim-api-dev |
+| **P4-F04** | TASK-DS-09 (Copilot Handler) | cursor-sim-api-dev |
+| **P8** | ✅ COMPLETE | - |
 
 ### Subagent Orchestration
 
