@@ -89,10 +89,13 @@
       "WebFetch(domain:github.com)",
       "Bash(go get:*)",
       "WebSearch",
-      "aprove all",
+      "Aprove All",
       "Bash(echo:*)",
       "Bash(go doc:*)",
-      "Bash(go version:*)"
+      "Bash(go version:*)",
+      "Bash(wc:*)",
+      "Bash(PYTHONPATH=tools/api-loader python3 -m pytest:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": [],
     "ask": []
