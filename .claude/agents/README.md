@@ -2,18 +2,84 @@
 
 Specialized agents for parallel development with isolated scope constraints.
 
+---
+
 ## Available Agents
 
-| Agent | Service | Phase | Scope | Key Skills |
-|-------|---------|-------|-------|-----------|
-| `cursor-sim-cli-dev` | cursor-sim | P4 | CLI only | go-best-practices, api-contract |
-| `cursor-sim-infra-dev` | cursor-sim | P7 | Docker, Cloud Run | - |
-| `analytics-core-dev` | analytics-core | P5 | GraphQL service | typescript-graphql-patterns, api-contract |
-| `viz-spa-dev` | viz-spa | P6 | React dashboard | react-vite-patterns |
+| Agent | Service | Phase | Model | Scope | Key Skills |
+|-------|---------|-------|-------|-------|-----------|
+| `data-tier-dev` | data-tier | P8 | **Sonnet** | ETL, dbt, DuckDB/Snowflake | api-contract, sdd-checklist |
+| `streamlit-dev` | streamlit-dashboard | P9 | **Sonnet** | Dashboard, Plotly | sdd-checklist |
+| `quick-fix` | Any | - | **Haiku** | Small fixes only | sdd-checklist |
+| `cursor-sim-cli-dev` | cursor-sim | P4 | Sonnet | CLI only | go-best-practices, api-contract |
+| `cursor-sim-infra-dev` | cursor-sim | P7 | Sonnet | Docker, Cloud Run | - |
+| `analytics-core-dev` | analytics-core | P5 | Sonnet | GraphQL service | typescript-graphql-patterns |
+| `viz-spa-dev` | viz-spa | P6 | Sonnet | React dashboard | react-vite-patterns |
+
+### Model Selection
+
+| Model | Use Case | Speed | Cost |
+|-------|----------|-------|------|
+| **Haiku** | Quick fixes, simple tasks | Fast | Low |
+| **Sonnet** | Feature implementation, complex tasks | Medium | Medium |
+| **Opus** | Architecture, orchestration, review | Slower | Higher |
 
 ---
 
-## Scope Constraints
+## New Agents (P8/P9)
+
+### data-tier-dev (P8)
+
+Python/dbt specialist for the data tier.
+
+**ONLY work on**:
+- `tools/api-loader/` - Python extraction scripts
+- `dbt/` - dbt models, macros, tests
+
+**NEVER touch**:
+- `services/cursor-sim/` - API is source of truth
+- Other services
+
+**Key Responsibility**:
+- Extract data from cursor-sim REST API
+- Load to DuckDB (dev) / Snowflake (prod)
+- Transform via dbt into analytics marts
+
+**Critical**: cursor-sim returns RAW ARRAYS, not wrapper objects!
+
+### streamlit-dev (P9)
+
+Streamlit/Plotly specialist for the dashboard.
+
+**ONLY work on**:
+- `services/streamlit-dashboard/`
+
+**Depends on**:
+- P8 dbt mart tables must exist
+
+**Key Responsibility**:
+- Database connector abstraction (DuckDB/Snowflake)
+- Dashboard pages with Plotly visualizations
+- Embedded refresh pipeline (dev mode)
+
+### quick-fix (Haiku)
+
+Fast agent for small, independent tasks.
+
+**Ideal for**:
+- Typos, simple bug fixes
+- Config changes
+- Missing imports
+- Documentation updates
+
+**NOT for**:
+- New features
+- Multi-file refactoring
+- Tasks requiring tests
+
+---
+
+## Legacy Agents (P4-P7)
 
 ### cursor-sim-cli-dev
 **ONLY work on**:
@@ -21,24 +87,21 @@ Specialized agents for parallel development with isolated scope constraints.
 - `services/cursor-sim/cmd/simulator/`
 
 **NEVER touch**:
-- `internal/api/` (protects API contracts for P5/P6)
+- `internal/api/` (protects API contracts)
 - `internal/generator/` (protects data generation)
 
-### analytics-core-dev
+### analytics-core-dev (DEPRECATED)
+**Status**: P5 deprecated in favor of P8 data tier
+
 **ONLY work on**:
 - `services/cursor-analytics-core/`
-
-**Must align with**:
-- cursor-sim API contract (`api-contract` skill)
-- GraphQL schema for P6 consumers
 
 ### viz-spa-dev
 **ONLY work on**:
 - `services/cursor-viz-spa/`
 
 **Must align with**:
-- analytics-core GraphQL schema (P5)
-- Verify schema with `react-vite-patterns` skill
+- P8 dbt mart tables (formerly P5 GraphQL)
 
 ### cursor-sim-infra-dev
 **Scope**:
@@ -52,19 +115,24 @@ Specialized agents for parallel development with isolated scope constraints.
 
 For subagent coordination, see `.work-items/P0-F01-sdd-subagent-orchestration/design.md`:
 
-1. **Master Agent** (Chief Architect):
+1. **Master Agent** (Opus - Chief Architect):
    - Delegates tasks to appropriate subagents
    - Reviews cross-service code quality
    - Handles E2E testing
    - Updates DEVELOPMENT.md
 
-2. **Subagents** (Service-Specialized):
+2. **Subagents** (Sonnet - Service-Specialized):
    - Work within assigned scope only
    - Update `.work-items/{feature}/task.md` with progress
    - Report completion to master agent
    - NEVER update DEVELOPMENT.md or plan folder symlinks
 
-3. **Task.md Update Format**:
+3. **Quick-fix** (Haiku - Fast Fixes):
+   - Small, independent tasks only
+   - Escalate if task is complex
+   - Minimal overhead
+
+4. **Task.md Update Format**:
    ```markdown
    ### TASK##: {Task Name}
    **Status**: COMPLETE
@@ -80,14 +148,42 @@ For subagent coordination, see `.work-items/P0-F01-sdd-subagent-orchestration/de
 Use slash commands in `.claude/commands/subagent/`:
 
 ```bash
-/subagent/cursor-sim-cli [feature-id] [task-id]
-/subagent/analytics-core [feature-id] [task-id]
-/subagent/viz-spa [feature-id] [task-id]
+# P8 Data Tier
+/subagent/data-tier P8-F01-data-tier TASK-P8-01
+
+# P9 Streamlit Dashboard
+/subagent/streamlit P9-F01-streamlit-dashboard TASK-P9-01
+
+# Quick Fix (Haiku)
+/subagent/quick-fix "Fix typo in README.md"
+
+# Legacy
+/subagent/cursor-sim-cli P4-F02 TASK07
+/subagent/analytics-core P5-F01 TASK01
+/subagent/viz-spa P6-F01 TASK01
 ```
 
-**Example**:
-```bash
-/subagent/cursor-sim-cli P4-F02 TASK07
+---
+
+## Background Execution
+
+Run subagents in background for parallel development:
+
+```python
+# Master agent spawns multiple subagents
+Task(
+    subagent_type="data-tier-dev",
+    model="sonnet",
+    run_in_background=True,
+    prompt="Implement TASK-P8-01..."
+)
+
+Task(
+    subagent_type="streamlit-dev",
+    model="sonnet",
+    run_in_background=True,
+    prompt="Implement TASK-P9-01..."  # Can run in parallel for infra tasks
+)
 ```
 
 ---
@@ -132,23 +228,49 @@ Impact: {what cannot be completed}
 Needs: {what is needed to unblock}
 ```
 
+Quick-fix format (shorter):
+
+```
+FIXED: {what was fixed}
+File: {path}
+Commit: {hash}
+```
+
 ---
 
 ## Key Rules
 
 ### All Subagents
-- ✅ Follow the 7-step SDD workflow
-- ✅ Run `sdd-checklist` before committing
-- ✅ Write tests first (TDD)
-- ✅ Target 80%+ test coverage
-- ✅ Update task.md with progress
-- ✅ Report completion to master agent
+- Follow the 7-step SDD workflow
+- Run `sdd-checklist` before committing
+- Write tests first (TDD)
+- Target 80%+ test coverage
+- Update task.md with progress
+- Report completion to master agent
 
 ### Never:
-- ❌ Update `.claude/DEVELOPMENT.md` (master agent only)
-- ❌ Modify plan folder symlinks
-- ❌ Make cross-service changes without coordination
-- ❌ Skip tests before committing
+- Update `.claude/DEVELOPMENT.md` (master agent only)
+- Modify plan folder symlinks
+- Make cross-service changes without coordination
+- Skip tests before committing
+
+### Escalation
+- If task is too complex for quick-fix, escalate
+- If blocked by dependency, report to master agent
+- If scope violation needed, ask master agent first
+
+---
+
+## Dependency Graph
+
+```
+P4 (cursor-sim) ──► P8 (data-tier) ──► P9 (streamlit)
+     API                ETL/dbt            Dashboard
+   [source]           [transform]         [visualize]
+
+P4 also ──► P5 (analytics-core) ──► P6 (viz-spa)
+            [DEPRECATED]            [keep for now]
+```
 
 ---
 
@@ -158,7 +280,8 @@ Needs: {what is needed to unblock}
 - **Rules**: `.claude/rules/` (enforcement constraints)
 - **Skills**: `.claude/skills/` (guidance and patterns)
 - **Specifications**: `services/{service}/SPEC.md`
+- **Work Items**: `.work-items/P8-F01-data-tier/`, `.work-items/P9-F01-streamlit-dashboard/`
 
 ---
 
-**Last Updated**: January 4, 2026
+**Last Updated**: January 9, 2026
