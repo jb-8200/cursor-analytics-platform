@@ -12,7 +12,8 @@ Specialized agents for parallel development with isolated scope constraints.
 | `data-tier-dev` | data-tier | P8 | **Sonnet** | ETL, dbt, DuckDB/Snowflake | api-contract, sdd-checklist |
 | `streamlit-dev` | streamlit-dashboard | P9 | **Sonnet** | Dashboard, Plotly | sdd-checklist |
 | `quick-fix` | Any | - | **Haiku** | Small fixes only | sdd-checklist |
-| `cursor-sim-cli-dev` | cursor-sim | P4 | Sonnet | CLI only | go-best-practices, api-contract |
+| `cursor-sim-api-dev` | cursor-sim | P2, P4 | **Sonnet** | Models, generators, API, storage | go-best-practices, api-contract |
+| `cursor-sim-cli-dev` | cursor-sim | P4 | Sonnet | CLI only | go-best-practices |
 | `cursor-sim-infra-dev` | cursor-sim | P7 | Sonnet | Docker, Cloud Run | - |
 | `analytics-core-dev` | analytics-core | P5 | Sonnet | GraphQL service | typescript-graphql-patterns |
 | `viz-spa-dev` | viz-spa | P6 | Sonnet | React dashboard | react-vite-patterns |
@@ -111,16 +112,50 @@ Fast agent for small, independent tasks.
 
 ---
 
-## Legacy Agents (P4-P7)
+## cursor-sim Agents (P2, P4)
 
-### cursor-sim-cli-dev
+cursor-sim has two complementary agents with non-overlapping scope:
+
+### cursor-sim-api-dev (Backend)
+
+Go API/Generator specialist for cursor-sim backend.
+
+**ONLY work on**:
+- `services/cursor-sim/internal/models/` - Data structures
+- `services/cursor-sim/internal/generator/` - Data generators
+- `services/cursor-sim/internal/storage/` - Storage layer
+- `services/cursor-sim/internal/api/` - HTTP handlers
+- `services/cursor-sim/internal/seed/` - Seed schema
+- `services/cursor-sim/internal/services/` - Business logic
+
+**NEVER touch**:
+- `cmd/simulator/` - CLI entry point (cursor-sim-cli-dev scope)
+- `internal/config/` - CLI configuration
+- `internal/cli/` - CLI components
+
+**Key Responsibility**:
+- Implement data models with proper JSON tags
+- Create realistic data generators
+- Build storage interfaces and implementations
+- Implement HTTP API handlers
+
+**Coordination**: Works in parallel with cursor-sim-cli-dev without conflicts.
+
+### cursor-sim-cli-dev (CLI)
+
 **ONLY work on**:
 - `services/cursor-sim/internal/cli/`
+- `services/cursor-sim/internal/config/`
 - `services/cursor-sim/cmd/simulator/`
 
 **NEVER touch**:
-- `internal/api/` (protects API contracts)
-- `internal/generator/` (protects data generation)
+- `internal/api/` (cursor-sim-api-dev scope)
+- `internal/generator/` (cursor-sim-api-dev scope)
+- `internal/models/` (cursor-sim-api-dev scope)
+
+---
+
+## Legacy Agents (P5-P7)
 
 ### analytics-core-dev (DEPRECATED)
 **Status**: P5 deprecated in favor of P8 data tier
