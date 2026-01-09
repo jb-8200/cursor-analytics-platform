@@ -74,7 +74,7 @@
 **Status**: COMPLETE
 **Estimated**: 1.0h
 **Actual**: 1.0h
-**Commit**: 22d0516
+**Commit**: 91ea7cd
 
 **Implementation Steps**:
 1. ✅ dbt profiles.yml configured with dev/ci/prod targets (created in TASK-P8-01)
