@@ -1,0 +1,1543 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: cursor-sim
+meta:
+  id: wrk_70cbbd4b6ac141a89121f8f8bf8db53e
+  created: 1767346177678
+  modified: 1767346177678
+  description: ""
+collection:
+  - url: http://localhost:8080/health
+    name: Health Check
+    meta:
+      id: req_f4daf2dc810442c9ad54e99e053394e4
+      created: 1735933800000
+      modified: 1767439887939
+      isPrivate: false
+      description: Health check endpoint - returns {"status":"ok"}
+      sortKey: -1000
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.0.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:8080/health
+    name: health
+    meta:
+      id: req_aaa559804952420b907f86c36395ebf0
+      created: 1767346268767
+      modified: 1767346802366
+      isPrivate: false
+      description: ""
+      sortKey: -1767346748702
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/12.0.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - name: Quality Analysis
+    meta:
+      id: fld_292fce5d82204dba8a08ef5f120d4f3b
+      created: 1735933800000
+      modified: 1735933800000
+      sortKey: -300
+      description: Code quality and survival analysis endpoints
+    children:
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName
+          }}/analysis/hotfixes"
+        name: Hotfix Detection
+        meta:
+          id: req_4a35ef8c80a24ca399ac7f3b873d0126
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Hotfixes detected within 48h of merge
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName
+          }}/analysis/survival"
+        name: Code Survival Analysis
+        meta:
+          id: req_4ea47f95c3754c449cc26e78a23aee93
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: AI code survival rates at 7, 14, 30 days
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}/analysis/reverts"
+        name: Revert Analysis
+        meta:
+          id: req_d49224693451400482d0221d8d161c6e
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Revert chain analysis and risk scoring
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: GitHub Repos
+    meta:
+      id: fld_49f3c3381a5346a58c3fb23f4ff3e6d0
+      created: 1735933800000
+      modified: 1767992241765
+      sortKey: -500
+      description: GitHub-style repository and commit APIs
+    children:
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}/commits"
+        name: List Commits
+        meta:
+          id: req_1208eec67a5142c7adb21ca9013b5b61
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Get commits for repository
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: since
+            value: "{{ _.startDate }}"
+            description: Only commits after this date
+            disabled: true
+          - name: until
+            value: "{{ _.endDate }}"
+            description: Only commits before this date
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: per_page
+            value: "30"
+            description: Items per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}/commits/"
+        name: Get Commit
+        meta:
+          id: req_68b8274bf7ad43dab265bbbf03dc24cf
+          created: 1735933800000
+          modified: 1767991918270
+          isPrivate: false
+          description: Get single commit by SHA
+          sortKey: -700
+        method: GET
+        parameters:
+          - name: comitHash
+            value: fe7df05c5635
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos"
+        name: List Repositories
+        meta:
+          id: req_e3b7106d94444e2e8959234b91dff826
+          created: 1735933800000
+          modified: 1767990348857
+          isPrivate: false
+          description: Get list of all repositories
+          sortKey: -1000
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}"
+        name: Get Repository
+        meta:
+          id: req_ebca3d094dd64dbba7ad65f4d634684a
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Get single repository details
+          sortKey: -900
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: AI Code Tracking
+    meta:
+      id: fld_4c5bb175d2e344bc809daa12dc2f2bce
+      created: 1735933800000
+      modified: 1767439664963
+      sortKey: -800
+      description: AI-generated code commit tracking and export
+    children:
+      - url: "{{ _.baseUrl }}/analytics/ai-code/commits"
+        name: List Commits (JSON)
+        meta:
+          id: req_40146f2b19b94523a6c86af5731acc5d
+          created: 1735933800000
+          modified: 1767440192168
+          isPrivate: false
+          description: Get paginated list of AI-generated commits
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: from
+            value: 2025-12-26
+            description: ""
+            disabled: false
+          - name: to
+            value: 2026-12-26
+            description: ""
+            disabled: false
+          - name: page
+            value: "1"
+            description: "Page number (default: 1)"
+            disabled: false
+          - name: page_size
+            value: "100"
+            description: "Items per page (default: 100, max: 500)"
+            disabled: false
+          - name: user_id
+            value: ""
+            description: Filter by user email
+            disabled: true
+          - name: repo_name
+            value: ""
+            description: Filter by repository name
+            disabled: true
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/ai-code/commits.csv"
+        name: Export Commits (CSV)
+        meta:
+          id: req_93cee83b9b644198aa9572e6311f1747
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Export commits as CSV file
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: Research Export
+    meta:
+      id: fld_71f251e303f4439b873d7f8eef4cf590
+      created: 1735933800000
+      modified: 1735933800000
+      sortKey: -200
+      description: Research dataset export and metrics for SDLC analysis
+    children:
+      - url: "{{ _.baseUrl }}/research/dataset"
+        name: Export Dataset (CSV)
+        meta:
+          id: req_0f948770da134b6687d736318e71dc34
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Export research dataset as CSV
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: format
+            value: csv
+            description: "Output format: json, csv"
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/research/metrics/velocity"
+        name: Velocity Metrics
+        meta:
+          id: req_1b3b52e9e0a3494d86f2f839f7116fc8
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Development velocity metrics
+          sortKey: -700
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/research/dataset"
+        name: Export Dataset (JSON)
+        meta:
+          id: req_34e22d3ff5f7434eb9745e5834f6ac99
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Export research dataset as JSON
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: format
+            value: json
+            description: "Output format: json, csv"
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/research/metrics/quality"
+        name: Quality Metrics
+        meta:
+          id: req_572bf7c00fa74004ac16e419feb58986
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Code quality metrics
+          sortKey: -500
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/research/metrics/review-costs"
+        name: Review Cost Metrics
+        meta:
+          id: req_8d1158d783a24945b6a5cb876eecd518
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Code review cost metrics
+          sortKey: -600
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/research/dataset.ndjson"
+        name: Export Dataset (NDJSON)
+        meta:
+          id: req_e5d8bab6f2ad463e978d8c37f86b06d2
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Export research dataset as NDJSON (streaming)
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: By-User Analytics
+    meta:
+      id: fld_7c3781325d7a4380bc11c4386a32dfa0
+      created: 1735933800000
+      modified: 1735933800000
+      sortKey: -600
+      description: Per-user analytics with email filtering and pagination
+    children:
+      - url: "{{ _.baseUrl }}/analytics/by-user/plans"
+        name: Plans by User
+        meta:
+          id: req_23f46e4309094209badc0effd5724705
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Plan mode usage broken down by user
+          sortKey: -300
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/top-file-extensions"
+        name: File Extensions by User
+        meta:
+          id: req_4f6151bed2dc47c4a4e3b38e34307178
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Top file extensions broken down by user
+          sortKey: -600
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/tabs"
+        name: Tab Completions by User
+        meta:
+          id: req_71f1af59c685444eaa61d8b1a618654f
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Tab completions broken down by user
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/models"
+        name: Model Usage by User
+        meta:
+          id: req_77286c96e5c24a9e9341e1d892a7f293
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Model usage broken down by user
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/commands"
+        name: Commands by User
+        meta:
+          id: req_7880cf4ef5704c6387b173cc1d7cf93f
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Command usage broken down by user
+          sortKey: -400
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/mcp"
+        name: MCP Usage by User
+        meta:
+          id: req_8fd70a27adb741229c95789537159790
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: MCP tool usage broken down by user
+          sortKey: -500
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/client-versions"
+        name: Client Versions by User
+        meta:
+          id: req_be09271b4f854a87a339827c2669bd48
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Client versions broken down by user
+          sortKey: -700
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/ask-mode"
+        name: Ask Mode by User
+        meta:
+          id: req_cf4da964d04d4b96a1e6fd8718068098
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Ask mode usage broken down by user
+          sortKey: -200
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/by-user/agent-edits"
+        name: Agent Edits by User
+        meta:
+          id: req_fc522d476c7041379eb46f164b75ef09
+          created: 1735933800000
+          modified: 1767439692477
+          isPrivate: false
+          description: Agent edits broken down by user
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: user
+            value: ""
+            description: Filter by user emails (comma-separated)
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Users per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: Team Analytics
+    meta:
+      id: fld_7db62742050b4897bef86db809a3e570
+      created: 1735933800000
+      modified: 1767439316272
+      sortKey: -700
+      description: Team-level analytics aggregations by date
+    children:
+      - url: "{{ _.baseUrl }}/analytics/team/agent-edits"
+        name: Agent Edits
+        meta:
+          id: req_0a96ab9a85d04bffb1918946d08cf3e9
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: AI agent code edits aggregated by day
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/client-versions"
+        name: Client Versions
+        meta:
+          id: req_0db3a3494b764676894edafdd5050089
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Cursor client version distribution
+          sortKey: -600
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/leaderboard"
+        name: Leaderboard
+        meta:
+          id: req_0fe6385b4b014d7e95be054e370590f0
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Team leaderboard with tab and agent rankings
+          sortKey: -50
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: pageSize
+            value: "10"
+            description: Items per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/dau"
+        name: Daily Active Users
+        meta:
+          id: req_61fe783b2a554ecdaef29a9034f73608
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Daily active user counts
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/commands"
+        name: Command Usage
+        meta:
+          id: req_81538755b03b4bef817e65a3fa45e354
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Cursor command usage by day
+          sortKey: -300
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/tabs"
+        name: Tab Completions
+        meta:
+          id: req_9c08aa9f04de4d758807034a5362cb60
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Tab completion metrics aggregated by day
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/ask-mode"
+        name: Ask Mode Usage
+        meta:
+          id: req_a4e82c1ad2d247a8925acd30c02bd0b9
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Ask mode usage by day and model
+          sortKey: -100
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/models"
+        name: Model Usage
+        meta:
+          id: req_b566543accba4af2917e74ee365097f9
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: AI model usage breakdown by day
+          sortKey: -700
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/plans"
+        name: Plan Usage
+        meta:
+          id: req_b9df4b87ea354599a716e27ca3a0357a
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Plan mode usage by day and model
+          sortKey: -200
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/mcp"
+        name: MCP Tool Usage
+        meta:
+          id: req_c8ea35943706406983db43ce1ffd6cef
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: MCP (Model Context Protocol) tool usage
+          sortKey: -400
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/analytics/team/top-file-extensions"
+        name: Top File Extensions
+        meta:
+          id: req_f2314767b1fb4100a68d1e5ee00f4436
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Top 5 file extensions by suggestion volume per day
+          sortKey: -500
+        method: GET
+        parameters:
+          - name: startDate
+            value: "{{ _.startDate }}"
+            description: Start date (YYYY-MM-DD)
+            disabled: false
+          - name: endDate
+            value: "{{ _.endDate }}"
+            description: End date (YYYY-MM-DD)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: GitHub Pull Requests
+    meta:
+      id: fld_8a4c8fc97abb4c34a722f9ad4b67994f
+      created: 1735933800000
+      modified: 1735933800000
+      sortKey: -400
+      description: GitHub-style pull request APIs
+    children:
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName
+          }}/pulls/?number/reviews"
+        name: List PR Reviews
+        meta:
+          id: req_2b05e4580bdc4009aa6746f8938f5f62
+          created: 1735933800000
+          modified: 1767992207283
+          isPrivate: false
+          description: Get reviews on a pull request
+          sortKey: -600
+        method: GET
+        parameters:
+          - name: number
+            value: "67"
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName
+          }}/pulls/?number=/files"
+        name: List PR Files
+        meta:
+          id: req_512afcbd782d413ba20e17dd57bafa63
+          created: 1735933800000
+          modified: 1767992163370
+          isPrivate: false
+          description: Get files changed in a pull request
+          sortKey: -700
+        method: GET
+        parameters:
+          - name: number
+            value: "67"
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName
+          }}/pulls/?number=/commits"
+        name: List PR Commits
+        meta:
+          id: req_739d66a900094e28bbc682386d19bf7e
+          created: 1735933800000
+          modified: 1767992107567
+          isPrivate: false
+          description: Get commits in a pull request
+          sortKey: -800
+        method: GET
+        parameters:
+          - name: number
+            value: "67"
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}/pulls/"
+        name: Get Pull Request
+        meta:
+          id: req_c13d7d109bfc46bb9f0115c49bc85bdb
+          created: 1735933800000
+          modified: 1767991874483
+          isPrivate: false
+          description: Get single pull request details
+          sortKey: -900
+        method: GET
+        parameters:
+          - name: number
+            value: "67"
+            description: ""
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/repos/{{ _.repoOwner }}/{{ _.repoName }}/pulls"
+        name: List Pull Requests
+        meta:
+          id: req_e87ea4d76dd44cfd97f4411604292759
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Get list of pull requests
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: state
+            value: all
+            description: "Filter by state: open, closed, all"
+            disabled: false
+          - name: page
+            value: "1"
+            description: Page number
+            disabled: false
+          - name: per_page
+            value: "30"
+            description: Items per page
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: Team Management
+    meta:
+      id: fld_cc82983774c641dfb32207788ad32b72
+      created: 1735933800000
+      modified: 1767439655976
+      sortKey: -900
+      description: Team membership and administration endpoints
+    children:
+      - url: "{{ _.baseUrl }}/teams/members"
+        name: List Team Members
+        meta:
+          id: req_ee869d0faab04dbcbe4704f7551a956b
+          created: 1735933800000
+          modified: 1735933800000
+          isPrivate: false
+          description: Get list of all team members from seed data
+          sortKey: -1000
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_52fbc84e4ad3ee90b455609a3c8092fdddd937c1
+    created: 1767346177680
+    modified: 1767346177680
+environments:
+  name: Base Environment
+  meta:
+    id: env_52fbc84e4ad3ee90b455609a3c8092fdddd937c1
+    created: 1767346177679
+    modified: 1767439577785
+    isPrivate: false
+  subEnvironments:
+    - name: Custom Port
+      meta:
+        id: env_4c786fde2d02413d8cf8a4105211a1ca
+        created: 1735933800000
+        modified: 1767439583227
+        isPrivate: false
+        sortKey: 0
+      data:
+        baseUrl: http://localhost:9090
+        apiKey: cursor-sim-dev-key
+    - name: Local Development
+      meta:
+        id: env_9a0f9f5f576d4e72a5f58e3acb8fbe33
+        created: 1735933800000
+        modified: 1767990321822
+        isPrivate: false
+        sortKey: 0
+      data:
+        baseUrl: http://localhost:8080
+        apiKey: cursor-sim-dev-key
+        startDate: 2025-12-02
+        endDate: 2026-01-06
+        repoOwner: acme-corp
+        repoName: payment-service
+        prNumber: "1"
+        commitSha: abc123
