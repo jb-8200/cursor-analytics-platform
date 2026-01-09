@@ -2,7 +2,7 @@
 
 **Feature ID**: P8-F01-data-tier
 **Created**: January 9, 2026
-**Status**: IN_PROGRESS (6/14 tasks)
+**Status**: IN_PROGRESS (7/14 tasks)
 **Approach**: TDD (Test-Driven Development)
 
 ---
@@ -13,10 +13,10 @@
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 1.5h |
 | **Extract Layer** | 4 | ✅ 3/4 | 6.0h | 4.0h |
-| **Load Layer** | 2 | 🔄 1/2 | 2.0h | 1.5h |
+| **Load Layer** | 2 | ✅ 2/2 | 2.0h | 2.5h |
 | **Transform Layer (dbt)** | 4 | ⬜ 0/4 | 8.0h | - |
 | **Orchestration & Docker** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **14** | **6/14** | **21.0h** | **7.0h** |
+| **TOTAL** | **14** | **7/14** | **21.0h** | **8.0h** |
 
 ---
 
@@ -500,38 +500,35 @@ class GitHubAPIExtractor:
 
 **Goal**: SQL scripts for Snowflake production loading
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 1.0h
+**Actual**: 1.0h
 
-**Implementation**:
-```sql
--- sql/snowflake/setup_stages.sql
-CREATE STAGE IF NOT EXISTS cursor_analytics.raw.gcs_stage
-  STORAGE_INTEGRATION = gcs_integration
-  URL = 'gcs://cursor-analytics-data/raw/';
+**Implementation Details**:
+- Created comprehensive README.md with setup instructions and troubleshooting
+- Created setup_stages.sql for GCS external stage creation
+- Created setup_raw_tables.sql with DDL for all 4 raw tables (repos, commits, pull_requests, reviews)
+- Created copy_raw_tables.sql with COPY INTO commands for loading Parquet files
+- All scripts are idempotent and safe to run multiple times
+- Table schemas match Parquet output from extractors (snake_case field names)
+- Proper data types: VARCHAR, INTEGER, FLOAT, BOOLEAN, TIMESTAMP_NTZ, ARRAY
+- Primary keys enforced: repos(full_name), commits(commit_hash), pull_requests(repo_name, number), reviews(repo_name, pr_number, id)
+- MATCH_BY_COLUMN_NAME=CASE_INSENSITIVE for flexible Parquet column matching
 
--- sql/snowflake/copy_raw_tables.sql
-COPY INTO cursor_analytics.raw.commits
-  FROM @cursor_analytics.raw.gcs_stage/commits/
-  FILE_FORMAT = (TYPE = PARQUET)
-  MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE;
-
-COPY INTO cursor_analytics.raw.pull_requests
-  FROM @cursor_analytics.raw.gcs_stage/pull_requests/
-  FILE_FORMAT = (TYPE = PARQUET)
-  MATCH_BY_COLUMN_NAME = CASE_INSENSITIVE;
-```
-
-**Files**:
-- NEW: `sql/snowflake/setup_stages.sql`
-- NEW: `sql/snowflake/setup_raw_tables.sql`
-- NEW: `sql/snowflake/copy_raw_tables.sql`
+**Files Created**:
+- NEW: `sql/snowflake/README.md` (3.7KB) - Comprehensive setup and usage documentation
+- NEW: `sql/snowflake/setup_stages.sql` (1.0KB) - GCS stage creation
+- NEW: `sql/snowflake/setup_raw_tables.sql` (5.5KB) - Raw table DDL with all fields
+- NEW: `sql/snowflake/copy_raw_tables.sql` (7.3KB) - COPY INTO commands with field mappings
 
 **Acceptance Criteria**:
-- [ ] Stage creation script
-- [ ] Raw table DDL
-- [ ] COPY INTO scripts
-- [ ] Documentation in README
+- [x] Stage creation script works with GCS
+- [x] Raw table DDL covers all fields from extractors
+- [x] COPY INTO scripts use MATCH_BY_COLUMN_NAME
+- [x] README documents execution order
+- [x] Scripts are idempotent (CREATE OR REPLACE, CREATE IF NOT EXISTS)
+- [x] Proper Snowflake data types (TIMESTAMP_NTZ, ARRAY, etc.)
+- [x] Primary key constraints for data quality
 
 ---
 
