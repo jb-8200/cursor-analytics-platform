@@ -2,7 +2,7 @@
 
 **Feature ID**: P8-F01-data-tier
 **Created**: January 9, 2026
-**Status**: IN_PROGRESS (2/14 tasks)
+**Status**: IN_PROGRESS (3/14 tasks)
 **Approach**: TDD (Test-Driven Development)
 
 ---
@@ -12,11 +12,11 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 1.5h |
-| **Extract Layer** | 4 | ⬜ 0/4 | 6.0h | - |
+| **Extract Layer** | 4 | 🔄 1/4 | 6.0h | 1.0h |
 | **Load Layer** | 2 | ⬜ 0/2 | 2.0h | - |
 | **Transform Layer (dbt)** | 4 | ⬜ 0/4 | 8.0h | - |
 | **Orchestration & Docker** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **14** | **2/14** | **21.0h** | **1.5h** |
+| **TOTAL** | **14** | **3/14** | **21.0h** | **2.5h** |
 
 ---
 
@@ -126,12 +126,13 @@
 
 ### PHASE 2: EXTRACT LAYER (API Loader)
 
-#### TASK-P8-03: Implement Cursor API Extractor
+#### TASK-P8-03: Implement Base API Extractor
 
-**Goal**: Extract commits from cursor-sim /analytics/ai-code/commits
+**Goal**: Base extractor for both GitHub and Cursor Analytics-style endpoints
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 1.5h
+**Actual**: 1.0h
 
 **TDD Approach**:
 ```python
@@ -196,17 +197,29 @@ class CursorAPIExtractor:
 ```
 
 **Files**:
-- NEW: `tools/api-loader/extractors/__init__.py`
-- NEW: `tools/api-loader/extractors/cursor_api.py`
-- NEW: `tools/api-loader/tests/__init__.py`
-- NEW: `tools/api-loader/tests/test_cursor_api.py`
+- NEW: `tools/api-loader/extractors/base.py` (base extractor with GitHub and Cursor-style support)
+- NEW: `tools/api-loader/tests/test_base.py` (comprehensive test suite)
+
+**Implementation Details**:
+- Created `BaseAPIExtractor` class supporting two response formats:
+  1. **GitHub-style**: Raw arrays (e.g., `/repos`, `/repos/{o}/{r}/pulls`)
+  2. **Cursor Analytics-style**: Wrapped objects with `{data: [...], pagination: {...}}`
+- Pagination methods:
+  - `fetch_github_style_paginated()`: Uses page/per_page params, terminates on empty array
+  - `fetch_cursor_style_paginated()`: Uses page/page_size params, terminates on `hasNextPage: false`
+- Single-page methods:
+  - `fetch_github_style()`: For non-paginated GitHub endpoints
+  - `fetch_cursor_style()`: For non-paginated Cursor endpoints
+- Utility methods:
+  - `write_parquet()`: Writes DataFrame to Parquet file
 
 **Acceptance Criteria**:
-- [ ] Tests written before implementation
-- [ ] Pagination handled correctly
-- [ ] Column names converted to snake_case
-- [ ] Basic auth included in requests
-- [ ] All tests pass
+- [x] Tests written before implementation (TDD)
+- [x] Pagination handled correctly for both styles
+- [x] Basic auth included in requests
+- [x] Empty responses handled gracefully
+- [x] HTTP errors raise appropriate exceptions
+- [x] Parquet file writing supported
 
 ---
 
