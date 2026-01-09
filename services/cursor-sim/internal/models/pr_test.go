@@ -337,3 +337,227 @@ func TestRepository_FullName(t *testing.T) {
 	repo.Name = "acme-corp/platform"
 	assert.Equal(t, "acme-corp/platform", repo.FullName())
 }
+
+// Tests for P2-F01 GitHub Simulation features
+
+func TestPullRequest_RelationshipFields(t *testing.T) {
+	now := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+
+	pr := PullRequest{
+		ID:          1,
+		Number:      42,
+		Title:       "feat: add feature",
+		AuthorEmail: "dev@example.com",
+		HeadBranch:  "feature/test",
+		BaseBranch:  "main",
+		State:       PRStateOpen,
+		CreatedAt:   now,
+		CommitIDs:   []string{"abc123", "def456", "ghi789"},
+		ReviewIDs:   []int{1, 2},
+		IssueIDs:    []int{10, 20},
+	}
+
+	// Test JSON marshaling with relationships
+	data, err := json.Marshal(pr)
+	require.NoError(t, err)
+
+	var parsed PullRequest
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	assert.Equal(t, pr.ID, parsed.ID)
+	assert.Equal(t, pr.CommitIDs, parsed.CommitIDs)
+	assert.Equal(t, pr.ReviewIDs, parsed.ReviewIDs)
+	assert.Equal(t, pr.IssueIDs, parsed.IssueIDs)
+	assert.Len(t, parsed.CommitIDs, 3)
+	assert.Len(t, parsed.ReviewIDs, 2)
+	assert.Len(t, parsed.IssueIDs, 2)
+}
+
+func TestPullRequest_Validate(t *testing.T) {
+	now := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		pr      PullRequest
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid PR with all required fields",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				Title:       "Valid PR",
+				AuthorEmail: "dev@example.com",
+				HeadBranch:  "feature/test",
+				BaseBranch:  "main",
+				State:       PRStateOpen,
+				CreatedAt:   now,
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing title",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				AuthorEmail: "dev@example.com",
+				HeadBranch:  "feature/test",
+				BaseBranch:  "main",
+				State:       PRStateOpen,
+				CreatedAt:   now,
+			},
+			wantErr: true,
+			errMsg:  "title is required",
+		},
+		{
+			name: "missing author email",
+			pr: PullRequest{
+				ID:         1,
+				Number:     42,
+				Title:      "Valid PR",
+				HeadBranch: "feature/test",
+				BaseBranch: "main",
+				State:      PRStateOpen,
+				CreatedAt:  now,
+			},
+			wantErr: true,
+			errMsg:  "author_email is required",
+		},
+		{
+			name: "missing head branch",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				Title:       "Valid PR",
+				AuthorEmail: "dev@example.com",
+				BaseBranch:  "main",
+				State:       PRStateOpen,
+				CreatedAt:   now,
+			},
+			wantErr: true,
+			errMsg:  "head_branch is required",
+		},
+		{
+			name: "missing base branch",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				Title:       "Valid PR",
+				AuthorEmail: "dev@example.com",
+				HeadBranch:  "feature/test",
+				State:       PRStateOpen,
+				CreatedAt:   now,
+			},
+			wantErr: true,
+			errMsg:  "base_branch is required",
+		},
+		{
+			name: "invalid state",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				Title:       "Valid PR",
+				AuthorEmail: "dev@example.com",
+				HeadBranch:  "feature/test",
+				BaseBranch:  "main",
+				State:       PRState("invalid"),
+				CreatedAt:   now,
+			},
+			wantErr: true,
+			errMsg:  "invalid state",
+		},
+		{
+			name: "zero created_at",
+			pr: PullRequest{
+				ID:          1,
+				Number:      42,
+				Title:       "Valid PR",
+				AuthorEmail: "dev@example.com",
+				HeadBranch:  "feature/test",
+				BaseBranch:  "main",
+				State:       PRStateOpen,
+			},
+			wantErr: true,
+			errMsg:  "created_at is required",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.pr.Validate()
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.errMsg)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestPullRequest_EmptyRelationships(t *testing.T) {
+	now := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+
+	pr := PullRequest{
+		ID:          1,
+		Number:      42,
+		Title:       "Test PR",
+		AuthorEmail: "dev@example.com",
+		HeadBranch:  "feature/test",
+		BaseBranch:  "main",
+		State:       PRStateOpen,
+		CreatedAt:   now,
+		CommitIDs:   []string{},
+		ReviewIDs:   []int{},
+		IssueIDs:    []int{},
+	}
+
+	data, err := json.Marshal(pr)
+	require.NoError(t, err)
+
+	var parsed PullRequest
+	err = json.Unmarshal(data, &parsed)
+	require.NoError(t, err)
+
+	// In Go, unmarshaling empty JSON arrays results in nil slices
+	// This is expected and correct behavior
+	assert.Len(t, parsed.CommitIDs, 0)
+	assert.Len(t, parsed.ReviewIDs, 0)
+	assert.Len(t, parsed.IssueIDs, 0)
+}
+
+func TestPullRequest_OmitEmptyRelationships(t *testing.T) {
+	now := time.Date(2026, 1, 15, 10, 30, 0, 0, time.UTC)
+
+	pr := PullRequest{
+		ID:          1,
+		Number:      42,
+		Title:       "Test PR",
+		AuthorEmail: "dev@example.com",
+		HeadBranch:  "feature/test",
+		BaseBranch:  "main",
+		State:       PRStateOpen,
+		CreatedAt:   now,
+		// Don't set CommitIDs, ReviewIDs, IssueIDs (nil slices)
+	}
+
+	data, err := json.Marshal(pr)
+	require.NoError(t, err)
+
+	// Parse as map to check for omitted fields
+	var raw map[string]interface{}
+	err = json.Unmarshal(data, &raw)
+	require.NoError(t, err)
+
+	// With omitempty tag, nil slices should be omitted
+	_, hasCommitIDs := raw["commit_ids"]
+	_, hasReviewIDs := raw["review_ids"]
+	_, hasIssueIDs := raw["issue_ids"]
+
+	// omitempty should omit nil slices
+	assert.False(t, hasCommitIDs, "commit_ids should be omitted when nil")
+	assert.False(t, hasReviewIDs, "review_ids should be omitted when nil")
+	assert.False(t, hasIssueIDs, "issue_ids should be omitted when nil")
+}

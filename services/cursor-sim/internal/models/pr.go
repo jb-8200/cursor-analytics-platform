@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // PRState represents the state of a pull request.
 type PRState string
@@ -14,6 +17,7 @@ const (
 // PullRequest represents a GitHub pull request with AI metrics.
 // Field names use snake_case to match GitHub API format.
 type PullRequest struct {
+	ID          int      `json:"id"`          // Internal ID for GitHub simulation (P2-F01)
 	Number      int      `json:"number"`
 	Title       string   `json:"title"`
 	Body        string   `json:"body"`
@@ -38,6 +42,11 @@ type PullRequest struct {
 	AIRatio       float64 `json:"ai_ratio"`
 	TabLines      int     `json:"tab_lines"`
 	ComposerLines int     `json:"composer_lines"`
+
+	// Relationships (P2-F01: GitHub Simulation)
+	CommitIDs []string `json:"commit_ids,omitempty"` // Linked commit hashes
+	ReviewIDs []int    `json:"review_ids,omitempty"` // Associated review IDs
+	IssueIDs  []int    `json:"issue_ids,omitempty"`  // Closed issue IDs
 
 	// Timestamps
 	CreatedAt      time.Time  `json:"created_at"`
@@ -71,6 +80,30 @@ func (pr *PullRequest) NetLines() int {
 // AILines returns the total AI-generated lines (tab + composer).
 func (pr *PullRequest) AILines() int {
 	return pr.TabLines + pr.ComposerLines
+}
+
+// Validate checks that all required fields are present and valid.
+// Added for P2-F01 GitHub Simulation feature.
+func (pr *PullRequest) Validate() error {
+	if pr.Title == "" {
+		return fmt.Errorf("title is required")
+	}
+	if pr.AuthorEmail == "" {
+		return fmt.Errorf("author_email is required")
+	}
+	if pr.HeadBranch == "" {
+		return fmt.Errorf("head_branch is required")
+	}
+	if pr.BaseBranch == "" {
+		return fmt.Errorf("base_branch is required")
+	}
+	if pr.State != PRStateOpen && pr.State != PRStateMerged && pr.State != PRStateClosed {
+		return fmt.Errorf("invalid state: %s", pr.State)
+	}
+	if pr.CreatedAt.IsZero() {
+		return fmt.Errorf("created_at is required")
+	}
+	return nil
 }
 
 // ReviewState represents the state of a review.
