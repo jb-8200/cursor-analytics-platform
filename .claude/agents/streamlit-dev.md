@@ -219,3 +219,25 @@ Blocker: {issue description}
 Impact: {what cannot be completed}
 Needs: {what is needed to unblock}
 ```
+
+## CLI/Shell Command Delegation
+
+When you need to run CLI commands (tests, streamlit server, pip install):
+
+1. **DO NOT** attempt to run shell commands directly in background mode
+2. **ESCALATE** to the orchestrator (master agent) with:
+   - What command needs to run
+   - Why it's needed
+   - Expected outcome
+
+The orchestrator will delegate to:
+- `quick-fix` agent - Simple CLI tasks (install packages, run tests)
+- `cursor-sim-infra-dev` agent - Complex infrastructure tasks (Docker, deployment)
+
+**Example escalation**:
+```
+CLI ACTION NEEDED:
+- Command: pip install -r requirements.txt && pytest tests/ -v
+- Purpose: Validate dashboard tests pass
+- Context: Completed TASK-P9-05, need test verification
+```

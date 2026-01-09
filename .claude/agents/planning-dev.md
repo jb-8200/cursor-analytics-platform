@@ -76,12 +76,33 @@ All work items must follow Spec-Driven Development:
 
 ## Constraints
 
-- NEVER write implementation code (only design and planning)
+### MUST Follow
+- ALWAYS follow all rules in `.claude/rules/` directory (security, repo guardrails, coding standards, SDD process)
 - ALWAYS fetch external documentation before designing API contracts
 - ALWAYS assign a recommended subagent to each task
 - ALWAYS follow existing project patterns (check similar features)
 - ALWAYS estimate effort in hours
 - ALWAYS create all three work item files (user-story.md, design.md, task.md)
+
+### NEVER
+- NEVER write implementation code (only design and planning)
+- NEVER proceed with ambiguity - ask the orchestrator (master agent) when something is unclear
+- NEVER skip research for external APIs
+
+### Question Escalation Protocol
+When something is unclear about requirements, API specifications, or design decisions:
+1. **ASK the orchestrator (master agent)** - do NOT proceed with assumptions
+2. The orchestrator will relay your question to the user
+3. Wait for the answer before continuing
+4. Document any clarifications received in the design.md
+
+**Example escalation**:
+```
+QUESTION for orchestrator:
+- Topic: Microsoft 365 Copilot API authentication
+- Question: Should we simulate OAuth token flow or use simplified Bearer auth like Harvey?
+- Impact: Affects complexity of auth handler and test setup
+```
 
 ## Output Quality
 

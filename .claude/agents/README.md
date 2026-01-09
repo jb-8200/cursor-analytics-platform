@@ -291,6 +291,18 @@ Commit: {hash}
 - If blocked by dependency, report to master agent
 - If scope violation needed, ask master agent first
 
+### CLI/Shell Command Delegation
+
+Non-CLI agents (data-tier-dev, streamlit-dev, viz-spa-dev, analytics-core-dev) **cannot run shell commands in background mode**.
+
+When CLI actions are needed:
+1. Agent escalates to orchestrator with command details
+2. Orchestrator delegates to appropriate CLI agent:
+   - `quick-fix` (Haiku) - Simple tasks: pip install, pytest, basic commands
+   - `cursor-sim-infra-dev` (Sonnet) - Complex tasks: Docker, Cloud Run, infrastructure
+
+This maintains context integrity while allowing necessary CLI operations.
+
 ---
 
 ## Dependency Graph
