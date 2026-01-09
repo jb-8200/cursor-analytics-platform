@@ -16,7 +16,7 @@
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
 | **P2** | cursor-sim GitHub Simulation | **COMPLETE ✅** (15/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 15/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **COMPLETE ✅** (P4-F04: 16/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
@@ -48,7 +48,7 @@
 
 **Status**: All tasks complete. GitHub simulation fully operational.
 
-#### P4-F04: External Data Sources (15/16 tasks - 94%)
+#### P4-F04: External Data Sources (16/16 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -69,9 +69,9 @@
 | TASK-DS-13 | ✅ COMPLETE | Qualtrics Export State Machine (5 tests) |
 | TASK-DS-14 | ✅ COMPLETE | Qualtrics API Handlers (12 tests) |
 | TASK-DS-15 | ✅ COMPLETE | Qualtrics Router Integration (5 tests) |
-| TASK-DS-16 | ⬜ PENDING | E2E Tests |
+| TASK-DS-16 | ✅ COMPLETE | E2E Tests (13 test scenarios) |
 
-**Next**: TASK-DS-16 (E2E Tests) - use `cursor-sim-api-dev` agent
+**Status**: All tasks complete. External data sources fully operational.
 
 #### P8-F01: Data Tier ETL (14/14 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P8-F01-data-tier/`
@@ -120,8 +120,8 @@
 ## Recent Commits (January 9, 2026)
 
 ```bash
+cb1521a feat(cursor-sim): complete TASK-DS-16 - External Data E2E Tests
 c88f996 chore: remove settings.local.json + TASK-DS-15 Qualtrics Router
-7c38c9b docs: update task.md for TASK-DS-14 completion
 d871ef0 feat(cursor-sim): complete TASK-DS-14 - Qualtrics API Handlers
 7e6e332 docs(cursor-sim): complete TASK-GH-15 - Documentation
 ae34d6f feat(cursor-sim): complete TASK-GH-14 - GitHub Analytics E2E Tests
@@ -152,7 +152,7 @@ c14ef89 feat(cursor-sim): complete TASK-DS-10 - Copilot Router Integration
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
 | **P2** | ✅ COMPLETE | - |
-| **P4-F04** | TASK-DS-16 (E2E Tests) | cursor-sim-api-dev |
+| **P4-F04** | ✅ COMPLETE | - |
 | **P8** | ✅ COMPLETE | - |
 
 ### Subagent Orchestration
