@@ -256,3 +256,47 @@ shell-core: ## Open shell in cursor-analytics-core container
 
 shell-spa: ## Open shell in cursor-viz-spa container
 	docker-compose exec cursor-viz-spa sh
+
+# =============================================================================
+# Data Pipeline (P8 ETL)
+# =============================================================================
+
+pipeline: ## Run full ETL pipeline (extract, load, transform)
+	./tools/run_pipeline.sh
+
+extract: ## Extract data from cursor-sim API to Parquet
+	python tools/api-loader/loader.py \
+		--url $(or $(CURSOR_SIM_URL),http://localhost:8080) \
+		--output ./data/raw \
+		--api-key $(or $(API_KEY),cursor-sim-dev-key) \
+		--start-date $(or $(START_DATE),90d)
+
+load: ## Load Parquet files into DuckDB
+	python tools/api-loader/duckdb_loader.py \
+		--parquet-dir ./data/raw \
+		--db-path ./data/analytics.duckdb
+
+dbt-deps: ## Install dbt dependencies
+	cd dbt && dbt deps
+
+dbt-build: ## Run dbt models (build all)
+	cd dbt && dbt build --target dev
+
+dbt-test: ## Run dbt tests only
+	cd dbt && dbt test --target dev
+
+dbt-run: ## Run dbt models without tests
+	cd dbt && dbt run --target dev
+
+dbt-docs: ## Generate and serve dbt documentation
+	cd dbt && dbt docs generate && dbt docs serve
+
+ci-local: extract load dbt-build ## Run full pipeline for local CI verification
+
+clean-data: ## Remove all generated data files
+	rm -rf data/raw/*.parquet
+	rm -f data/analytics.duckdb
+	@echo "Data files cleaned"
+
+query-duckdb: ## Open DuckDB CLI with analytics database
+	duckdb data/analytics.duckdb
