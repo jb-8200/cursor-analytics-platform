@@ -8,18 +8,55 @@ models:
       and calculated AI ratios. Used by mart models for analytics.
     columns:
       - name: pr_number
-        description: PR number
+        description: PR number (primary key component)
+        tests:
+          - not_null
       - name: repo_name
-        description: Repository name
+        description: Repository name (primary key component)
+        tests:
+          - not_null
       - name: commit_count
-        description: Number of commits in this PR
+        description: Number of commits in this PR (0 if no commits found)
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
       - name: pr_ai_lines
         description: Total AI-generated lines across all commits
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
       - name: pr_total_lines
         description: Total lines added across all commits
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
       - name: final_ai_ratio
         description: |
           Final AI ratio with fallback logic:
           1. Use API-provided ai_ratio if available
           2. Calculate from commit data (ai_lines / total_lines)
           3. Default to 0 if neither available
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 1
+              inclusive: true
+      - name: total_loc
+        description: Total lines of code changed (additions + deletions)
+      - name: coding_lead_time_hours
+        description: Time from first commit to PR creation (hours)
+      - name: pickup_time_hours
+        description: Time from PR creation to first review (hours)
+      - name: review_lead_time_hours
+        description: Time from first review to merge (hours)
+      - name: is_reverted
+        description: Whether this PR was later reverted
+      - name: is_bug_fix
+        description: Whether this PR fixes a bug

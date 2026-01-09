@@ -2,7 +2,7 @@
 
 **Feature ID**: P8-F01-data-tier
 **Created**: January 9, 2026
-**Status**: IN_PROGRESS (7/14 tasks)
+**Status**: IN_PROGRESS (10/14 tasks)
 **Approach**: TDD (Test-Driven Development)
 
 ---
@@ -14,9 +14,9 @@
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 1.5h |
 | **Extract Layer** | 4 | ✅ 3/4 | 6.0h | 4.0h |
 | **Load Layer** | 2 | ✅ 2/2 | 2.0h | 2.5h |
-| **Transform Layer (dbt)** | 4 | 🔄 1/4 | 8.0h | 0.5h |
+| **Transform Layer (dbt)** | 4 | ✅ 4/4 | 8.0h | 1.5h |
 | **Orchestration & Docker** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **14** | **9/14** | **21.0h** | **8.5h** |
+| **TOTAL** | **14** | **10/14** | **21.0h** | **9.5h** |
 
 ---
 
@@ -673,8 +673,10 @@ SELECT * FROM calculated
 
 **Goal**: Join PRs with commit aggregations
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 1.5h
+**Actual**: 0.5h
+**Completed**: 2026-01-09
 
 **Implementation**:
 ```sql
@@ -711,13 +713,26 @@ LEFT JOIN commit_agg c
 ```
 
 **Files**:
-- NEW: `dbt/models/intermediate/int_pr_with_commits.sql`
-- NEW: `dbt/models/intermediate/_intermediate.yml`
+- MODIFY: `dbt/models/intermediate/int_pr_with_commits.sql` (already created in TASK-P8-02)
+- MODIFY: `dbt/models/intermediate/_intermediate.yml` (enhanced with dbt tests)
+
+**Implementation Details**:
+- Model already existed from TASK-P8-02, fully implementing required functionality
+- Enhanced `_intermediate.yml` with comprehensive dbt tests:
+  - not_null tests on pr_number, repo_name, commit_count, pr_ai_lines, pr_total_lines, final_ai_ratio
+  - accepted_range test on commit_count (>= 0)
+  - accepted_range test on pr_ai_lines (>= 0)
+  - accepted_range test on pr_total_lines (>= 0)
+  - accepted_range test on final_ai_ratio (0 to 1)
+- Added documentation for all key columns
+- Model correctly joins PRs with commit aggregations using pull_request_number
 
 **Acceptance Criteria**:
-- [ ] PRs joined with commit aggregations
-- [ ] final_ai_ratio calculated with fallbacks
-- [ ] Materialized as ephemeral
+- [x] PRs joined with commit aggregations
+- [x] final_ai_ratio calculated with fallbacks
+- [x] Materialized as ephemeral
+- [x] dbt tests added for data quality validation
+- [x] Documentation complete
 
 ---
 
