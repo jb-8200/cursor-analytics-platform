@@ -112,3 +112,116 @@ func TestRouter_NotFound(t *testing.T) {
 	// Should return 404 Not Found
 	assert.Equal(t, 404, rec.Code)
 }
+
+// TestRouter_HarveyRoutes_Enabled verifies Harvey routes are registered when seed data contains Harvey configuration.
+func TestRouter_HarveyRoutes_Enabled(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "test@example.com",
+				Name:   "Test Developer",
+			},
+		},
+		ExternalDataSources: &seed.ExternalDataSourcesSeed{
+			Harvey: &seed.HarveySeedConfig{
+				Enabled:    true,
+				TotalUsage: seed.UsageRange{Min: 100, Max: 500},
+				ModelsUsed: []string{"gpt-4"},
+			},
+		},
+	}
+
+	router := NewRouter(store, seedData, "test-key")
+
+	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
+	req.SetBasicAuth("test-key", "")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Harvey routes should be registered and return 200 (not 404)
+	assert.NotEqual(t, 404, rec.Code, "Harvey route should be registered when Harvey config exists")
+}
+
+// TestRouter_HarveyRoutes_DisabledNilConfig verifies Harvey routes are NOT registered when ExternalDataSources is nil.
+func TestRouter_HarveyRoutes_DisabledNilConfig(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "test@example.com",
+			},
+		},
+		ExternalDataSources: nil, // No external data sources
+	}
+
+	router := NewRouter(store, seedData, "test-key")
+
+	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
+	req.SetBasicAuth("test-key", "")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Harvey routes should NOT be registered, should return 404
+	assert.Equal(t, 404, rec.Code, "Harvey route should not be registered when ExternalDataSources is nil")
+}
+
+// TestRouter_HarveyRoutes_DisabledNilHarvey verifies Harvey routes are NOT registered when Harvey config is nil.
+func TestRouter_HarveyRoutes_DisabledNilHarvey(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "test@example.com",
+			},
+		},
+		ExternalDataSources: &seed.ExternalDataSourcesSeed{
+			Harvey: nil, // Harvey config is nil
+		},
+	}
+
+	router := NewRouter(store, seedData, "test-key")
+
+	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
+	req.SetBasicAuth("test-key", "")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Harvey routes should NOT be registered, should return 404
+	assert.Equal(t, 404, rec.Code, "Harvey route should not be registered when Harvey config is nil")
+}
+
+// TestRouter_HarveyRoutes_DisabledFalse verifies Harvey routes are NOT registered when Harvey.Enabled is false.
+func TestRouter_HarveyRoutes_DisabledFalse(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := &seed.SeedData{
+		Developers: []seed.Developer{
+			{
+				UserID: "user_001",
+				Email:  "test@example.com",
+			},
+		},
+		ExternalDataSources: &seed.ExternalDataSourcesSeed{
+			Harvey: &seed.HarveySeedConfig{
+				Enabled: false, // Harvey is disabled
+			},
+		},
+	}
+
+	router := NewRouter(store, seedData, "test-key")
+
+	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
+	req.SetBasicAuth("test-key", "")
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Harvey routes should NOT be registered, should return 404
+	assert.Equal(t, 404, rec.Code, "Harvey route should not be registered when Harvey.Enabled is false")
+}

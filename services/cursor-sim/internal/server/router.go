@@ -7,6 +7,7 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/cursor"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/github"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/harvey"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/research"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
@@ -59,6 +60,7 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 
 	// GitHub Analytics API (P2-F01)
 	mux.Handle("/analytics/github/prs", github.ListPRsAnalytics(store))
+	mux.Handle("/analytics/github/reviews", github.ListReviewsAnalytics(store))
 
 	// Research API (5 endpoints)
 	// Create research generator from seed data
@@ -67,6 +69,15 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 	mux.Handle("/research/metrics/velocity", research.VelocityMetricsHandler(researchGen))
 	mux.Handle("/research/metrics/review-costs", research.ReviewCostMetricsHandler(researchGen))
 	mux.Handle("/research/metrics/quality", research.QualityMetricsHandler(researchGen))
+
+	// Harvey API (External Data Source - P4-F04)
+	// Only register if Harvey is enabled in seed data
+	sd := seedData.(*seed.SeedData)
+	if sd.ExternalDataSources != nil && sd.ExternalDataSources.Harvey != nil && sd.ExternalDataSources.Harvey.Enabled {
+		// Create external memory store
+		externalStore := storage.NewExternalMemoryStore()
+		mux.Handle("/harvey/api/v1/history/usage", harvey.UsageHandler(externalStore.Harvey()))
+	}
 
 	// Apply middleware (reverse order: Logger wraps RateLimit wraps BasicAuth wraps mux)
 	limiter := api.NewRateLimiter(100, time.Minute)
