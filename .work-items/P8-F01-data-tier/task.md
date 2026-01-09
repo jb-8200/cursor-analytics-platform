@@ -585,8 +585,15 @@ sources:
 
 **Goal**: Clean and normalize raw data with calculated fields
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 2.5h
+**Actual**: 0.5h (most work done in TASK-P8-02)
+**Completed**: 2026-01-09
+
+**Changes Applied**:
+- Added `reviewer_count` to `stg_pull_requests.sql` using `{{ array_length('reviewers') }}` macro
+- Created `dbt/tests/assert_positive_cycle_times.sql` custom test
+- Fixed invalid test in `_staging.yml` (removed final_ai_ratio, added ai_ratio and reviewer_count)
 
 **TDD Approach**:
 ```sql
@@ -653,11 +660,12 @@ SELECT * FROM calculated
 - NEW: `dbt/models/staging/_staging.yml`
 
 **Acceptance Criteria**:
-- [ ] stg_commits with ai_lines_added calculated
-- [ ] stg_pull_requests with cycle times calculated
-- [ ] stg_reviews with is_approval flag
-- [ ] was_reverted renamed to is_reverted
-- [ ] All dbt tests pass
+- [x] stg_commits with ai_lines_added calculated
+- [x] stg_pull_requests with cycle times calculated
+- [x] stg_pull_requests with reviewer_count calculated
+- [x] stg_reviews with is_approval flag
+- [x] was_reverted renamed to is_reverted
+- [x] All dbt tests pass
 
 ---
 

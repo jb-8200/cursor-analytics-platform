@@ -57,6 +57,9 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 	mux.Handle("/repos", github.ListRepos(store))
 	mux.Handle("/repos/", github.RepoRouter(store))
 
+	// GitHub Analytics API (P2-F01)
+	mux.Handle("/analytics/github/prs", github.ListPRsAnalytics(store))
+
 	// Research API (5 endpoints)
 	// Create research generator from seed data
 	researchGen := generator.NewResearchGenerator(seedData.(*seed.SeedData), store)

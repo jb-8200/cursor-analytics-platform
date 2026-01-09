@@ -146,6 +146,43 @@ services:
     networks:
       - cursor-net
 
+  # ===========================================================================
+  # Service D: Streamlit Dashboard
+  # ===========================================================================
+  # Python-based analytics dashboard with embedded dbt pipeline.
+  # In development mode, can refresh data on-demand from cursor-sim.
+
+  streamlit-dashboard:
+    build:
+      context: ./services/streamlit-dashboard
+      dockerfile: Dockerfile
+    container_name: streamlit-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      # Database mode (duckdb for dev, snowflake for prod)
+      - DB_MODE=duckdb
+      - DUCKDB_PATH=/data/analytics.duckdb
+      # Cursor simulator endpoint for data refresh
+      - CURSOR_SIM_URL=http://cursor-sim:8080
+    volumes:
+      # Persist DuckDB database across restarts
+      - analytics_data:/data
+      # Mount dbt project for embedded pipeline (read-only)
+      - ./dbt:/app/dbt:ro
+    depends_on:
+      cursor-sim:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cursor-net
+
 # =============================================================================
 # Volumes
 # =============================================================================
@@ -153,6 +190,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  analytics_data:
     driver: local
 
 # =============================================================================

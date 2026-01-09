@@ -55,7 +55,10 @@ calculated AS (
             WHEN merged_at IS NOT NULL AND first_review_at IS NOT NULL
             THEN EXTRACT(EPOCH FROM (merged_at - first_review_at)) / 3600.0
             ELSE NULL
-        END AS review_lead_time_hours
+        END AS review_lead_time_hours,
+
+        -- Calculate reviewer count from array
+        {{ array_length('reviewers') }} AS reviewer_count
 
     FROM source
     WHERE number IS NOT NULL

@@ -20,12 +20,12 @@
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (10/14 tasks) |
-| **P9** | Streamlit Dashboard | **IN PROGRESS** (11/12 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (11/14 tasks) |
+| **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (8/15 tasks - 53%)
+#### P2-F01: GitHub Simulation (9/15 tasks - 60%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -37,11 +37,13 @@
 | TASK-GH-05 | ✅ COMPLETE | Review Generator |
 | TASK-GH-06 | ✅ COMPLETE | Issue Generator |
 | TASK-GH-07 | ✅ COMPLETE | Storage Methods |
-| TASK-GH-08-15 | ⬜ PENDING | Generator Integration, API Handlers, E2E |
+| TASK-GH-08 | ✅ COMPLETE | Generator Storage Integration |
+| TASK-GH-09 | ✅ COMPLETE | PR Analytics Endpoint |
+| TASK-GH-10-15 | ⬜ PENDING | Reviews Endpoint, Issues, E2E |
 
-**Next**: TASK-GH-08 (Integrate Generators with Storage) - use `cursor-sim-api-dev` agent
+**Next**: TASK-GH-10 (Reviews Analytics Endpoint) - use `cursor-sim-api-dev` agent
 
-#### P4-F04: External Data Sources (4/16 tasks - 25%)
+#### P4-F04: External Data Sources (5/16 tasks - 31%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -51,11 +53,12 @@
 | TASK-DS-02 | ✅ COMPLETE | Extend Storage Layer |
 | TASK-DS-03 | ✅ COMPLETE | Harvey Model |
 | TASK-DS-04 | ✅ COMPLETE | Harvey Generator (96% coverage) |
-| TASK-DS-05-16 | ⬜ PENDING | Handlers, Router Integration, E2E |
+| TASK-DS-05 | ✅ COMPLETE | Harvey API Handler |
+| TASK-DS-06-16 | ⬜ PENDING | Router Integration, E2E Tests |
 
-**Next**: TASK-DS-05 (Harvey API Handler) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-06 (Router Integration) - use `cursor-sim-api-dev` agent
 
-#### P8-F01: Data Tier ETL (9/14 tasks - 64%)
+#### P8-F01: Data Tier ETL (11/14 tasks - 79%)
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -68,11 +71,13 @@
 | TASK-P8-06 | ✅ COMPLETE | Schema Validation |
 | TASK-P8-07 | ✅ COMPLETE | DuckDB Loader |
 | TASK-P8-08 | ✅ COMPLETE | Snowflake Stage/COPY Scripts |
-| TASK-P8-09-14 | ⬜ PENDING | dbt Sources, Staging, Marts, Pipeline |
+| TASK-P8-09 | ✅ COMPLETE | dbt Source Definitions |
+| TASK-P8-10 | ✅ COMPLETE | dbt Staging Models |
+| TASK-P8-11-14 | ⬜ PENDING | Intermediate, Marts, Pipeline |
 
-**Next**: TASK-P8-09 (dbt Source Definitions) - use `data-tier-dev` agent
+**Next**: TASK-P8-11 (dbt Intermediate Models) - use `data-tier-dev` agent
 
-#### P9-F01: Streamlit Dashboard (10/12 tasks - 83%)
+#### P9-F01: Streamlit Dashboard (12/12 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
 
 | Task | Status | Description |
@@ -87,9 +92,10 @@
 | TASK-P9-08 | ✅ COMPLETE | AI Impact Page |
 | TASK-P9-09 | ✅ COMPLETE | Quality + Review Pages |
 | TASK-P9-10 | ✅ COMPLETE | Refresh Pipeline |
-| TASK-P9-11-12 | ⬜ PENDING | Dockerfile, Docker Compose |
+| TASK-P9-11 | ✅ COMPLETE | Dockerfile |
+| TASK-P9-12 | ✅ COMPLETE | Docker Compose |
 
-**Next**: TASK-P9-11 (Create Dockerfile) - use `streamlit-dev` agent
+**Status**: All tasks complete. Streamlit dashboard is fully integrated.
 
 ---
 
