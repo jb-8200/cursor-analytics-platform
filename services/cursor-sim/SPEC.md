@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) In Progress
-**Last Updated**: January 9, 2026 (TASK-GH-15: GitHub Analytics Documentation)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete ✅
+**Last Updated**: January 9, 2026 (TASK-DS-16: External Data E2E Tests)
 
 ## Overview
 
@@ -210,7 +210,14 @@ NO_COLOR=1 ./bin/cursor-sim -mode runtime -seed seed.json
 ### Testing
 
 - **Unit Tests**: 92 tests covering all components
-- **E2E Tests**: 11 integration tests verifying full workflow
+- **E2E Tests**:
+  - 11 integration tests for Cursor Analytics API
+  - 11 integration tests for GitHub Analytics API (P2-F01)
+  - 14 integration tests for External Data Sources (P4-F04)
+    - Harvey AI usage API (4 tests)
+    - Microsoft 365 Copilot API (4 tests)
+    - Qualtrics survey export API (3 tests)
+    - Authentication and error handling (3 tests)
 - **Manual Verification**:
   - [ ] TTY with colors: Spinner animates, progress bar visible
   - [ ] Non-TTY: Text fallback, no spinner animation
