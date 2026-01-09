@@ -14,9 +14,9 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (14/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **COMPLETE ✅** (15/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 14/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 15/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
@@ -25,7 +25,7 @@
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (14/15 tasks - 93%)
+#### P2-F01: GitHub Simulation (15/15 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -44,11 +44,11 @@
 | TASK-GH-12 | ✅ COMPLETE | PR Cycle Time Analytics (8 tests, 100% pass) |
 | TASK-GH-13 | ✅ COMPLETE | Review Quality Analytics (5 tests, 94%+ coverage) |
 | TASK-GH-14 | ✅ COMPLETE | E2E Tests (8 test functions, all passing) |
-| TASK-GH-15 | ⬜ PENDING | Documentation |
+| TASK-GH-15 | ✅ COMPLETE | Documentation (SPEC.md updated) |
 
-**Next**: TASK-GH-15 (Documentation) - use `cursor-sim-api-dev` agent
+**Status**: All tasks complete. GitHub simulation fully operational.
 
-#### P4-F04: External Data Sources (14/16 tasks - 88%)
+#### P4-F04: External Data Sources (15/16 tasks - 94%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -67,9 +67,11 @@
 | TASK-DS-11 | ✅ COMPLETE | Qualtrics Export Models (73.7% coverage) |
 | TASK-DS-12 | ✅ COMPLETE | Survey Generator (12 tests, 96.6% coverage) |
 | TASK-DS-13 | ✅ COMPLETE | Qualtrics Export State Machine (5 tests) |
-| TASK-DS-14-16 | ⬜ PENDING | Qualtrics Handler/Router, E2E |
+| TASK-DS-14 | ✅ COMPLETE | Qualtrics API Handlers (12 tests) |
+| TASK-DS-15 | ✅ COMPLETE | Qualtrics Router Integration (5 tests) |
+| TASK-DS-16 | ⬜ PENDING | E2E Tests |
 
-**Next**: TASK-DS-14 (Qualtrics API Handlers) - use `cursor-sim-api-dev` agent
+**Next**: TASK-DS-16 (E2E Tests) - use `cursor-sim-api-dev` agent
 
 #### P8-F01: Data Tier ETL (14/14 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P8-F01-data-tier/`
@@ -118,13 +120,13 @@
 ## Recent Commits (January 9, 2026)
 
 ```bash
-252300c docs: update task.md for TASK-GH-14 completion
+c88f996 chore: remove settings.local.json + TASK-DS-15 Qualtrics Router
+7c38c9b docs: update task.md for TASK-DS-14 completion
+d871ef0 feat(cursor-sim): complete TASK-DS-14 - Qualtrics API Handlers
+7e6e332 docs(cursor-sim): complete TASK-GH-15 - Documentation
 ae34d6f feat(cursor-sim): complete TASK-GH-14 - GitHub Analytics E2E Tests
 c14ef89 feat(cursor-sim): complete TASK-DS-10 - Copilot Router Integration
-d8a5b15 docs: update task.md with TASK-DS-13 completion
 59a89d6 feat(cursor-sim): complete TASK-DS-13 - Qualtrics Export State Machine
-868bfea feat(cursor-sim): complete TASK-DS-12 - Survey Generator
-039fc79 feat(cursor-sim): complete TASK-DS-09 - Copilot API Handler
 ```
 
 ---
@@ -149,8 +151,8 @@ d8a5b15 docs: update task.md with TASK-DS-13 completion
 
 | Phase | Next Task | Agent |
 |-------|-----------|-------|
-| **P2** | TASK-GH-15 (Documentation) | cursor-sim-api-dev |
-| **P4-F04** | TASK-DS-14 (Qualtrics Handlers), TASK-DS-15 (Qualtrics Router), TASK-DS-16 (E2E) | cursor-sim-api-dev |
+| **P2** | ✅ COMPLETE | - |
+| **P4-F04** | TASK-DS-16 (E2E Tests) | cursor-sim-api-dev |
 | **P8** | ✅ COMPLETE | - |
 
 ### Subagent Orchestration
