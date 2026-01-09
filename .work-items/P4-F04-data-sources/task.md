@@ -12,11 +12,11 @@
 | Phase | Tasks | Status | Estimated | Actual |
 |-------|-------|--------|-----------|--------|
 | **Infrastructure** | 2 | ✅ 2/2 | 3.0h | 2.5h |
-| **Harvey API** | 4 | Pending | 6.0h | - |
+| **Harvey API** | 4 | 🔄 1/4 | 6.0h | 1.5h |
 | **Microsoft Copilot API** | 4 | Pending | 6.5h | - |
 | **Qualtrics API** | 4 | Pending | 8.0h | - |
 | **Integration & E2E** | 2 | Pending | 3.5h | - |
-| **TOTAL** | **16** | **2/16** | **27.0h** | 2.5h |
+| **TOTAL** | **16** | **3/16** | **27.0h** | 4.0h |
 
 ---
 
@@ -221,7 +221,9 @@ func TestHarveyTask_Constants(t *testing.T) {
 ---
 
 #### TASK-DS-04: Create Harvey Generator (Est: 2.0h)
-**Assigned Subagent**: `cursor-sim-cli-dev`
+**Status**: ✅ COMPLETE
+**Actual**: 1.5h
+**Commit**: 7b73668
 
 **Goal**: Implement HarveyGenerator for event generation
 
@@ -317,14 +319,14 @@ func TestHarveyGenerator_Reproducible(t *testing.T) {
 - NEW: `internal/generator/harvey_generator_test.go`
 
 **Acceptance Criteria**:
-- [ ] Poisson-distributed event counts per user/day
-- [ ] Configurable task distribution rates
-- [ ] Configurable sentiment rates
-- [ ] Activity multiplier applied per user
-- [ ] Client matter assignment from seed
-- [ ] Working hours constraint (8 AM - 6 PM)
-- [ ] Reproducible with same random seed
-- [ ] Tests pass with 90%+ coverage
+- [x] Poisson-distributed event counts per user/day
+- [x] Configurable task distribution rates
+- [x] Configurable sentiment rates
+- [x] Activity multiplier applied per user (uses developers from seed)
+- [x] Client matter assignment from seed (generated from practice areas)
+- [x] Working hours constraint (8 AM - 6 PM)
+- [x] Reproducible with same random seed
+- [x] Tests pass with 96.2% coverage (exceeds 90% target)
 
 ---
 

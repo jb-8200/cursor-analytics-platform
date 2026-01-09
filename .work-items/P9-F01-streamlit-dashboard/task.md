@@ -2,7 +2,7 @@
 
 **Feature ID**: P9-F01-streamlit-dashboard
 **Created**: January 9, 2026
-**Status**: IN_PROGRESS (6/12 tasks)
+**Status**: IN_PROGRESS (10/12 tasks)
 **Approach**: TDD (Test-Driven Development)
 
 ---
@@ -14,9 +14,9 @@
 | **Infrastructure** | 2 | ✅ 2/2 | 2.0h | 0.5h |
 | **Data Layer** | 2 | ✅ 2/2 | 3.0h | 2.0h |
 | **Dashboard Pages** | 5 | ✅ 5/5 | 10.0h | 4.5h |
-| **Pipeline Integration** | 1 | ⬜ 0/1 | 2.0h | - |
+| **Pipeline Integration** | 1 | ✅ 1/1 | 2.0h | 1.5h |
 | **Docker & Deploy** | 2 | ⬜ 0/2 | 3.0h | - |
-| **TOTAL** | **12** | **9/12** | **20.0h** | **7.0h** |
+| **TOTAL** | **12** | **10/12** | **20.0h** | **8.5h** |
 
 ---
 
@@ -646,8 +646,10 @@ st.plotly_chart(fig2, use_container_width=True)
 
 **Goal**: Integrate ETL pipeline for dev mode refresh
 
-**Status**: NOT_STARTED
+**Status**: COMPLETE
 **Estimated**: 2.0h
+**Actual**: 1.5h
+**Completed**: 2026-01-09
 
 **Implementation**:
 ```python
@@ -697,16 +699,31 @@ def refresh_data():
 ```
 
 **Files**:
-- MODIFY: `services/streamlit-dashboard/db/connector.py`
-- NEW: `services/streamlit-dashboard/pipeline/__init__.py`
-- NEW: `services/streamlit-dashboard/pipeline/run_dbt.py`
+- MODIFY: `services/streamlit-dashboard/db/connector.py` ✅
+- NEW: `services/streamlit-dashboard/pipeline/__init__.py` ✅
+- NEW: `services/streamlit-dashboard/pipeline/run_dbt.py` ✅
+- NEW: `services/streamlit-dashboard/pipeline/duckdb_loader.py` ✅
+- NEW: `services/streamlit-dashboard/db/refresh.py` ✅
+- NEW: `services/streamlit-dashboard/tests/test_refresh.py` ✅
+
+**Completed Deliverables**:
+- [x] `refresh_data()` function in `db/connector.py` (already existed, enhanced)
+- [x] `pipeline/duckdb_loader.py` with parquet loading utilities
+- [x] `pipeline/run_dbt.py` with dbt command wrappers
+- [x] `db/refresh.py` with Streamlit UI integration (spinners, messages)
+- [x] Comprehensive test suite with 14 test cases in `tests/test_refresh.py`
+- [x] Error handling for all pipeline steps (loader, duckdb, dbt)
+- [x] Environment variable configuration support
+- [x] Sequential pipeline execution (Extract → Load → Transform)
 
 **Acceptance Criteria**:
-- [ ] Refresh button triggers pipeline
-- [ ] Progress spinners show status
-- [ ] Errors display clearly
-- [ ] Cache cleared after refresh
-- [ ] Data updates in dashboard
+- [x] Refresh button triggers pipeline (via `refresh.py`)
+- [x] Progress spinners show status (implemented in `refresh_data_with_ui()`)
+- [x] Errors display clearly (with Streamlit error/warning/success messages)
+- [x] Cache cleared after refresh (`st.cache_data.clear()`, `st.cache_resource.clear()`)
+- [x] Data updates in dashboard (refresh triggers full ETL)
+- [x] Tests written before implementation (TDD approach)
+- [x] Production mode shows warning (Snowflake mode)
 
 ---
 

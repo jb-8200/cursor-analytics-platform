@@ -21,7 +21,8 @@ Usage:
 
 import streamlit as st
 import os
-from db.connector import query, refresh_data
+from db.connector import query
+from db.refresh import refresh_data_with_ui, is_refresh_available
 
 # Determine database mode
 DB_MODE = os.getenv("DB_MODE", "duckdb")
@@ -80,19 +81,13 @@ def render_sidebar():
         # Refresh section
         st.subheader("🔄 Data")
 
-        if DB_MODE == "duckdb":
-            # Dev mode: Show refresh button
+        if is_refresh_available():
+            # Dev mode: Show refresh button with enhanced UI feedback
             if st.button("Refresh Data", use_container_width=True):
-                with st.spinner("Refreshing data..."):
-                    success = refresh_data()
-                    if success:
-                        st.success("Data refreshed!")
-                        # Clear caches
-                        st.cache_data.clear()
-                        st.cache_resource.clear()
-                        st.rerun()
-                    else:
-                        st.error("Refresh failed. Check logs.")
+                success = refresh_data_with_ui()
+                if success:
+                    # Rerun to show updated data
+                    st.rerun()
         else:
             # Production mode: Info message
             st.info("📅 Data updates every 15 min")

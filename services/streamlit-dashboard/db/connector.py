@@ -146,9 +146,16 @@ def refresh_data():
 
         # Step 2: Load to DuckDB
         print("Loading data to DuckDB...")
-        from pipeline.duckdb_loader import load_parquet_to_duckdb
-
-        load_parquet_to_duckdb("/data/raw", duckdb_path)
+        # Import dynamically to avoid import errors in test environment
+        try:
+            from pipeline.duckdb_loader import load_parquet_to_duckdb
+            load_parquet_to_duckdb("/data/raw", duckdb_path)
+        except ImportError:
+            # Fallback for testing environment
+            import sys
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+            from pipeline.duckdb_loader import load_parquet_to_duckdb
+            load_parquet_to_duckdb("/data/raw", duckdb_path)
 
         # Step 3: Run dbt
         print("Running dbt transformations...")
