@@ -13,9 +13,9 @@
 | **Models** | 3 | ✅ 3/3 | 2.5h | 1.25h |
 | **Generators** | 3 | ✅ 3/3 | 8.0h | 3.0h |
 | **Storage** | 2 | ✅ 2/2 | 3.0h | 2.0h |
-| **API Handlers** | 5 | 🔄 3/5 | 5.0h | 2.5h |
+| **API Handlers** | 5 | 🔄 4/5 | 5.0h | 3.5h |
 | **Testing & Docs** | 2 | ⬜ 0/2 | 3.5h | - |
-| **TOTAL** | **15** | **11/15** | **22.0h** | **8.75h** |
+| **TOTAL** | **15** | **12/15** | **22.0h** | **9.75h** |
 
 ---
 
@@ -333,19 +333,35 @@
 
 ---
 
-#### TASK-GH-12: Implement `/analytics/github/pr-cycle-time` Endpoint (1.0h)
+#### TASK-GH-12: Implement `/analytics/github/pr-cycle-time` Endpoint (1.0h) ✅ COMPLETE
+
+**Status**: COMPLETE
+**Time**: 1.0h actual / 1.0h estimated
+**Completed**: 2026-01-09
 
 **Goal**: PR lifecycle metrics
 
 **Files**:
-- NEW: `internal/api/github/pr_cycle_time.go`
-- NEW: `internal/api/github/pr_cycle_time_test.go`
+- NEW: `internal/api/github/pr_cycle_time.go` (205 lines)
+- NEW: `internal/api/github/pr_cycle_time_test.go` (336 lines, 8 test cases)
+- MODIFIED: `internal/server/router.go` (registered endpoint)
+- MODIFIED: `services/cursor-sim/SPEC.md` (updated API documentation)
 
 **Acceptance Criteria**:
-- [ ] Calculates avg time to first review
-- [ ] Calculates avg/median time to merge
-- [ ] Returns percentiles (p50, p75, p90)
-- [ ] Handler tests pass
+- [x] Calculates avg time to first review
+- [x] Calculates avg/median time to merge
+- [x] Returns percentiles (p50, p75, p90)
+- [x] Handler tests pass (8 tests, 100% pass rate)
+
+**Implementation Notes**:
+- Endpoint registered at `/analytics/github/pr-cycle-time`
+- Calculates metrics from merged PRs only
+- Supports date range filtering with `from` and `to` query params (YYYY-MM-DD format)
+- Returns metrics in seconds for all time values
+- Handles edge cases: no data, no reviews, no merged PRs, single PR
+- Percentile calculation uses linear interpolation for accuracy
+- Response format: `{ data: {...}, params: {...} }`
+- All 8 tests passing with comprehensive coverage
 
 ---
 

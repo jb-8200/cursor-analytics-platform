@@ -559,7 +559,7 @@ rng := rand.New(rand.NewSource(12345))
 - `GET /analytics/github/prs` - PR analytics with filtering (status, author, date range) and pagination ✅
 - `GET /analytics/github/reviews` - Review analytics with filtering (pr_id, reviewer) and pagination ✅
 - `GET /analytics/github/issues` - Issue analytics with filtering (state, labels) and pagination ✅
-- `GET /analytics/github/pr-cycle-time` - PR lifecycle metrics (planned)
+- `GET /analytics/github/pr-cycle-time` - PR lifecycle metrics (time to first review, time to merge, percentiles) ✅
 - `GET /analytics/github/review-quality` - Review quality metrics (planned)
 
 **Query Parameters**:
@@ -568,8 +568,11 @@ rng := rand.New(rand.NewSource(12345))
 - PRs: `status`, `author`, `start_date`, `end_date`
 - Reviews: `pr_id`, `reviewer`
 - Issues: `state` (open/closed), `labels` (comma-separated)
+- PR Cycle Time: `from` (YYYY-MM-DD), `to` (YYYY-MM-DD)
 
-**Response Format**:
+**Response Formats**:
+
+*Standard List Response (PRs, Reviews, Issues)*:
 ```json
 {
   "data": [...],
@@ -581,6 +584,25 @@ rng := rand.New(rand.NewSource(12345))
   "params": {
     "status": "merged",
     "author": "alice@example.com"
+  }
+}
+```
+
+*PR Cycle Time Response*:
+```json
+{
+  "data": {
+    "avgTimeToFirstReview": 172800,    // seconds (2 days)
+    "avgTimeToMerge": 518400,          // seconds (6 days)
+    "medianTimeToMerge": 432000,       // seconds (5 days)
+    "p50TimeToMerge": 432000,
+    "p75TimeToMerge": 604800,          // 7 days
+    "p90TimeToMerge": 777600,          // 9 days
+    "totalPRsAnalyzed": 150
+  },
+  "params": {
+    "from": "2025-01-01",
+    "to": "2025-01-31"
   }
 }
 ```
