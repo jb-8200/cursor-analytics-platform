@@ -95,7 +95,8 @@
       "Bash(go version:*)",
       "Bash(wc:*)",
       "Bash(PYTHONPATH=tools/api-loader python3 -m pytest:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "Bash(python -m pytest:*)"
     ],
     "deny": [],
     "ask": []
