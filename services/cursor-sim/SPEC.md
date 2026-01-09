@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) In Progress
-**Last Updated**: January 9, 2026 (TASK-GH-11: Issues Analytics Endpoint)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) In Progress
+**Last Updated**: January 9, 2026 (TASK-DS-10: Copilot Router Integration)
 
 ## Overview
 
@@ -239,7 +239,7 @@ curl -u API_KEY: http://localhost:8080/teams/members
 | Team Analytics | 100 req/min | 429 Too Many Requests |
 | By-User Analytics | 50 req/min | 429 Too Many Requests |
 
-### Endpoints (29 Total)
+### Endpoints (30 Total)
 
 #### Health Check
 
@@ -632,6 +632,82 @@ rng := rand.New(rand.NewSource(12345))
 - Hotfix detection (48-hour window)
 - Code survival metrics (7, 14, 30 day tracking)
 - Risk scoring for revert chains
+
+### SIM-R015: External Data Sources API (P4-F04) ✅
+
+#### Microsoft 365 Copilot Usage API
+
+**Endpoint**: `GET /reports/getMicrosoft365CopilotUsageUserDetail(period='D30')`
+
+Simulates the Microsoft Graph API endpoint for Copilot usage tracking.
+
+**Configuration**:
+Routes are conditionally registered only when Copilot is enabled in seed data:
+```json
+{
+  "external_data_sources": {
+    "copilot": {
+      "enabled": true,
+      "total_licenses": 100,
+      "active_users": 85,
+      "adoption_percentage": 0.85,
+      "top_apps": ["Teams", "Word", "Outlook"]
+    }
+  }
+}
+```
+
+**Supported Periods**:
+- `D7` - Last 7 days
+- `D30` - Last 30 days (default)
+- `D90` - Last 90 days
+- `D180` - Last 180 days
+
+**Query Parameters**:
+- `$format` (string): Response format (`application/json` or `text/csv`)
+
+**Response Format (JSON)**:
+```json
+{
+  "@odata.context": "https://graph.microsoft.com/beta/$metadata#reports/getMicrosoft365CopilotUsageUserDetail(period='D30')",
+  "value": [
+    {
+      "reportRefreshDate": "2026-01-09",
+      "reportPeriod": 30,
+      "userPrincipalName": "user@example.com",
+      "displayName": "Jane Developer",
+      "lastActivityDate": "2026-01-08",
+      "microsoftTeamsCopilotLastActivityDate": "2026-01-08",
+      "wordCopilotLastActivityDate": "2026-01-07",
+      "excelCopilotLastActivityDate": null,
+      "powerPointCopilotLastActivityDate": "2026-01-05",
+      "outlookCopilotLastActivityDate": "2026-01-08",
+      "oneNoteCopilotLastActivityDate": null,
+      "loopCopilotLastActivityDate": null,
+      "copilotChatLastActivityDate": "2026-01-08"
+    }
+  ]
+}
+```
+
+**CSV Export**: When `$format=text/csv` is specified, returns CSV with all fields:
+- Content-Type: `text/csv`
+- Content-Disposition: `attachment; filename=copilot-usage-{period}.csv`
+
+**Authentication**: Requires Basic Authentication (same as other cursor-sim endpoints)
+
+**Data Generation**:
+- Uses `CopilotGenerator` with app adoption rates:
+  - Teams: 85% (most popular)
+  - Word: 70%
+  - Outlook: 65%
+  - PowerPoint: 50%
+  - Excel: 40%
+  - Copilot Chat: 75%
+  - Loop: 20%
+  - OneNote: 10%
+- Activity dates are randomly distributed within the requested period
+- Generated data is stored in memory for consistency across requests
 
 ---
 

@@ -8,6 +8,7 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/cursor"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/github"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/harvey"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/microsoft"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/research"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
@@ -80,6 +81,28 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 		// Create external memory store
 		externalStore := storage.NewExternalMemoryStore()
 		mux.Handle("/harvey/api/v1/history/usage", harvey.UsageHandler(externalStore.Harvey()))
+	}
+
+	// Microsoft 365 Copilot API (External Data Source - P4-F04)
+	// Only register if Copilot is enabled in seed data
+	if sd.ExternalDataSources != nil && sd.ExternalDataSources.Copilot != nil && sd.ExternalDataSources.Copilot.Enabled {
+		// Create external memory store for Copilot
+		externalStore := storage.NewExternalMemoryStore()
+		// Initialize Copilot generator from seed data
+		copilotGen := generator.NewCopilotGenerator(sd)
+		// Register Copilot routes under /reports/ prefix
+		// Pattern: /reports/getMicrosoft365CopilotUsageUserDetail(period='D30')
+		// Note: We use a custom handler wrapper to validate the specific endpoint
+		copilotHandler := microsoft.CopilotUsageHandler(externalStore.Copilot(), copilotGen)
+		mux.HandleFunc("/reports/", func(w http.ResponseWriter, r *http.Request) {
+			// Only handle Copilot endpoint, return 404 for others
+			const copilotPrefix = "/reports/getMicrosoft365CopilotUsageUserDetail"
+			if r.URL.Path == copilotPrefix || (len(r.URL.Path) > len(copilotPrefix) && r.URL.Path[:len(copilotPrefix)+1] == copilotPrefix+"(") {
+				copilotHandler.ServeHTTP(w, r)
+				return
+			}
+			http.NotFound(w, r)
+		})
 	}
 
 	// Apply middleware (reverse order: Logger wraps RateLimit wraps BasicAuth wraps mux)
