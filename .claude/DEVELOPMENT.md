@@ -14,18 +14,18 @@
 |-------|-------------|--------|
 | **P0** | Project Management | COMPLETE ✅ |
 | **P1** | cursor-sim Foundation | COMPLETE ✅ |
-| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (7/15 tasks) |
+| **P2** | cursor-sim GitHub Simulation | **IN PROGRESS** (8/15 tasks) |
 | **P3** | cursor-sim Research Framework | COMPLETE ✅ |
-| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 3/16 tasks) |
+| **P4** | cursor-sim CLI Enhancements | **IN PROGRESS** (P4-F04: 4/16 tasks) |
 | **P5** | cursor-analytics-core | COMPLETE ✅ |
 | **P6** | cursor-viz-spa | COMPLETE ✅ |
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
-| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (8/14 tasks) |
-| **P9** | Streamlit Dashboard | **IN PROGRESS** (9/12 tasks) |
+| **P8** | Data Tier (dbt + ETL) | **IN PROGRESS** (9/14 tasks) |
+| **P9** | Streamlit Dashboard | **IN PROGRESS** (10/12 tasks) |
 
 ### Active Work
 
-#### P2-F01: GitHub Simulation (7/15 tasks - 47%)
+#### P2-F01: GitHub Simulation (8/15 tasks - 53%)
 **Work Items**: `.work-items/P2-F01-github-simulation/`
 
 | Task | Status | Description |
@@ -36,9 +36,12 @@
 | TASK-GH-04 | ✅ COMPLETE | PR Generator (status distribution) |
 | TASK-GH-05 | ✅ COMPLETE | Review Generator |
 | TASK-GH-06 | ✅ COMPLETE | Issue Generator |
-| TASK-GH-07-15 | ⬜ PENDING | Storage, API Handlers, Integration |
+| TASK-GH-07 | ✅ COMPLETE | Storage Methods |
+| TASK-GH-08-15 | ⬜ PENDING | Generator Integration, API Handlers, E2E |
 
-#### P4-F04: External Data Sources (3/16 tasks - 19%)
+**Next**: TASK-GH-08 (Integrate Generators with Storage) - use `cursor-sim-api-dev` agent
+
+#### P4-F04: External Data Sources (4/16 tasks - 25%)
 **Work Items**: `.work-items/P4-F04-data-sources/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
@@ -47,11 +50,12 @@
 | TASK-DS-01 | ✅ COMPLETE | Extend Seed Schema |
 | TASK-DS-02 | ✅ COMPLETE | Extend Storage Layer |
 | TASK-DS-03 | ✅ COMPLETE | Harvey Model |
-| TASK-DS-04-16 | ⬜ PENDING | Generators, Handlers, E2E |
+| TASK-DS-04 | ✅ COMPLETE | Harvey Generator (96% coverage) |
+| TASK-DS-05-16 | ⬜ PENDING | Handlers, Router Integration, E2E |
 
-**Next**: TASK-DS-04 (Harvey Generator) - use `cursor-sim-api-dev` or `general-purpose` agent
+**Next**: TASK-DS-05 (Harvey API Handler) - use `cursor-sim-api-dev` agent
 
-#### P8-F01: Data Tier ETL (8/14 tasks - 57%)
+#### P8-F01: Data Tier ETL (9/14 tasks - 64%)
 **Work Items**: `.work-items/P8-F01-data-tier/`
 
 | Task | Status | Description |
@@ -63,11 +67,12 @@
 | TASK-P8-05 | ✅ COMPLETE | Main Loader Script |
 | TASK-P8-06 | ✅ COMPLETE | Schema Validation |
 | TASK-P8-07 | ✅ COMPLETE | DuckDB Loader |
-| TASK-P8-08-14 | ⬜ PENDING | Snowflake, dbt transforms, Pipeline |
+| TASK-P8-08 | ✅ COMPLETE | Snowflake Stage/COPY Scripts |
+| TASK-P8-09-14 | ⬜ PENDING | dbt Sources, Staging, Marts, Pipeline |
 
-**Next**: TASK-P8-08 (Snowflake Loader) - use `data-tier-dev` agent
+**Next**: TASK-P8-09 (dbt Source Definitions) - use `data-tier-dev` agent
 
-#### P9-F01: Streamlit Dashboard (9/12 tasks - 75%)
+#### P9-F01: Streamlit Dashboard (10/12 tasks - 83%)
 **Work Items**: `.work-items/P9-F01-streamlit-dashboard/`
 
 | Task | Status | Description |
@@ -81,25 +86,23 @@
 | TASK-P9-07 | ✅ COMPLETE | Velocity Page |
 | TASK-P9-08 | ✅ COMPLETE | AI Impact Page |
 | TASK-P9-09 | ✅ COMPLETE | Quality + Review Pages |
-| TASK-P9-10-12 | ⬜ PENDING | Refresh Pipeline, Docker |
+| TASK-P9-10 | ✅ COMPLETE | Refresh Pipeline |
+| TASK-P9-11-12 | ⬜ PENDING | Dockerfile, Docker Compose |
 
-**Next**: TASK-P9-10 (Refresh Pipeline) - use `streamlit-dev` agent
+**Next**: TASK-P9-11 (Create Dockerfile) - use `streamlit-dev` agent
 
 ---
 
 ## Recent Commits (January 9, 2026)
 
 ```
+7fd4d44 feat(streamlit): complete TASK-P9-10 - Refresh Pipeline
+d4f5982 feat(cursor-sim): complete TASK-GH-07 - Storage Methods for GitHub Data
+71d226f feat(data-tier): complete TASK-P8-08 - Snowflake loading scripts
+7b73668 feat(cursor-sim): implement Harvey generator (TASK-DS-04)
+de3218a setting
+ca1f69d feat: parallel implementation of P2, P4, P8, P9 tasks
 91a4808 chore: update P8 task progress + add P4-F04 seed tests
-acfe138 docs(P0-F09): retroactive documentation of SDD methodology improvements
-fd2f9f3 docs(P4-F04): update task.md with TASK-DS-02 commit hash
-198df5f feat(cursor-sim): add external data storage layer (TASK-DS-02)
-a5578fe feat(.claude): add cursor-sim-api-dev agent for backend development
-667a471 docs(P4-F04): mark TASK-DS-01 complete in task tracker
-2d8768c feat(cursor-sim): extend seed schema with external data sources (TASK-DS-01)
-4d767b8 feat(P4-F04): add external data sources planning + agent CLI delegation
-8f8d5a8 feat(streamlit): implement AI Impact, Quality, Review pages
-d81a8b6 feat(data-tier): implement main loader and DuckDB loader
 ```
 
 ---
