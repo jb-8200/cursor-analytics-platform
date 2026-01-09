@@ -13,9 +13,9 @@
 | **Models** | 3 | ✅ 3/3 | 2.5h | 1.25h |
 | **Generators** | 3 | ✅ 3/3 | 8.0h | 3.0h |
 | **Storage** | 2 | ✅ 2/2 | 3.0h | 2.0h |
-| **API Handlers** | 5 | 🔄 2/5 | 5.0h | 1.5h |
+| **API Handlers** | 5 | 🔄 3/5 | 5.0h | 2.5h |
 | **Testing & Docs** | 2 | ⬜ 0/2 | 3.5h | - |
-| **TOTAL** | **15** | **10/15** | **22.0h** | **7.75h** |
+| **TOTAL** | **15** | **11/15** | **22.0h** | **8.75h** |
 
 ---
 
@@ -304,18 +304,32 @@
 
 ---
 
-#### TASK-GH-11: Implement `/analytics/github/issues` Endpoint (1.0h)
+#### TASK-GH-11: Implement `/analytics/github/issues` Endpoint (1.0h) ✅ COMPLETE
+
+**Status**: COMPLETE
+**Time**: 1.0h actual / 1.0h estimated
+**Commit**: d246bef
 
 **Goal**: Issue tracking data
 
 **Files**:
-- NEW: `internal/api/github/issues.go`
-- NEW: `internal/api/github/issues_test.go`
+- NEW: `internal/api/github/issues.go` (167 lines)
+- NEW: `internal/api/github/issues_test.go` (346 lines, 11 test cases)
+- MODIFIED: `internal/server/router.go` (registered endpoint)
+- MODIFIED: `services/cursor-sim/SPEC.md` (updated API documentation)
 
 **Acceptance Criteria**:
-- [ ] Query params: state, labels
-- [ ] Returns issue list
-- [ ] Handler tests pass
+- [x] Query params: state, labels
+- [x] Returns issue list
+- [x] Handler tests pass (11 tests, 97% coverage)
+
+**Implementation Notes**:
+- Supports filtering by state (open, closed)
+- Supports filtering by labels (comma-separated, AND logic)
+- Pagination with page and page_size parameters
+- Standard response format: data, pagination, params
+- Comprehensive test coverage including error cases
+- All tests passing (TestListIssuesAnalytics_*)
 
 ---
 
