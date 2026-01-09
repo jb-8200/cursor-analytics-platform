@@ -885,6 +885,115 @@ Routes are conditionally registered only when Copilot is enabled in seed data:
 - Activity dates are randomly distributed within the requested period
 - Generated data is stored in memory for consistency across requests
 
+#### Qualtrics Survey Export API
+
+**Endpoints**:
+- `POST /API/v3/surveys/{surveyId}/export-responses` - Start export
+- `GET /API/v3/surveys/{surveyId}/export-responses/{progressId}` - Check progress
+- `GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file` - Download file
+
+Simulates the Qualtrics Survey API v3 export workflow for retrieving survey responses.
+
+**Configuration**:
+Routes are conditionally registered only when Qualtrics is enabled in seed data:
+```json
+{
+  "external_data_sources": {
+    "qualtrics": {
+      "enabled": true,
+      "survey_id": "SV_abc123",
+      "survey_name": "Developer Satisfaction Survey",
+      "response_count": 50
+    }
+  }
+}
+```
+
+**Workflow**:
+1. Client initiates export with `POST /API/v3/surveys/{surveyId}/export-responses`
+2. Server returns `progressId` with status `inProgress` at 0%
+3. Client polls `GET /API/v3/surveys/{surveyId}/export-responses/{progressId}`
+4. Progress advances by 20% per poll until 100% complete
+5. When complete, server provides `fileId` for download
+6. Client downloads ZIP file via `GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file`
+
+**Start Export Response** (Step 1):
+```json
+{
+  "result": {
+    "progressId": "ES_a5591ddcd0b2409b",
+    "status": "inProgress",
+    "percentComplete": 0
+  },
+  "meta": {
+    "httpStatus": "200 - OK",
+    "requestId": "ES_a5591ddcd0b2409b"
+  }
+}
+```
+
+**Progress Response** (Steps 2-4):
+```json
+{
+  "result": {
+    "status": "inProgress",
+    "percentComplete": 40
+  },
+  "meta": {
+    "httpStatus": "200 - OK",
+    "requestId": "ES_a5591ddcd0b2409b"
+  }
+}
+```
+
+**Completion Response** (Step 5):
+```json
+{
+  "result": {
+    "status": "complete",
+    "percentComplete": 100,
+    "fileId": "FILE_24464e06033e1808"
+  },
+  "meta": {
+    "httpStatus": "200 - OK",
+    "requestId": "ES_a5591ddcd0b2409b"
+  }
+}
+```
+
+**File Download Response** (Step 6):
+- Content-Type: `application/zip`
+- Content-Disposition: `attachment; filename="survey_responses.zip"`
+- Body: ZIP file containing CSV with survey responses
+
+**Authentication**: Requires Basic Authentication (same as other cursor-sim endpoints)
+
+**Data Generation**:
+- Uses `SurveyGenerator` to create realistic survey responses
+- Generates responses from team developers based on seed configuration
+- Response count controlled by `response_count` in seed data
+- Survey fields:
+  - `ResponseID`: Unique response identifier (R_xxx format)
+  - `StartDate`: Response start timestamp
+  - `EndDate`: Response completion timestamp
+  - `Status`: Always "Complete"
+  - `Progress`: Always 100
+  - `Duration`: Time taken in seconds (60-600)
+  - `Finished`: Always "True"
+  - `RecordedDate`: Same as EndDate
+  - `ResponseId`: Same as ResponseID
+  - `DistributionChannel`: Always "anonymous"
+  - `UserLanguage`: Always "EN"
+  - `Q1_Satisfaction`: Satisfaction rating (1-5 scale)
+  - `Q2_MostUsedTool`: Most frequently used tool (Composer, Chat, Inline Edit)
+  - `Q3_FreeText`: Optional free-text feedback
+- Distribution follows realistic patterns:
+  - Satisfaction: 40% high (4-5), 40% medium (3), 20% low (1-2)
+  - Tool usage: Composer 40%, Chat 35%, Inline Edit 25%
+  - 70% of responses include free-text feedback
+- Generated ZIP contains CSV file with all responses
+- Export job state maintained in memory via `ExportJobManager`
+
 ---
 
 ## Phase 3 Features (Mostly Complete) ✅

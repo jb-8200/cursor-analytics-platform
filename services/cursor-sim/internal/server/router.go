@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api"
@@ -9,9 +10,11 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/github"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/harvey"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/microsoft"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/qualtrics"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/research"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/services"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
 )
 
@@ -101,6 +104,66 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 				copilotHandler.ServeHTTP(w, r)
 				return
 			}
+			http.NotFound(w, r)
+		})
+	}
+
+	// Qualtrics API (External Data Source - P4-F04)
+	// Only register if Qualtrics is enabled in seed data
+	if sd.ExternalDataSources != nil && sd.ExternalDataSources.Qualtrics != nil && sd.ExternalDataSources.Qualtrics.Enabled {
+		// Initialize survey generator from seed data
+		surveyGen := generator.NewSurveyGenerator(sd)
+		// Create export job manager
+		exportManager := services.NewExportJobManager(surveyGen)
+		// Create handlers
+		qualtricsHandlers := qualtrics.NewExportHandlers(exportManager)
+
+		// Register routes under /API/v3/surveys/ prefix
+		// Pattern:
+		// - POST /API/v3/surveys/{surveyId}/export-responses - Start export
+		// - GET /API/v3/surveys/{surveyId}/export-responses/{progressId} - Check progress
+		// - GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file - Download file
+		mux.HandleFunc("/API/v3/surveys/", func(w http.ResponseWriter, r *http.Request) {
+			// Extract path components
+			path := r.URL.Path
+			const prefix = "/API/v3/surveys/"
+
+			// Check if path starts with the prefix
+			if !strings.HasPrefix(path, prefix) {
+				http.NotFound(w, r)
+				return
+			}
+
+			// Remove prefix to get the remainder
+			remainder := strings.TrimPrefix(path, prefix)
+			parts := strings.Split(remainder, "/")
+
+			// Validate path structure: {surveyId}/export-responses/...
+			if len(parts) < 2 || parts[1] != "export-responses" {
+				http.NotFound(w, r)
+				return
+			}
+
+			// Route based on method and path structure
+			if r.Method == http.MethodPost && len(parts) == 2 {
+				// POST /API/v3/surveys/{surveyId}/export-responses
+				qualtricsHandlers.StartExportHandler().ServeHTTP(w, r)
+				return
+			}
+
+			if r.Method == http.MethodGet && len(parts) == 3 {
+				// GET /API/v3/surveys/{surveyId}/export-responses/{progressId}
+				qualtricsHandlers.ProgressHandler().ServeHTTP(w, r)
+				return
+			}
+
+			if r.Method == http.MethodGet && len(parts) == 4 && parts[3] == "file" {
+				// GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file
+				qualtricsHandlers.FileDownloadHandler().ServeHTTP(w, r)
+				return
+			}
+
+			// No matching route
 			http.NotFound(w, r)
 		})
 	}
