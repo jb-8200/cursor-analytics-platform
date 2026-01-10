@@ -16,13 +16,7 @@ cleaned AS (
         full_name AS repo_name,
 
         -- Repository metadata
-        default_branch,
-        language,
-        is_private,
-
-        -- Timestamps
-        created_at,
-        updated_at
+        default_branch
 
     FROM source
     WHERE full_name IS NOT NULL

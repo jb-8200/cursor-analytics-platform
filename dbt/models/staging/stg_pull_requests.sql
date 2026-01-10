@@ -25,40 +25,29 @@ calculated AS (
         changed_files,
         ai_ratio,
 
+        -- Commit aggregations (from API)
+        commit_count,
+        tab_lines,
+        composer_lines,
+
         -- Quality flags (rename was_reverted to is_reverted for consistency)
         was_reverted AS is_reverted,
         is_bug_fix,
 
-        -- Timestamps
-        created_at,
-        merged_at,
-        first_commit_at,
-        first_review_at,
+        -- Timestamps (cast VARCHAR to TIMESTAMP)
+        TRY_CAST(created_at AS TIMESTAMP) AS created_at,
+        TRY_CAST(merged_at AS TIMESTAMP) AS merged_at,
 
         -- Calculate cycle time metrics (not from API)
-        -- Coding lead time: Time from first commit to PR creation
+        -- Total cycle time: Time from PR creation to merge
         CASE
-            WHEN first_commit_at IS NOT NULL AND created_at IS NOT NULL
-            THEN EXTRACT(EPOCH FROM (created_at - first_commit_at)) / 3600.0
+            WHEN merged_at IS NOT NULL AND created_at IS NOT NULL
+            THEN EXTRACT(EPOCH FROM (TRY_CAST(merged_at AS TIMESTAMP) - TRY_CAST(created_at AS TIMESTAMP))) / 3600.0
             ELSE NULL
-        END AS coding_lead_time_hours,
+        END AS total_cycle_time_hours,
 
-        -- Pickup time: Time from PR creation to first review
-        CASE
-            WHEN first_review_at IS NOT NULL AND created_at IS NOT NULL
-            THEN EXTRACT(EPOCH FROM (first_review_at - created_at)) / 3600.0
-            ELSE NULL
-        END AS pickup_time_hours,
-
-        -- Review lead time: Time from first review to merge
-        CASE
-            WHEN merged_at IS NOT NULL AND first_review_at IS NOT NULL
-            THEN EXTRACT(EPOCH FROM (merged_at - first_review_at)) / 3600.0
-            ELSE NULL
-        END AS review_lead_time_hours,
-
-        -- Calculate reviewer count from array
-        {{ array_length('reviewers') }} AS reviewer_count
+        -- Reviewer count (already an integer in API response)
+        reviewers AS reviewer_count
 
     FROM source
     WHERE number IS NOT NULL

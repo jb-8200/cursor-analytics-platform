@@ -3,7 +3,7 @@
 **Feature ID**: P8-F01-data-tier
 **Phase**: P8 (Data Tier)
 **Created**: January 9, 2026
-**Status**: NOT_STARTED
+**Status**: COMPLETE ✅ (14/14 tasks)
 
 ## Overview
 
@@ -19,6 +19,25 @@ This phase replaces the deprecated P5 (cursor-analytics-core) Node.js/GraphQL ba
 - **Serve**: SQL queries from Streamlit dashboard (P9)
 
 **Key Principle**: cursor-sim (P4) is the source of truth. We do NOT modify its API. We build everything on top of its existing contract.
+
+## Core Philosophy: API as Source of Truth
+
+The cursor-sim API is the **single source of truth** for all data in the platform:
+
+```
+cursor-sim API (Fact)  →  Data Tier (Contract)  →  Dashboard (Visualization)
+        ↓                        ↓                         ↓
+   camelCase fields        snake_case columns      Parameterized queries
+   {items:[]} responses    dbt transforms           Pre-computed marts
+   Immutable contract      Data aggregations       Pre-filtered metrics
+```
+
+**Data Contract Hierarchy**:
+1. **API Contract** (source of truth): cursor-sim defines response formats, field names, data types
+2. **Data Tier Contract** (transformation): dbt maps API fields to analytics-ready columns
+3. **KPI Requirements** (consumer): Dashboard queries mart tables, never raw API
+
+**Critical Insight**: Dashboard queries `main_mart.*` tables, not raw API data. All data flows through dbt transformations, which normalize and aggregate the raw API responses.
 
 ---
 
@@ -40,11 +59,31 @@ And the loader handles cursor-sim's raw array responses (not wrapper objects)
 And extraction completes in under 60 seconds for 90 days of data
 ```
 
-**API Contract Notes** (cursor-sim returns raw arrays, NOT wrapper objects):
-- `GET /analytics/ai-code/commits` → `{"items": [...], "totalCount": N}`
-- `GET /repos` → `[...]` (raw array)
-- `GET /repos/{owner}/{repo}/pulls` → `[...]` (raw array)
-- `GET /repos/{owner}/{repo}/pulls/{n}/reviews` → `[...]` (raw array)
+**API Response Formats** (discovered during implementation):
+
+cursor-sim uses **two response formats**. Extractors MUST handle both:
+
+**Format 1: Cursor Analytics Style (Pagination Wrapper)**
+```json
+{
+  "items": [...],      // Use this key, NOT "data"
+  "totalCount": 1000,
+  "page": 1,
+  "pageSize": 500
+}
+```
+- Endpoints: `/analytics/ai-code/commits`, `/analytics/team/*`
+- Pagination: Uses `page`, `page_size` params
+
+**Format 2: GitHub Style (Raw Arrays)**
+```json
+[...]  // No wrapper, just array
+```
+- Endpoints: `/repos`, `/repos/{owner}/{repo}/pulls`, `/repos/{owner}/{repo}/pulls/{n}/reviews`
+- Pagination: Uses `page`, `per_page` params
+
+**Original Design Assumption**: `{data:[]}` format ❌
+**Actual Implementation**: Both `{items:[]}` and raw arrays ✅
 
 ---
 
@@ -167,6 +206,21 @@ And containers start in under 30 seconds
 And containers use non-root users
 And health checks are implemented
 ```
+
+---
+
+## Lessons Learned
+
+During implementation, discovered these important details:
+
+| Lesson | Discovery | Impact |
+|--------|-----------|--------|
+| **Response Format Duality** | cursor-sim returns both `{items:[]}` and raw arrays | BaseAPIExtractor must handle both formats |
+| **Column Name Mapping** | API uses camelCase, dbt uses snake_case | Mapping happens in stg_* models, not extractors |
+| **Schema Naming** | DuckDB requires `main_*` prefix for custom schemas | Use `main_mart.mart_*` in dashboard queries |
+| **Immutable API** | cursor-sim API is source of truth | Never modify/filter at extraction layer |
+| **Type Safety** | dbt models must preserve numeric types from API | Stub tables must use typed schemas |
+| **INTERVAL Syntax** | DuckDB doesn't support parameterized INTERVAL | Use f-string interpolation: `'{days}' DAY` |
 
 ---
 

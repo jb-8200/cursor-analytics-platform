@@ -981,6 +981,94 @@ EOF
 
 ---
 
+## Retroactive Documentation Fixes
+
+### TASK-P8-15: API Response Format Fix
+**Status**: ✅ COMPLETE
+**Time**: Included in P9-F02 work
+**Date Completed**: January 10, 2026
+
+**Context**: During Streamlit dashboard integration, discovered cursor-sim returns `{items:[]}` format, not `{data:[]}` as originally designed.
+
+**Fix Applied**:
+- Updated `BaseAPIExtractor.fetch_cursor_style_paginated()` to handle both formats
+- Added format detection: `if "items" in response` branch
+
+**Files Modified**:
+- `tools/api-loader/extractors/base.py` (lines 182-214)
+
+**Testing**:
+```bash
+# Verified both formats work
+curl http://localhost:8080/analytics/ai-code/commits  # Returns {items:[]}
+curl http://localhost:8080/repos                       # Returns []
+```
+
+---
+
+### TASK-P8-16: DuckDB Schema Naming Fix
+**Status**: ✅ COMPLETE
+**Time**: Included in P9-F02 work
+**Date Completed**: January 10, 2026
+
+**Context**: DuckDB requires `main_mart.mart_*` syntax for schema-qualified table names, not `mart.*`.
+
+**Fix Applied**:
+- Updated all dashboard queries from `mart.velocity` to `main_mart.mart_velocity`
+- Applied consistently to all 4 query modules
+
+**Files Modified**:
+- `services/streamlit-dashboard/queries/velocity.py`
+- `services/streamlit-dashboard/queries/ai_impact.py`
+- `services/streamlit-dashboard/queries/quality.py`
+- `services/streamlit-dashboard/queries/review_costs.py`
+
+**Testing**:
+```bash
+# Verified schema-qualified names work
+duckdb data/analytics.duckdb <<EOF
+SELECT COUNT(*) FROM main_mart.mart_velocity;
+EOF
+```
+
+---
+
+### TASK-P8-17: Column Availability Fix
+**Status**: ✅ COMPLETE
+**Time**: Included in P9-F02 work
+**Date Completed**: January 10, 2026
+
+**Context**: Dashboard queries referenced columns not available in dbt marts.
+
+**Columns Removed** (not computed in marts):
+- `p50_cycle_time` - Not a computed metric
+- `avg_coding_lead_time` - Not available in mart schema
+- `avg_review_iterations` - Not available in mart schema
+
+**Columns Available** (used instead):
+- `avg_total_cycle_time` - Computed in mart_velocity
+- `avg_ai_ratio` - Computed in all marts
+- `total_prs` - Aggregated in marts
+- `avg_review_rounds` - Computed in mart_review_costs
+- `avg_reviewers_per_pr` - Computed in mart_review_costs
+
+**Files Modified**:
+- `.work-items/P9-F01-streamlit-dashboard/pages/1_velocity.py`
+- `.work-items/P9-F01-streamlit-dashboard/pages/2_ai_impact.py`
+- `.work-items/P9-F01-streamlit-dashboard/pages/4_review_costs.py`
+
+**Testing**:
+```bash
+# Verified only available columns are queried
+docker exec streamlit-dashboard python -c "
+from queries.velocity import get_velocity_data
+df = get_velocity_data(repo_name='All', days=30)
+print(df.columns.tolist())
+"
+```
+
+---
+
 ## Definition of Done (Per Task)
 
 - [ ] Tests written BEFORE implementation (TDD)

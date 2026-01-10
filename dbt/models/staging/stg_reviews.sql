@@ -18,7 +18,7 @@ cleaned AS (
         pr_number,
 
         -- Reviewer information
-        reviewer_email,
+        reviewer,
         state,
 
         -- Derived flags
@@ -27,8 +27,8 @@ cleaned AS (
             ELSE FALSE
         END AS is_approval,
 
-        -- Timestamps
-        submitted_at,
+        -- Timestamps (cast VARCHAR to TIMESTAMP)
+        TRY_CAST(submitted_at AS TIMESTAMP) AS submitted_at,
 
         -- Metadata
         body AS review_comment

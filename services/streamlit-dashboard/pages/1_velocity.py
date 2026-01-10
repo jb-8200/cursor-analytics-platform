@@ -94,34 +94,16 @@ try:
     # Sort by week for proper time series
     df_sorted = df.sort_values("week")
 
-    # Create line chart with multiple components
+    # Create line chart with total cycle time
     fig = go.Figure()
 
     fig.add_trace(go.Scatter(
         x=df_sorted["week"],
-        y=df_sorted["coding_lead_time"],
+        y=df_sorted["avg_total_cycle_time"] / 24,  # Convert hours to days
         mode='lines+markers',
-        name='Coding Lead Time',
+        name='Total Cycle Time',
         line=dict(color='#3498db', width=2),
-        hovertemplate='<b>Coding</b><br>%{y:.2f} days<extra></extra>'
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=df_sorted["week"],
-        y=df_sorted["pickup_time"],
-        mode='lines+markers',
-        name='Pickup Time',
-        line=dict(color='#e74c3c', width=2),
-        hovertemplate='<b>Pickup</b><br>%{y:.2f} days<extra></extra>'
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=df_sorted["week"],
-        y=df_sorted["review_lead_time"],
-        mode='lines+markers',
-        name='Review Lead Time',
-        line=dict(color='#2ecc71', width=2),
-        hovertemplate='<b>Review</b><br>%{y:.2f} days<extra></extra>'
+        hovertemplate='<b>Total Cycle Time</b><br>%{y:.2f} days<extra></extra>'
     ))
 
     fig.update_layout(
@@ -186,9 +168,7 @@ try:
     display_df = df.copy()
     display_df["week"] = display_df["week"].astype(str)
     display_df["avg_ai_ratio"] = display_df["avg_ai_ratio"].apply(lambda x: f"{x:.1%}")
-    display_df["total_cycle_time"] = display_df["total_cycle_time"].apply(lambda x: f"{x:.1f}")
-    display_df["p50_cycle_time"] = display_df["p50_cycle_time"].apply(lambda x: f"{x:.1f}")
-    display_df["p90_cycle_time"] = display_df["p90_cycle_time"].apply(lambda x: f"{x:.1f}")
+    display_df["avg_total_cycle_time"] = display_df["avg_total_cycle_time"].apply(lambda x: f"{x:.1f}")
 
     # Select and rename columns for better display
     display_columns = {
@@ -196,9 +176,7 @@ try:
         "repo_name": "Repository",
         "total_prs": "PRs",
         "active_developers": "Devs",
-        "total_cycle_time": "Cycle Time (days)",
-        "p50_cycle_time": "P50 (days)",
-        "p90_cycle_time": "P90 (days)",
+        "avg_total_cycle_time": "Cycle Time (days)",
         "avg_ai_ratio": "AI Ratio"
     }
 

@@ -152,9 +152,9 @@ class BaseAPIExtractor:
         """
         Fetch from Cursor Analytics-style endpoint with pagination.
 
-        Cursor-style pagination uses:
-        - Query params: page, page_size (or pageSize)
-        - Termination: hasNextPage = false
+        Handles two cursor-sim response formats:
+        1. {data: [...], pagination: {hasNextPage: bool}}
+        2. {items: [...], totalCount: int, page: int, pageSize: int}
 
         Args:
             endpoint: API endpoint path
@@ -179,16 +179,36 @@ class BaseAPIExtractor:
 
             response = resp.json()
 
-            # Extract data array
-            data = response.get("data", [])
-            all_data.extend(data)
+            # Handle both response formats
+            # Format 1: {data: [...], pagination: {hasNextPage}}
+            # Format 2: {items: [...], totalCount, page, pageSize}
+            if "items" in response:
+                # cursor-sim actual format
+                data = response.get("items", [])
+                total_count = response.get("totalCount", 0)
+                current_page = response.get("page", page)
+                current_page_size = response.get("pageSize", page_size)
 
-            # Check pagination metadata
-            pagination = response.get("pagination", {})
-            has_next = pagination.get("hasNextPage", False)
+                all_data.extend(data)
 
-            if not has_next:
-                break
+                # Check if we got all items or if there's more
+                if len(data) < current_page_size:
+                    # Got fewer items than requested - we're done
+                    break
+                if len(all_data) >= total_count:
+                    # We've fetched all available items
+                    break
+            else:
+                # Standard format: {data: [...], pagination: {hasNextPage}}
+                data = response.get("data", [])
+                all_data.extend(data)
+
+                # Check pagination metadata
+                pagination = response.get("pagination", {})
+                has_next = pagination.get("hasNextPage", False)
+
+                if not has_next:
+                    break
 
             page += 1
 

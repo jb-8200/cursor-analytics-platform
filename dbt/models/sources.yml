@@ -10,32 +10,30 @@ sources:
           Commit-level AI telemetry data from Cursor IDE.
           Tracks tab completions, Composer usage, and non-AI lines per commit.
         columns:
-          - name: commit_hash
+          - name: commitHash
             description: Unique commit SHA identifier
             tests:
               - unique
               - not_null
-          - name: repo_name
+          - name: repoName
             description: Full repository name (org/repo format)
             tests:
               - not_null
-          - name: user_email
+          - name: userEmail
             description: Email of commit author
             tests:
               - not_null
-          - name: tab_lines_added
+          - name: tabLinesAdded
             description: Lines added via Tab completions
-          - name: composer_lines_added
+          - name: composerLinesAdded
             description: Lines added via Cursor Composer
-          - name: non_ai_lines_added
+          - name: nonAiLinesAdded
             description: Lines added manually (non-AI)
-          - name: commit_ts
+          - name: commitTs
             description: Commit timestamp
             tests:
               - not_null
-          - name: pull_request_number
-            description: Associated PR number (if any)
-          - name: branch_name
+          - name: branchName
             description: Branch name where commit was made
 
       - name: pull_requests
@@ -76,10 +74,6 @@ sources:
               - not_null
           - name: merged_at
             description: PR merge timestamp (null if not merged)
-          - name: first_commit_at
-            description: Timestamp of first commit in PR
-          - name: first_review_at
-            description: Timestamp of first review
 
       - name: reviews
         description: |
@@ -99,8 +93,8 @@ sources:
             description: PR number being reviewed
             tests:
               - not_null
-          - name: reviewer_email
-            description: Email of reviewer
+          - name: reviewer
+            description: Username of reviewer
           - name: state
             description: Review state (APPROVED, CHANGES_REQUESTED, COMMENTED)
           - name: submitted_at
@@ -121,11 +115,3 @@ sources:
               - not_null
           - name: default_branch
             description: Default branch name (typically main or master)
-          - name: language
-            description: Primary programming language
-          - name: is_private
-            description: Boolean flag if repository is private
-          - name: created_at
-            description: Repository creation timestamp
-          - name: updated_at
-            description: Last update timestamp

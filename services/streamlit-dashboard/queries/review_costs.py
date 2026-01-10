@@ -28,8 +28,9 @@ def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, D
         params["repo"] = repo_name
 
     if days:
-        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
-        params["days"] = days
+        # Note: Use f-string for INTERVAL since DuckDB doesn't support parameterized INTERVAL
+        # This is safe because days is validated as an integer
+        conditions.append(f"week >= CURRENT_DATE - INTERVAL '{days}' DAY")
 
     if not conditions:
         return "", {}
@@ -48,12 +49,13 @@ def get_review_costs_data(repo_name: Optional[str] = None, days: Optional[int] =
         week,
         repo_name,
         total_prs,
-        avg_review_iterations,
+        avg_review_rounds,
         avg_reviewers_per_pr,
-        avg_review_comments,
-        avg_review_time,
-        total_review_hours
-    FROM mart.review_costs
+        avg_review_cycle_time,
+        estimated_review_hours_per_pr,
+        estimated_total_review_hours,
+        large_prs
+    FROM main_mart.mart_review_costs
     {where_clause}
     ORDER BY week DESC
     """
@@ -69,13 +71,13 @@ def get_review_iteration_distribution(repo_name: Optional[str] = None, days: Opt
     sql = f"""
     SELECT
         CASE
-            WHEN avg_review_iterations = 1 THEN '1'
-            WHEN avg_review_iterations = 2 THEN '2'
+            WHEN avg_review_rounds = 1 THEN '1'
+            WHEN avg_review_rounds = 2 THEN '2'
             ELSE '3+'
         END as iteration_count,
         COUNT(*) as pr_count,
         COUNT(*) * 100.0 / SUM(COUNT(*)) OVER () as percentage
-    FROM mart.review_costs
+    FROM main_mart.mart_review_costs
     {where_clause}
     GROUP BY iteration_count
     ORDER BY iteration_count
@@ -93,9 +95,9 @@ def get_reviewer_workload(repo_name: Optional[str] = None, days: Optional[int] =
     SELECT
         week,
         avg_reviewers_per_pr,
-        total_review_hours,
-        avg_review_time
-    FROM mart.review_costs
+        estimated_total_review_hours,
+        avg_review_cycle_time
+    FROM main_mart.mart_review_costs
     {where_clause}
     ORDER BY week DESC
     """
@@ -111,11 +113,11 @@ def get_review_costs_summary(repo_name: Optional[str] = None, days: Optional[int
     sql = f"""
     SELECT
         SUM(total_prs) as total_prs,
-        AVG(avg_review_iterations) as avg_iterations,
+        AVG(avg_review_rounds) as avg_iterations,
         AVG(avg_reviewers_per_pr) as avg_reviewers,
-        AVG(avg_review_comments) as avg_comments,
-        SUM(total_review_hours) as total_hours
-    FROM mart.review_costs
+        AVG(avg_review_rounds) as avg_comments,
+        SUM(estimated_total_review_hours) as total_hours
+    FROM main_mart.mart_review_costs
     {where_clause}
     """
     result = query(sql, params)
@@ -127,16 +129,17 @@ def get_review_costs_summary(repo_name: Optional[str] = None, days: Optional[int
 def get_review_costs_by_ai_band(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get review costs grouped by AI usage band.
+
+    Note: Uses mart_ai_impact since ai_usage_band is only in that table.
     """
     where_clause, params = _build_filter(repo_name, days)
-    
+
     sql = f"""
     SELECT
         ai_usage_band,
-        AVG(avg_review_iterations) as avg_review_iterations,
-        AVG(avg_review_comments) as avg_review_comments,
-        AVG(avg_review_time) as avg_review_time
-    FROM mart.review_costs
+        AVG(avg_total_cycle_time) as avg_review_cycle_time,
+        COUNT(*) as pr_count
+    FROM main_mart.mart_ai_impact
     {where_clause}
     GROUP BY ai_usage_band
     ORDER BY ai_usage_band

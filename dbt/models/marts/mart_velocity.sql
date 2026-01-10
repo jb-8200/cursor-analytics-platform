@@ -26,14 +26,7 @@ SELECT
     AVG(changed_files) AS avg_files_changed,
 
     -- Cycle time metrics (in hours)
-    AVG(coding_lead_time_hours) AS avg_coding_lead_time,
-    AVG(pickup_time_hours) AS avg_pickup_time,
-    AVG(review_lead_time_hours) AS avg_review_lead_time,
-    AVG(
-        COALESCE(coding_lead_time_hours, 0) +
-        COALESCE(pickup_time_hours, 0) +
-        COALESCE(review_lead_time_hours, 0)
-    ) AS avg_total_cycle_time,
+    AVG(total_cycle_time_hours) AS avg_total_cycle_time,
 
     -- AI adoption
     AVG(final_ai_ratio) AS avg_ai_ratio,

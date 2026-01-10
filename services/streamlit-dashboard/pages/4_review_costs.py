@@ -105,7 +105,7 @@ try:
 
         fig_trend.add_trace(go.Scatter(
             x=workload_sorted["week"],
-            y=workload_sorted["avg_review_time"],
+            y=workload_sorted["avg_review_cycle_time"],
             mode='lines+markers',
             name='Avg Review Time',
             line=dict(color='#3498db', width=2),
@@ -136,13 +136,13 @@ try:
         fig_hours = px.bar(
             workload_sorted,
             x="week",
-            y="total_review_hours",
-            color="total_review_hours",
+            y="estimated_total_review_hours",
+            color="estimated_total_review_hours",
             color_continuous_scale="Blues",
             title="Weekly Total Review Hours",
             labels={
                 "week": "Week",
-                "total_review_hours": "Review Hours"
+                "estimated_total_review_hours": "Review Hours"
             }
         )
 
@@ -172,50 +172,11 @@ try:
         costs_by_band["order"] = costs_by_band["ai_usage_band"].map(band_order)
         costs_by_band = costs_by_band.sort_values("order")
 
-        # Create grouped bar chart
-        fig_band = go.Figure()
-
-        fig_band.add_trace(go.Bar(
-            x=costs_by_band["ai_usage_band"],
-            y=costs_by_band["avg_review_iterations"],
-            name='Avg Iterations',
-            marker_color='#3498db',
-            text=costs_by_band["avg_review_iterations"].apply(lambda x: f"{x:.1f}"),
-            textposition='outside'
-        ))
-
-        fig_band.add_trace(go.Bar(
-            x=costs_by_band["ai_usage_band"],
-            y=costs_by_band["avg_review_comments"],
-            name='Avg Comments',
-            marker_color='#2ecc71',
-            text=costs_by_band["avg_review_comments"].apply(lambda x: f"{x:.1f}"),
-            textposition='outside'
-        ))
-
-        fig_band.update_layout(
-            title="Review Metrics by AI Usage Band",
-            xaxis_title="AI Usage Band",
-            yaxis_title="Count",
-            barmode='group',
-            xaxis=dict(categoryorder='array', categoryarray=['low', 'medium', 'high']),
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ),
-            margin=dict(l=0, r=0, t=30, b=0)
-        )
-
-        st.plotly_chart(fig_band, use_container_width=True)
-
-        # Review time comparison
+        # Review time comparison chart
         fig_time_band = px.bar(
             costs_by_band,
             x="ai_usage_band",
-            y="avg_review_time",
+            y="avg_review_cycle_time",
             color="ai_usage_band",
             title="Average Review Time by AI Usage Band",
             category_orders={"ai_usage_band": ["low", "medium", "high"]},
@@ -224,10 +185,10 @@ try:
                 "medium": "#f39c12",
                 "high": "#2ecc71"
             },
-            text="avg_review_time",
+            text="avg_review_cycle_time",
             labels={
                 "ai_usage_band": "AI Usage Band",
-                "avg_review_time": "Review Time (days)"
+                "avg_review_cycle_time": "Review Time (days)"
             }
         )
 
@@ -256,28 +217,27 @@ try:
     # Aggregate by repository
     repo_summary = df.groupby("repo_name").agg({
         "total_prs": "sum",
-        "avg_review_iterations": "mean",
+        "avg_review_rounds": "mean",
         "avg_reviewers_per_pr": "mean",
-        "avg_review_comments": "mean",
-        "total_review_hours": "sum"
+        "estimated_total_review_hours": "sum"
     }).reset_index()
 
     if not repo_summary.empty:
         # Sort by total review hours descending
-        repo_summary_sorted = repo_summary.sort_values("total_review_hours", ascending=False)
+        repo_summary_sorted = repo_summary.sort_values("estimated_total_review_hours", ascending=False)
 
         fig_repo = px.bar(
             repo_summary_sorted,
             x="repo_name",
-            y="total_review_hours",
-            color="avg_review_iterations",
+            y="estimated_total_review_hours",
+            color="avg_review_rounds",
             color_continuous_scale="Oranges",
-            text="total_review_hours",
+            text="estimated_total_review_hours",
             title="Total Review Hours by Repository",
             labels={
                 "repo_name": "Repository",
-                "total_review_hours": "Total Review Hours",
-                "avg_review_iterations": "Avg Iterations"
+                "estimated_total_review_hours": "Total Review Hours",
+                "avg_review_rounds": "Avg Review Rounds"
             }
         )
 
@@ -289,7 +249,7 @@ try:
         fig_repo.update_layout(
             xaxis_title="Repository",
             yaxis_title="Total Review Hours",
-            coloraxis_colorbar_title="Avg Iterations",
+            coloraxis_colorbar_title="Avg Review Rounds",
             margin=dict(l=0, r=0, t=30, b=0)
         )
 
@@ -306,21 +266,19 @@ try:
     # Format the dataframe for display
     display_df = df.copy()
     display_df["week"] = display_df["week"].astype(str)
-    display_df["avg_review_iterations"] = display_df["avg_review_iterations"].apply(lambda x: f"{x:.1f}")
     display_df["avg_reviewers_per_pr"] = display_df["avg_reviewers_per_pr"].apply(lambda x: f"{x:.1f}")
-    display_df["avg_review_comments"] = display_df["avg_review_comments"].apply(lambda x: f"{x:.1f}")
-    display_df["avg_review_time"] = display_df["avg_review_time"].apply(lambda x: f"{x:.1f}")
+    display_df["avg_review_rounds"] = display_df["avg_review_rounds"].apply(lambda x: f"{x:.1f}")
+    display_df["avg_review_cycle_time"] = display_df["avg_review_cycle_time"].apply(lambda x: f"{x:.1f}")
 
     # Select and rename columns for better display
     display_columns = {
         "week": "Week",
         "repo_name": "Repository",
         "total_prs": "PRs",
-        "avg_review_iterations": "Iterations",
         "avg_reviewers_per_pr": "Reviewers/PR",
-        "avg_review_comments": "Comments/PR",
-        "avg_review_time": "Review Time (days)",
-        "total_review_hours": "Total Hours"
+        "avg_review_rounds": "Review Rounds",
+        "avg_review_cycle_time": "Review Time (days)",
+        "estimated_total_review_hours": "Total Hours"
     }
 
     display_df = display_df[list(display_columns.keys())].rename(columns=display_columns)

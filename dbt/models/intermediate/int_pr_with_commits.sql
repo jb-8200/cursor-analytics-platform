@@ -1,5 +1,7 @@
--- Intermediate model: Join PRs with aggregated commit data
+-- Intermediate model: Enriched PR data with commit aggregations
 -- Ephemeral model used by marts for enriched PR data
+-- Note: Commit aggregations come from PR API response, not individual commits
+--       (cursor-sim API doesn't include pull_request_number in commits)
 
 {{ config(
     materialized='ephemeral'
@@ -7,54 +9,35 @@
 
 WITH prs AS (
     SELECT * FROM {{ ref('stg_pull_requests') }}
-),
-
-commit_agg AS (
-    SELECT
-        pull_request_number,
-        repo_name,
-        COUNT(*) AS commit_count,
-        SUM(ai_lines_added) AS total_ai_lines,
-        SUM(total_lines_added) AS total_lines,
-        SUM(tab_lines_added) AS total_tab_lines,
-        SUM(composer_lines_added) AS total_composer_lines,
-        SUM(non_ai_lines_added) AS total_non_ai_lines,
-        MIN(committed_at) AS first_commit_at_calc,
-        MAX(committed_at) AS last_commit_at
-    FROM {{ ref('stg_commits') }}
-    WHERE pull_request_number IS NOT NULL
-    GROUP BY pull_request_number, repo_name
 )
 
 SELECT
     -- PR fields
-    p.*,
+    pr_number,
+    repo_name,
+    author_email,
+    state,
+    additions,
+    deletions,
+    total_loc,
+    changed_files,
+    ai_ratio,
+    is_reverted,
+    is_bug_fix,
+    created_at,
+    merged_at,
+    total_cycle_time_hours,
+    reviewer_count,
 
-    -- Commit aggregations
-    COALESCE(c.commit_count, 0) AS commit_count,
-    COALESCE(c.total_ai_lines, 0) AS pr_ai_lines,
-    COALESCE(c.total_lines, 0) AS pr_total_lines,
-    COALESCE(c.total_tab_lines, 0) AS pr_tab_lines,
-    COALESCE(c.total_composer_lines, 0) AS pr_composer_lines,
-    COALESCE(c.total_non_ai_lines, 0) AS pr_non_ai_lines,
+    -- Commit aggregations (from PR API response)
+    commit_count,
+    tab_lines AS pr_tab_lines,
+    composer_lines AS pr_composer_lines,
+    additions AS pr_total_lines,  -- Use additions from PR
+    (tab_lines + composer_lines) AS pr_ai_lines,
+    (additions - tab_lines - composer_lines) AS pr_non_ai_lines,
 
-    -- Calculated AI ratio with fallbacks
-    -- Prefer API-provided ai_ratio, fall back to calculated from commits
-    COALESCE(
-        p.ai_ratio,
-        CASE
-            WHEN c.total_lines > 0
-            THEN c.total_ai_lines::FLOAT / c.total_lines
-            ELSE 0
-        END,
-        0
-    ) AS final_ai_ratio,
+    -- Use AI ratio from API
+    ai_ratio AS final_ai_ratio
 
-    -- Commit timestamps
-    c.first_commit_at_calc,
-    c.last_commit_at
-
-FROM prs p
-LEFT JOIN commit_agg c
-    ON p.pr_number = c.pull_request_number
-    AND p.repo_name = c.repo_name
+FROM prs

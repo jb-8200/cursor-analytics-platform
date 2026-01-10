@@ -100,14 +100,61 @@ tools/api-loader/
 └── Dockerfile          # For production job
 ```
 
-**API Contract Handling**:
+**API Response Format Handling** (CRITICAL):
 
-| Endpoint | cursor-sim Response | Loader Handling |
-|----------|---------------------|-----------------|
-| `GET /analytics/ai-code/commits` | `{"items": [...], "totalCount": N, "pagination": {...}}` | Extract `items` array |
-| `GET /repos` | `[...]` (raw array) | Use directly |
-| `GET /repos/{o}/{r}/pulls` | `[...]` (raw array) | Use directly |
-| `GET /repos/{o}/{r}/pulls/{n}/reviews` | `[...]` (raw array) | Use directly |
+cursor-sim uses **two response formats**. The loader MUST handle both:
+
+**Format 1: Cursor Analytics Style (Pagination Wrapper)**
+```json
+{
+  "items": [...],      // Use this key
+  "totalCount": 1000,
+  "page": 1,
+  "pageSize": 500
+}
+```
+
+**Format 2: GitHub Style (Raw Arrays)**
+```json
+[...]  // Raw array with no wrapper
+```
+
+**Implementation** (`tools/api-loader/extractors/base.py`):
+```python
+def fetch_cursor_style_paginated(self, endpoint, ...):
+    response = resp.json()
+
+    # Handle both formats
+    if "items" in response:
+        data = response.get("items", [])
+        total_count = response.get("totalCount", 0)
+    else:
+        data = response.get("data", [])
+        pagination = response.get("pagination", {})
+```
+
+**Endpoint Mapping**:
+
+| Endpoint | Response Format | Loader Path |
+|----------|-----------------|------------|
+| `GET /analytics/ai-code/commits` | `{items:[]}` | Extract `items` array |
+| `GET /repos` | Raw array | Use directly |
+| `GET /repos/{o}/{r}/pulls` | Raw array | Use directly |
+| `GET /repos/{o}/{r}/pulls/{n}/reviews` | Raw array | Use directly |
+
+**Column Mapping Contract** (API → dbt):
+
+| cursor-sim Field (camelCase) | dbt Staging Column (snake_case) | Type | Notes |
+|-----|-----|------|------|
+| `commitHash` | `commit_hash` | VARCHAR | Primary key |
+| `userEmail` | `user_email` | VARCHAR | Developer lookup |
+| `repoName` | `repo_name` | VARCHAR | Repository lookup |
+| `tabLinesAdded` | `tab_lines_added` | INTEGER | TAB AI completions |
+| `composerLinesAdded` | `composer_lines_added` | INTEGER | Composer AI edits |
+| `nonAiLinesAdded` | `non_ai_lines_added` | INTEGER | Human-only lines |
+| `commitTs` | `committed_at` | TIMESTAMP | UTC timestamp |
+
+**Mapping Implementation**: `dbt/models/staging/stg_commits.sql` and siblings
 
 ---
 
@@ -116,18 +163,35 @@ tools/api-loader/
 **Development**: DuckDB file at `data/analytics.duckdb`
 **Production**: Snowflake with schemas `RAW`, `STAGING`, `MART`
 
+**DuckDB Schema Naming Convention** (CRITICAL):
+
+DuckDB uses `main_` prefix for custom schemas. **All references MUST include the prefix**:
+
+```sql
+-- CORRECT (DuckDB)
+SELECT * FROM main_raw.commits
+SELECT * FROM main_staging.stg_commits
+SELECT * FROM main_mart.mart_velocity
+
+-- INCORRECT (fails with "Catalog Error")
+SELECT * FROM raw.commits
+SELECT * FROM mart.velocity
+```
+
 **Schema Design**:
 
 ```sql
 -- RAW schema: Landing zone, minimal transformation
-CREATE SCHEMA raw;
+CREATE SCHEMA main_raw;
 
 -- STAGING schema: dbt views for cleaned data
-CREATE SCHEMA staging;
+CREATE SCHEMA main_staging;
 
 -- MART schema: dbt tables for analytics
-CREATE SCHEMA mart;
+CREATE SCHEMA main_mart;
 ```
+
+**Dashboard Queries MUST Use**: `FROM main_mart.mart_*` (not `mart.*`)
 
 ---
 

@@ -139,6 +139,7 @@ def refresh_data():
                 cursor_sim_url,
                 "--output",
                 raw_data_path,
+                "--continue-on-error",
             ],
             capture_output=True,
             text=True,

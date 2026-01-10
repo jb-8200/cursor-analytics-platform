@@ -46,6 +46,91 @@ streamlit-dashboard/
 └── tests/                      # Test suite
 ```
 
+## Data Contract
+
+This dashboard is a **consumer** in the data contract hierarchy. It never touches raw API data:
+
+```
+cursor-sim API → api-loader → dbt → Dashboard
+(source)        (extract)    (transform)  (consume)
+```
+
+**Important Constraints**:
+1. Dashboard queries `main_mart.*` tables, not raw API data
+2. All user inputs are parameterized (SQL injection prevention)
+3. Column names follow dbt schema, not API schema
+
+### Available Columns
+
+Queries return these columns from dbt marts:
+
+**mart_velocity**:
+- week, repo_name, active_developers, total_prs, total_commits
+- avg_pr_size, avg_files_changed
+- **avg_total_cycle_time** (hours)
+- avg_ai_ratio, total_ai_lines, total_lines
+
+**mart_ai_impact**:
+- week, ai_usage_band, pr_count
+- avg_ai_ratio, **avg_total_cycle_time**
+- revert_rate, bug_fix_rate
+- avg_pr_size, avg_files_changed
+
+**mart_quality**:
+- week, repo_name, total_prs, reverted_prs, revert_rate
+- bug_fix_prs, bug_fix_rate, avg_reviews_per_pr, unreviewed_prs
+
+**mart_review_costs**:
+- week, repo_name, total_prs
+- avg_review_rounds, avg_reviewers_per_pr
+- **avg_review_cycle_time**
+- estimated_review_hours_per_pr, estimated_total_review_hours, large_prs
+
+**Columns NOT available** (removed from queries):
+- `p50_cycle_time` - Use `avg_total_cycle_time` instead
+- `avg_coding_lead_time` - Not computed in mart
+- `avg_review_iterations` - Not computed in mart
+
+## Security
+
+### SQL Injection Prevention
+
+All dashboard queries use parameterized binding:
+
+```python
+# SECURE: Parameters passed to DuckDB
+sql = "SELECT * FROM main_mart.mart_velocity WHERE repo_name = $repo"
+params = {"repo": repo_name}
+query(sql, params)
+
+# VULNERABLE (never do this):
+sql = f"SELECT * FROM main_mart.mart_velocity WHERE repo_name = '{repo_name}'"
+```
+
+### INTERVAL Syntax
+
+DuckDB doesn't support parameterized INTERVAL expressions. Use f-string interpolation:
+
+```python
+# CORRECT: f-string for INTERVAL (days is validated as integer)
+f"WHERE week >= CURRENT_DATE - INTERVAL '{days}' DAY"
+
+# INCORRECT: Parameter in INTERVAL (fails)
+"WHERE week >= CURRENT_DATE - INTERVAL $days DAY"
+```
+
+### Schema Naming
+
+DuckDB requires `main_*` prefix for schema-qualified table names:
+
+```sql
+-- CORRECT
+FROM main_mart.mart_velocity
+
+-- INCORRECT (fails with "Catalog Error")
+FROM mart.velocity
+```
+
 ## Setup
 
 ### Local Development (DuckDB)

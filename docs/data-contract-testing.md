@@ -10,6 +10,68 @@ During P5/P6 integration (Jan 4, 2026), GraphQL schema mismatches caused complet
 
 ---
 
+## cursor-sim API as Source of Truth (P8-P9 Data Tier)
+
+### API Contract Ownership
+
+The **cursor-sim service** (`services/cursor-sim/SPEC.md`) is the authoritative source for:
+- Endpoint paths and methods
+- Response formats (`{items:[]}` or raw arrays)
+- Field names and types (camelCase convention)
+- Pagination patterns
+- Authentication requirements
+
+**Downstream consumers MUST adapt to API**, not vice versa:
+```
+cursor-sim (SPEC.md)  →  Data Tier (dbt)  →  Dashboard (Streamlit)
+      ↓                      ↓                    ↓
+  Defines format        Maps to SQL          Queries marts
+  camelCase fields      snake_case cols      Parameterized
+```
+
+### Response Format Handling (CRITICAL)
+
+cursor-sim uses **two response formats**. All extractors MUST handle both:
+
+**Format 1: Cursor Analytics Style**
+```json
+{
+  "items": [...],      // Use this key, NOT "data"
+  "totalCount": 1000,
+  "page": 1,
+  "pageSize": 500
+}
+```
+
+**Format 2: GitHub Style (Raw Arrays)**
+```json
+[...]  // No wrapper, just array
+```
+
+### Column Mapping Contract
+
+| cursor-sim Field (camelCase) | dbt Column (snake_case) | Type | Notes |
+|---|---|---|---|
+| commitHash | commit_hash | STRING | Primary key |
+| userEmail | user_email | STRING | Developer join key |
+| repoName | repo_name | STRING | Repository join key |
+| tabLinesAdded | tab_lines_added | INT | TAB AI completions |
+| composerLinesAdded | composer_lines_added | INT | Composer AI edits |
+| commitTs | committed_at | TIMESTAMP | UTC timestamp |
+
+**Mapping Location**: `dbt/models/staging/stg_commits.sql` and siblings
+
+### DuckDB Schema Naming
+
+**CRITICAL**: DuckDB requires `main_` prefix for custom schemas:
+- Raw data: `main_raw.commits`
+- Staging: `main_staging.stg_commits`
+- Marts: `main_mart.mart_velocity`
+
+**Dashboard queries MUST use**: `main_mart.mart_*` (not `mart.*`)
+
+---
+
 ## Problem Statement
 
 ### Current State (Broken)

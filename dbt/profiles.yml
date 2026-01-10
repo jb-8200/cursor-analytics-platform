@@ -3,7 +3,7 @@ cursor_analytics:
   outputs:
     dev:
       type: duckdb
-      path: '../data/analytics.duckdb'
+      path: '/data/analytics.duckdb'
       schema: main
       threads: 4
 

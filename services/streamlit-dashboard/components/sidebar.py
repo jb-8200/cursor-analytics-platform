@@ -51,7 +51,7 @@ def render_sidebar():
 
         # Repository filter
         try:
-            repos_df = query("SELECT DISTINCT repo_name FROM mart.velocity ORDER BY repo_name")
+            repos_df = query("SELECT DISTINCT repo_name FROM main_mart.mart_velocity ORDER BY repo_name")
             repo_options = ["All"] + repos_df["repo_name"].tolist()
         except Exception as e:
             st.error(f"Failed to load repositories: {e}")

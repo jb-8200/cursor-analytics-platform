@@ -18,8 +18,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . ./
 
-# Copy dbt project (requires build context at repo root)
-COPY dbt /app/dbt
+# Note: dbt project is mounted as volume at runtime (see docker-compose.yml)
+# dbt deps will be run via entrypoint script or manually on host
 
 # Create data directory for DuckDB (dev mode)
 RUN mkdir -p /data/raw

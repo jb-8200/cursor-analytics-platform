@@ -3,7 +3,7 @@
 **Feature ID**: P9-F01-streamlit-dashboard
 **Phase**: P9 (Streamlit Dashboard)
 **Created**: January 9, 2026
-**Status**: NOT_STARTED
+**Status**: COMPLETE ✅ (12/12 tasks)
 
 ## Overview
 
@@ -14,6 +14,49 @@ As a **engineering manager**, I want a **Streamlit analytics dashboard** so that
 This dashboard replaces/complements the P6 (cursor-viz-spa) React SPA with a Python-native visualization layer. It consumes data from the P8 data tier (dbt marts).
 
 **Key Principle**: The dashboard is production-ready, deployable to Cloud Run, and can connect to either DuckDB (local dev) or Snowflake (production).
+
+## Data Flow Philosophy
+
+This dashboard is the **consumer** in the data contract hierarchy. It never touches raw API data:
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                       DATA CONTRACT HIERARCHY                             │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  1. API LAYER (cursor-sim) - SOURCE OF TRUTH                            │
+│     ├── Response formats: {items:[]} or raw arrays                      │
+│     ├── Field names: camelCase (commitHash, userEmail)                  │
+│     ├── Data types: Defined by cursor-sim SPEC.md                       │
+│     └── Contract: services/cursor-sim/SPEC.md                           │
+│                                                                          │
+│  2. DATA TIER (P8: dbt) - TRANSFORMATION CONTRACT                       │
+│     ├── Column mapping: camelCase → snake_case                          │
+│     ├── Aggregations: Weekly metrics, AI usage bands                    │
+│     ├── Materializations: Tables in main_mart schema                    │
+│     └── Contract: dbt/models/schema.yml                                 │
+│                                                                          │
+│  3. KPI DASHBOARD (P9: Streamlit) - VISUALIZATION CONSUMER              │
+│     ├── Queries: SELECT from main_mart.mart_* tables                    │
+│     ├── Filters: Parameterized repo_name and days                       │
+│     ├── Charts: Pre-aggregated data from dbt marts                      │
+│     └── Contract: services/streamlit-dashboard/queries/*.py             │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Insight**: Dashboard queries NEVER access raw API data. All data flows through dbt transformations.
+
+**Security**: All user inputs are parameterized to prevent SQL injection:
+```python
+# SECURE: Parameters passed to database
+sql = "WHERE repo_name = $repo AND week >= CURRENT_DATE - INTERVAL '{days}' DAY"
+params = {"repo": repo_name}
+query(sql, params)
+
+# VULNERABLE: Never concatenate user input
+sql = f"WHERE repo_name = '{repo_name}'"  # SQL injection risk!
+```
 
 ---
 

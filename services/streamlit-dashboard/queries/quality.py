@@ -28,8 +28,9 @@ def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, D
         params["repo"] = repo_name
 
     if days:
-        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
-        params["days"] = days
+        # Note: Use f-string for INTERVAL since DuckDB doesn't support parameterized INTERVAL
+        # This is safe because days is validated as an integer
+        conditions.append(f"week >= CURRENT_DATE - INTERVAL '{days}' DAY")
 
     if not conditions:
         return "", {}
@@ -50,10 +51,11 @@ def get_quality_data(repo_name: Optional[str] = None, days: Optional[int] = None
         total_prs,
         reverted_prs,
         revert_rate,
-        avg_time_to_revert,
         bug_fix_prs,
-        bug_fix_rate
-    FROM mart.quality
+        bug_fix_rate,
+        avg_reviews_per_pr,
+        unreviewed_prs
+    FROM main_mart.mart_quality
     {where_clause}
     ORDER BY week DESC
     """
@@ -72,7 +74,7 @@ def get_revert_trends(repo_name: Optional[str] = None, days: Optional[int] = Non
         repo_name,
         revert_rate,
         reverted_prs
-    FROM mart.quality
+    FROM main_mart.mart_quality
     {where_clause}
     ORDER BY week DESC
     """
@@ -91,8 +93,8 @@ def get_quality_summary(repo_name: Optional[str] = None, days: Optional[int] = N
         SUM(reverted_prs) as total_reverted,
         AVG(revert_rate) as avg_revert_rate,
         AVG(bug_fix_rate) as avg_bug_fix_rate,
-        AVG(avg_time_to_revert) as avg_time_to_revert
-    FROM mart.quality
+        AVG(avg_reviews_per_pr) as avg_reviews_per_pr
+    FROM main_mart.mart_quality
     {where_clause}
     """
     result = query(sql, params)
@@ -104,15 +106,17 @@ def get_quality_summary(repo_name: Optional[str] = None, days: Optional[int] = N
 def get_quality_by_ai_band(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get quality metrics grouped by AI usage band.
+
+    Note: Uses mart_ai_impact since ai_usage_band is only in that table.
     """
     where_clause, params = _build_filter(repo_name, days)
-    
+
     sql = f"""
     SELECT
         ai_usage_band,
         AVG(revert_rate) as avg_revert_rate,
         AVG(bug_fix_rate) as avg_bug_fix_rate
-    FROM mart.quality
+    FROM main_mart.mart_ai_impact
     {where_clause}
     GROUP BY ai_usage_band
     ORDER BY ai_usage_band

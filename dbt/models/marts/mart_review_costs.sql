@@ -16,7 +16,7 @@ review_data AS (
         repo_name,
         pr_number,
         COUNT(*) AS review_count,
-        COUNT(DISTINCT reviewer_email) AS reviewer_count
+        COUNT(DISTINCT reviewer) AS reviewer_count
     FROM {{ ref('stg_reviews') }}
     GROUP BY repo_name, pr_number
 )
@@ -29,7 +29,7 @@ SELECT
     COUNT(*) AS total_prs,
 
     -- Review effort (simple time-based estimates)
-    AVG(p.review_lead_time_hours) AS avg_review_cycle_time,
+    AVG(p.total_cycle_time_hours) AS avg_review_cycle_time,
     AVG(COALESCE(r.review_count, 0)) AS avg_review_rounds,
     AVG(COALESCE(r.reviewer_count, 0)) AS avg_reviewers_per_pr,
 

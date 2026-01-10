@@ -169,6 +169,8 @@ services:
       - analytics_data:/data
       # Mount dbt project for embedded pipeline (read-only)
       - ./dbt:/app/dbt:ro
+      # Mount tools for data extraction
+      - ./tools:/app/tools:ro
     depends_on:
       cursor-sim:
         condition: service_healthy

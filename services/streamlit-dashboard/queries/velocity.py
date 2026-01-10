@@ -37,8 +37,9 @@ def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, D
         params["repo"] = repo_name
 
     if days:
-        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
-        params["days"] = days
+        # Note: Use f-string for INTERVAL since DuckDB doesn't support parameterized INTERVAL
+        # This is safe because days is validated as an integer
+        conditions.append(f"week >= CURRENT_DATE - INTERVAL '{days}' DAY")
 
     if not conditions:
         return "", {}
@@ -65,15 +66,14 @@ def get_velocity_data(repo_name: Optional[str] = None, days: Optional[int] = Non
         repo_name,
         active_developers,
         total_prs,
+        total_commits,
         avg_pr_size,
-        coding_lead_time,
-        pickup_time,
-        review_lead_time,
-        total_cycle_time,
-        p50_cycle_time,
-        p90_cycle_time,
-        avg_ai_ratio
-    FROM mart.velocity
+        avg_files_changed,
+        avg_total_cycle_time,
+        avg_ai_ratio,
+        total_ai_lines,
+        total_lines
+    FROM main_mart.mart_velocity
     {where_clause}
     ORDER BY week DESC
     """
@@ -87,24 +87,17 @@ def get_cycle_time_breakdown(repo_name: Optional[str] = None, days: Optional[int
     Args:
         repo_name: Optional repository name filter
         days: Optional number of days filter
+
+    Note:
+        Returns total cycle time only (individual components not available in current schema)
     """
     where_clause, params = _build_filter(repo_name, days)
-    
+
     sql = f"""
     SELECT
-        'Coding' as component,
-        AVG(coding_lead_time) * 24 as hours
-    FROM mart.velocity {where_clause}
-    UNION ALL
-    SELECT
-        'Pickup' as component,
-        AVG(pickup_time) * 24 as hours
-    FROM mart.velocity {where_clause}
-    UNION ALL
-    SELECT
-        'Review' as component,
-        AVG(review_lead_time) * 24 as hours
-    FROM mart.velocity {where_clause}
+        'Total Cycle Time' as component,
+        AVG(avg_total_cycle_time) as hours
+    FROM main_mart.mart_velocity {where_clause}
     """
     return query(sql, params)
 
@@ -122,10 +115,10 @@ def get_velocity_summary(repo_name: Optional[str] = None, days: Optional[int] = 
     sql = f"""
     SELECT
         SUM(total_prs) as total_prs,
-        AVG(total_cycle_time) as avg_cycle_time,
+        AVG(avg_total_cycle_time) as avg_cycle_time,
         MAX(active_developers) as max_developers,
         AVG(avg_ai_ratio) as avg_ai_ratio
-    FROM mart.velocity
+    FROM main_mart.mart_velocity
     {where_clause}
     """
     result = query(sql, params)

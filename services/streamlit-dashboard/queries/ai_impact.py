@@ -27,8 +27,9 @@ def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, D
         params["repo"] = repo_name
 
     if days:
-        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
-        params["days"] = days
+        # Note: Use f-string for INTERVAL since DuckDB doesn't support parameterized INTERVAL
+        # This is safe because days is validated as an integer
+        conditions.append(f"week >= CURRENT_DATE - INTERVAL '{days}' DAY")
 
     if not conditions:
         return "", {}
@@ -48,10 +49,12 @@ def get_ai_impact_data(repo_name: Optional[str] = None, days: Optional[int] = No
         ai_usage_band,
         pr_count,
         avg_ai_ratio,
-        avg_coding_lead_time,
-        avg_review_cycle_time,
-        revert_rate
-    FROM mart.ai_impact
+        avg_total_cycle_time,
+        revert_rate,
+        bug_fix_rate,
+        avg_pr_size,
+        avg_files_changed
+    FROM main_mart.mart_ai_impact
     {where_clause}
     ORDER BY week DESC, ai_usage_band
     """
@@ -69,10 +72,10 @@ def get_band_comparison(repo_name: Optional[str] = None, days: Optional[int] = N
         ai_usage_band,
         SUM(pr_count) as total_prs,
         AVG(avg_ai_ratio) as avg_ai_ratio,
-        AVG(avg_coding_lead_time) as avg_coding_lead_time,
-        AVG(avg_review_cycle_time) as avg_review_cycle_time,
-        AVG(revert_rate) as avg_revert_rate
-    FROM mart.ai_impact
+        AVG(avg_total_cycle_time) as avg_cycle_time,
+        AVG(revert_rate) as avg_revert_rate,
+        AVG(bug_fix_rate) as avg_bug_fix_rate
+    FROM main_mart.mart_ai_impact
     {where_clause}
     GROUP BY ai_usage_band
     ORDER BY ai_usage_band
@@ -85,15 +88,15 @@ def get_band_trends(repo_name: Optional[str] = None, days: Optional[int] = None)
     Get week-over-week trends for each AI usage band.
     """
     where_clause, params = _build_filter(repo_name, days)
-    
+
     sql = f"""
     SELECT
         week,
         ai_usage_band,
         pr_count,
-        avg_coding_lead_time,
+        avg_total_cycle_time,
         revert_rate
-    FROM mart.ai_impact
+    FROM main_mart.mart_ai_impact
     {where_clause}
     ORDER BY week DESC, ai_usage_band
     """

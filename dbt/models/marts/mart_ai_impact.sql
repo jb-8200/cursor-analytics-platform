@@ -27,14 +27,7 @@ SELECT
     AVG(final_ai_ratio) AS avg_ai_ratio,
 
     -- Cycle times
-    AVG(coding_lead_time_hours) AS avg_coding_lead_time,
-    AVG(pickup_time_hours) AS avg_pickup_time,
-    AVG(review_lead_time_hours) AS avg_review_lead_time,
-    AVG(
-        COALESCE(coding_lead_time_hours, 0) +
-        COALESCE(pickup_time_hours, 0) +
-        COALESCE(review_lead_time_hours, 0)
-    ) AS avg_total_cycle_time,
+    AVG(total_cycle_time_hours) AS avg_total_cycle_time,
 
     -- Quality indicators
     AVG(CASE WHEN is_reverted THEN 1 ELSE 0 END) AS revert_rate,

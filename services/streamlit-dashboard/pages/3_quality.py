@@ -75,11 +75,11 @@ try:
         )
 
     with col3:
-        avg_time_to_revert = summary.get('avg_time_to_revert', 0) or 0
+        avg_reviews = summary.get('avg_reviews_per_pr', 0) or 0
         st.metric(
-            "Avg Time to Revert",
-            f"{avg_time_to_revert:.1f} days",
-            help="Average time from merge to revert"
+            "Avg Reviews per PR",
+            f"{avg_reviews:.1f}",
+            help="Average number of reviews per pull request"
         )
 
     with col4:
@@ -241,7 +241,7 @@ try:
     display_df["week"] = display_df["week"].astype(str)
     display_df["revert_rate"] = display_df["revert_rate"].apply(lambda x: f"{x:.1%}")
     display_df["bug_fix_rate"] = display_df["bug_fix_rate"].apply(lambda x: f"{x:.1%}")
-    display_df["avg_time_to_revert"] = display_df["avg_time_to_revert"].apply(lambda x: f"{x:.1f}")
+    display_df["avg_reviews_per_pr"] = display_df["avg_reviews_per_pr"].apply(lambda x: f"{x:.1f}")
 
     # Select and rename columns for better display
     display_columns = {
@@ -252,7 +252,7 @@ try:
         "revert_rate": "Revert Rate",
         "bug_fix_prs": "Bug Fixes",
         "bug_fix_rate": "Bug Fix Rate",
-        "avg_time_to_revert": "Time to Revert (days)"
+        "avg_reviews_per_pr": "Avg Reviews/PR"
     }
 
     display_df = display_df[list(display_columns.keys())].rename(columns=display_columns)

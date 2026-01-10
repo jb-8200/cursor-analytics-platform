@@ -84,12 +84,12 @@ try:
         )
 
     with col4:
-        # Average review cycle time
-        avg_review_time = df["avg_review_cycle_time"].mean()
+        # Average cycle time
+        avg_cycle_time = df["avg_total_cycle_time"].mean()
         st.metric(
-            "Avg Review Time",
-            f"{avg_review_time:.1f} days",
-            help="Average review cycle time across all bands"
+            "Avg Cycle Time",
+            f"{avg_cycle_time:.1f} days",
+            help="Average total cycle time across all bands"
         )
 
     st.divider()
@@ -103,16 +103,14 @@ try:
         display_df = band_comparison.copy()
         display_df["ai_usage_band"] = display_df["ai_usage_band"].str.capitalize()
         display_df["avg_ai_ratio"] = display_df["avg_ai_ratio"].apply(lambda x: f"{x:.1%}")
-        display_df["avg_coding_lead_time"] = display_df["avg_coding_lead_time"].apply(lambda x: f"{x:.1f} days")
-        display_df["avg_review_cycle_time"] = display_df["avg_review_cycle_time"].apply(lambda x: f"{x:.1f} days")
+        display_df["avg_cycle_time"] = display_df["avg_cycle_time"].apply(lambda x: f"{x:.1f} days")
         display_df["avg_revert_rate"] = display_df["avg_revert_rate"].apply(lambda x: f"{x:.1%}")
 
         display_columns = {
             "ai_usage_band": "AI Usage Band",
             "total_prs": "PRs",
             "avg_ai_ratio": "Avg AI Ratio",
-            "avg_coding_lead_time": "Coding Lead Time",
-            "avg_review_cycle_time": "Review Cycle Time",
+            "avg_cycle_time": "Cycle Time",
             "avg_revert_rate": "Revert Rate"
         }
 
@@ -130,15 +128,15 @@ try:
 
     # --- Box Plot: Cycle Time by AI Band ---
     st.subheader("📦 Cycle Time Distribution by AI Band")
-    st.markdown("Compare coding lead time distribution across AI usage levels")
+    st.markdown("Compare cycle time distribution across AI usage levels")
 
     # Create box plot
     fig_box = px.box(
         df,
         x="ai_usage_band",
-        y="avg_coding_lead_time",
+        y="avg_total_cycle_time",
         color="ai_usage_band",
-        title="Coding Lead Time by AI Usage Band",
+        title="Cycle Time by AI Usage Band",
         category_orders={"ai_usage_band": ["low", "medium", "high"]},
         color_discrete_map={
             "low": "#e74c3c",
@@ -147,13 +145,13 @@ try:
         },
         labels={
             "ai_usage_band": "AI Usage Band",
-            "avg_coding_lead_time": "Coding Lead Time (days)"
+            "avg_total_cycle_time": "Cycle Time (days)"
         }
     )
 
     fig_box.update_layout(
         xaxis_title="AI Usage Band",
-        yaxis_title="Coding Lead Time (days)",
+        yaxis_title="Cycle Time (days)",
         showlegend=False,
         margin=dict(l=0, r=0, t=30, b=0)
     )
