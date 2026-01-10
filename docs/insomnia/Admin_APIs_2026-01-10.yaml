@@ -1,0 +1,449 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: cursor-sim Admin APIs
+meta:
+  id: wrk_admin_api_suite_001
+  created: 1736433600000
+  modified: 1736433600000
+  description: "Admin API Suite for cursor-sim runtime management (P1-F02)"
+collection:
+  - name: Admin Configuration
+    meta:
+      id: fld_admin_config_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -1000
+      description: Get and inspect current runtime configuration
+    children:
+      - url: "{{ _.baseUrl }}/admin/config"
+        name: Get Current Configuration
+        meta:
+          id: req_admin_config_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Retrieve current runtime configuration including generation parameters, seed structure, external data sources, and server info"
+          sortKey: -1000
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Accept
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  - name: Admin Statistics
+    meta:
+      id: fld_admin_stats_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -900
+      description: Retrieve comprehensive statistics and metrics
+    children:
+      - url: "{{ _.baseUrl }}/admin/stats"
+        name: Get Statistics (Basic)
+        meta:
+          id: req_admin_stats_basic_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Retrieve comprehensive statistics about generated data (generation, developers, quality, variance, performance)"
+          sortKey: -1000
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Accept
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/stats?include_timeseries=true"
+        name: Get Statistics (With Time Series)
+        meta:
+          id: req_admin_stats_timeseries_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Retrieve statistics with optional time series data (commits per day, PRs per day, etc.)"
+          sortKey: -900
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Accept
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  - name: Admin Seed Management
+    meta:
+      id: fld_admin_seed_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -800
+      description: Upload seed files and manage team structure
+    children:
+      - url: "{{ _.baseUrl }}/admin/seed/presets"
+        name: Get Seed Presets
+        meta:
+          id: req_admin_presets_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Retrieve predefined seed configurations (small-team, medium-team, enterprise, multi-region)"
+          sortKey: -1000
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Accept
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/seed"
+        name: Upload Seed (JSON)
+        meta:
+          id: req_admin_seed_json_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Upload a new seed file in JSON format without regenerating"
+          sortKey: -900
+        method: POST
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        body:
+          mimeType: application/json
+          text: |
+            {
+              "data": "{\"version\":\"1.0\",\"developers\":[{\"id\":\"user_001\",\"email\":\"dev1@example.com\",\"name\":\"Developer One\"}],\"repositories\":[{\"id\":\"repo_001\",\"name\":\"backend-api\",\"language\":\"go\"}],\"models\":[\"claude-3-5-sonnet-20241022\"],\"file_extensions\":[\".go\",\".ts\"]}",
+              "format": "json",
+              "regenerate": false
+            }
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/seed"
+        name: Upload Seed (CSV) + Regenerate
+        meta:
+          id: req_admin_seed_csv_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Upload a CSV seed file and immediately regenerate data"
+          sortKey: -800
+        method: POST
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        body:
+          mimeType: application/json
+          text: |
+            {
+              "data": "user_id,email,name\nuser_001,dev1@example.com,Developer One\nuser_002,dev2@example.com,Developer Two\nuser_003,dev3@example.com,Developer Three",
+              "format": "csv",
+              "regenerate": true,
+              "regenerate_config": {
+                "mode": "override",
+                "days": 90,
+                "velocity": "medium",
+                "developers": 0,
+                "max_commits": 0
+              }
+            }
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  - name: Admin Data Regeneration
+    meta:
+      id: fld_admin_regen_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -700
+      description: Regenerate simulation data with different parameters
+    children:
+      - url: "{{ _.baseUrl }}/admin/regenerate"
+        name: Regenerate - Override Mode (Scale Up)
+        meta:
+          id: req_admin_regen_override_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Clear all existing data and generate fresh dataset with new parameters (for scaling up to 1200+ developers)"
+          sortKey: -1000
+        method: POST
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        body:
+          mimeType: application/json
+          text: |
+            {
+              "mode": "override",
+              "days": 400,
+              "velocity": "high",
+              "developers": 1200,
+              "max_commits": 500
+            }
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/regenerate"
+        name: Regenerate - Override Mode (Small)
+        meta:
+          id: req_admin_regen_override_small_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Override with small dataset for fast testing (50 developers, 30 days)"
+          sortKey: -900
+        method: POST
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        body:
+          mimeType: application/json
+          text: |
+            {
+              "mode": "override",
+              "days": 30,
+              "velocity": "low",
+              "developers": 50,
+              "max_commits": 1000
+            }
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/regenerate"
+        name: Regenerate - Append Mode
+        meta:
+          id: req_admin_regen_append_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Add new data to existing storage (cumulative, no data loss)"
+          sortKey: -800
+        method: POST
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        body:
+          mimeType: application/json
+          text: |
+            {
+              "mode": "append",
+              "days": 30,
+              "velocity": "medium",
+              "developers": 0,
+              "max_commits": 0
+            }
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  - name: Quick Workflows
+    meta:
+      id: fld_workflows_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -600
+      description: Common admin API workflows
+    children:
+      - url: "{{ _.baseUrl }}/admin/seed/presets"
+        name: "[1] Choose Preset"
+        meta:
+          id: req_workflow_1_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Step 1 of Workflow: Get available seed presets"
+          sortKey: -1000
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/config"
+        name: "[2] Verify Configuration"
+        meta:
+          id: req_workflow_2_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Step 2 of Workflow: Check current configuration after changes"
+          sortKey: -900
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/stats?include_timeseries=true"
+        name: "[3] Monitor Results"
+        meta:
+          id: req_workflow_3_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: "Step 3 of Workflow: Monitor generation progress and data quality"
+          sortKey: -800
+        method: GET
+        authentication:
+          type: basic
+          disabled: false
+          username: cursor-sim-dev-key
+          password: ""
+        headers:
+          - name: User-Agent
+            value: Insomnia/Admin
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+variables:
+  - name: baseUrl
+    value: http://localhost:8080
+  - name: apiKey
+    value: cursor-sim-dev-key

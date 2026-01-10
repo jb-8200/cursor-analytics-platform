@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P1-F02 (Admin API Suite) Parts 2-3 Complete ✅
-**Last Updated**: January 10, 2026 (TASK-F02-14: Admin Seed Management API Documentation)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P4-F05 (Insomnia External APIs) Complete + P1-F02 (Admin API Suite) Complete ✅
+**Last Updated**: January 10, 2026 (TASK-INS-07: External Data Sources API Documentation)
 
 ## Overview
 
@@ -811,6 +811,213 @@ curl -u cursor-sim-dev-key: "http://localhost:8080/admin/stats?include_timeserie
 ```
 
 **Legend**: ✅ Fully implemented
+
+---
+
+#### External Data Sources API (P4-F05)
+
+Provides integrations with third-party data sources. These endpoints simulate data from external systems and are only active when configured in the seed file.
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | `/harvey/api/v1/history/usage` | Yes | ✅ Implemented |
+| GET | `/reports/getMicrosoft365CopilotUsageUserDetail(period=...)` | Yes | ✅ Implemented |
+| POST | `/API/v3/surveys/{surveyId}/export-responses` | Yes | ✅ Implemented |
+| GET | `/API/v3/surveys/{surveyId}/export-responses/{progressId}` | Yes | ✅ Implemented |
+| GET | `/API/v3/surveys/{surveyId}/export-responses/{fileId}/file` | Yes | ✅ Implemented |
+
+**GET /harvey/api/v1/history/usage**
+
+Returns Harvey AI legal document analysis usage events. Requires Harvey to be enabled in seed configuration.
+
+**Query Parameters:**
+- `from` (string): Start date (YYYY-MM-DD or RFC3339 format)
+- `to` (string): End date (YYYY-MM-DD or RFC3339 format)
+- `user` (string, optional): Filter by user email
+- `task` (string, optional): Filter by task type (e.g., "legal_review", "contract_analysis")
+- `page` (integer, optional): Page number (default 1)
+- `page_size` (integer, optional): Items per page (default 50, max 100)
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "event_001",
+      "timestamp": "2026-01-10T15:30:00Z",
+      "user_email": "dev@example.com",
+      "task_type": "legal_review",
+      "document_name": "contract_123.pdf",
+      "duration_seconds": 180,
+      "status": "completed"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 50,
+    "totalCount": 156,
+    "totalPages": 4,
+    "hasNextPage": true
+  }
+}
+```
+
+**GET /reports/getMicrosoft365CopilotUsageUserDetail(period='...')**
+
+Returns Microsoft 365 Copilot usage metrics. OData-compliant endpoint. Supports JSON or CSV export. Requires Copilot to be enabled in seed configuration.
+
+**Query Parameters:**
+- `period` (string, required): Report period - D7, D30, D90, or D180
+- `$format` (string, optional): Response format - "application/json" (default) or "text/csv"
+
+**Supported Periods:**
+- D7: Last 7 days
+- D30: Last 30 days
+- D90: Last 90 days
+- D180: Last 180 days
+
+**Response (JSON):**
+```json
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#reports.getM365CopilotUsageUserDetail()",
+  "value": [
+    {
+      "reportRefreshDate": "2026-01-10",
+      "userPrincipalName": "user@company.com",
+      "displayName": "User Name",
+      "reportPeriod": 30,
+      "copilotCompletionEventsCount": 145,
+      "copilotCompletionTokenCount": 8234,
+      "copilotCitations": 23
+    }
+  ]
+}
+```
+
+**Response (CSV):**
+```csv
+Report Refresh Date,User Principal Name,Display Name,Report Period,Copilot Completion Events,Copilot Completion Tokens,Copilot Citations
+2026-01-10,user@company.com,User Name,30,145,8234,23
+```
+
+**POST /API/v3/surveys/{surveyId}/export-responses**
+
+Starts a Qualtrics survey response export job. Requires Qualtrics to be enabled in seed configuration. Returns immediately with a progress ID for polling.
+
+**Path Parameters:**
+- `surveyId` (string, required): Qualtrics survey ID
+
+**Request Body:** (empty)
+
+**Response:**
+```json
+{
+  "result": {
+    "progressId": "ES_abc123def456",
+    "status": "inProgress",
+    "percentComplete": 0,
+    "estimatedSeconds": 120
+  }
+}
+```
+
+**GET /API/v3/surveys/{surveyId}/export-responses/{progressId}**
+
+Polls the status of an export job. Response includes completion percentage and file ID when ready.
+
+**Path Parameters:**
+- `surveyId` (string, required): Qualtrics survey ID
+- `progressId` (string, required): Progress ID from export start response
+
+**Response:**
+```json
+{
+  "result": {
+    "progressId": "ES_abc123def456",
+    "status": "complete",
+    "percentComplete": 100,
+    "fileId": "FILE_xyz789abc123"
+  }
+}
+```
+
+**Possible Status Values:**
+- "inProgress": Export job still running
+- "complete": Export ready for download
+- "failed": Export job failed (fileId will be null)
+
+**GET /API/v3/surveys/{surveyId}/export-responses/{fileId}/file**
+
+Downloads the exported survey responses as a ZIP file containing CSV data.
+
+**Path Parameters:**
+- `surveyId` (string, required): Qualtrics survey ID
+- `fileId` (string, required): File ID from progress poll response
+
+**Response:**
+- Content-Type: application/zip
+- Content-Disposition: attachment; filename="survey_responses.zip"
+- Body: Binary ZIP file containing survey_responses.csv
+
+**ZIP Contents:**
+```
+survey_responses.csv
+├─ ResponseID
+├─ RespondentEmail
+├─ OverallAISatisfaction
+├─ RecommendedFeatures
+└─ AdditionalComments
+```
+
+**Enabling External Data Sources**
+
+External data sources are configured in the seed file. Each source requires:
+
+```json
+{
+  "externalDataSources": {
+    "harvey": {
+      "enabled": true,
+      "models": ["gpt-4", "claude-3-sonnet"],
+      "userId": "user_001"
+    },
+    "copilot": {
+      "enabled": true
+    },
+    "qualtrics": {
+      "enabled": true,
+      "surveyId": "SV_survey_id_here"
+    }
+  }
+}
+```
+
+**Configuration Details:**
+
+- **Harvey**: Legal document analysis. When disabled, /harvey/* endpoints return 404.
+- **Copilot**: Microsoft 365 usage metrics. When disabled, /reports/* endpoints return 404.
+- **Qualtrics**: Survey response export. When disabled, /API/v3/surveys/* endpoints return 404.
+
+**Error Responses**
+
+All external data source endpoints return standard HTTP error codes:
+
+| Status | Description |
+|--------|-------------|
+| 200 | Success |
+| 400 | Bad Request (invalid parameters) |
+| 401 | Unauthorized (authentication required) |
+| 404 | Not Found (endpoint not enabled or invalid resource ID) |
+| 500 | Internal Server Error |
+
+**Example Error Response:**
+```json
+{
+  "error": "invalid_period",
+  "message": "Period must be D7, D30, D90, or D180",
+  "timestamp": "2026-01-10T15:30:00Z"
+}
+```
 
 ---
 

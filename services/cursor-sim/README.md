@@ -373,15 +373,40 @@ See [SPEC.md](./SPEC.md) for complete endpoint documentation.
 
 Runtime administration endpoints for managing the simulator without restart (P1-F02).
 
+### Quick Start
+
+**Authentication:** All admin endpoints use Basic Auth with API key `cursor-sim-dev-key`
+
+```bash
+# Set environment variable for convenience
+export CURSOR_SIM_API_KEY="cursor-sim-dev-key"
+export CURSOR_SIM_BASE_URL="http://localhost:8080"
+
+# Or use directly in curl
+curl -u cursor-sim-dev-key: $CURSOR_SIM_BASE_URL/admin/config
+```
+
 ### Available Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/admin/regenerate` | POST | Regenerate data with new parameters (append/override) |
-| `/admin/seed` | POST | Upload new seed file (JSON/YAML/CSV) |
-| `/admin/seed/presets` | GET | Get predefined seed configurations |
-| `/admin/config` | GET | Get current runtime configuration |
-| `/admin/stats` | GET | Get detailed statistics and metrics |
+| Endpoint | Method | Description | Use Case |
+| --- | --- | --- | --- |
+| `/admin/regenerate` | POST | Regenerate data with new parameters (append/override) | Scale up/down for testing |
+| `/admin/seed` | POST | Upload new seed file (JSON/YAML/CSV) | Change team structure |
+| `/admin/seed/presets` | GET | Get predefined seed configurations | Quick preset selection |
+| `/admin/config` | GET | Get current runtime configuration | Inspect settings |
+| `/admin/stats` | GET | Get detailed statistics and metrics | Monitor data quality |
+
+### Quick Decision Tree
+
+```text
+Need to...
+├─ Change number of developers? → POST /admin/regenerate (override mode)
+├─ Add more days of history? → POST /admin/regenerate (append mode)
+├─ Check current configuration? → GET /admin/config
+├─ See data statistics? → GET /admin/stats
+├─ Change team structure? → POST /admin/seed + regenerate
+└─ Choose from presets? → GET /admin/seed/presets
+```
 
 ### Examples
 
@@ -402,6 +427,7 @@ curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -451,6 +477,7 @@ curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
 ```
 
 **Response:**
+
 ```json
 {
   "status": "success",
@@ -493,6 +520,7 @@ curl -u cursor-sim-dev-key: http://localhost:8080/admin/seed/presets
 ```
 
 **Response:**
+
 ```json
 {
   "presets": [
@@ -545,6 +573,7 @@ curl -u cursor-sim-dev-key: http://localhost:8080/admin/config
 ```
 
 **Response:**
+
 ```json
 {
   "generation": {
@@ -589,6 +618,7 @@ curl -u cursor-sim-dev-key: "http://localhost:8080/admin/stats?include_timeserie
 ```
 
 **Response:**
+
 ```json
 {
   "generation": {
@@ -667,6 +697,27 @@ curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
 # Poll statistics to monitor progress
 watch -n 5 'curl -s -u cursor-sim-dev-key: http://localhost:8080/admin/stats | jq ".generation"'
 ```
+
+### Using Insomnia for Admin APIs
+
+An Insomnia collection with all admin endpoints is available at `docs/insomnia/Admin_APIs_2026-01-10.yaml`
+
+**Import steps:**
+
+1. Open Insomnia
+2. Click Dashboard → Import
+3. Select `Admin_APIs_2026-01-10.yaml`
+4. Set variables: `baseUrl` (default: `http://localhost:8080`)
+5. Start using predefined requests
+
+**Included endpoints:**
+
+- Get Current Configuration
+- Get Statistics (basic & with time series)
+- Regenerate Data (override & append modes)
+- Upload Seed Files (JSON, CSV formats)
+- Get Seed Presets
+- Quick Workflow Steps
 
 For complete API documentation including request/response schemas and validation rules, see [SPEC.md](./SPEC.md#admin-api-p1-f02).
 

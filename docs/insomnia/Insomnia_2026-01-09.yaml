@@ -1501,6 +1501,272 @@ collection:
       username: "{{ _.apiKey }}"
       password: ""
       disabled: false
+  - name: Harvey AI
+    meta:
+      id: fld_harvey_ai_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -800
+      description: Harvey AI legal document analysis usage tracking
+    children:
+      - url: "{{ _.baseUrl }}/harvey/api/v1/history/usage"
+        name: GET Usage History
+        meta:
+          id: req_harvey_usage_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Query Harvey AI usage history with optional filtering by user, task, and date range
+          sortKey: -1000
+        method: GET
+        parameters:
+          - name: from
+            value: "{{ _.startDate }}"
+            description: Start date (RFC3339 format)
+            disabled: false
+          - name: to
+            value: "{{ _.endDate }}"
+            description: End date (RFC3339 format)
+            disabled: false
+          - name: user
+            value: "{{ _.harveyUser }}"
+            description: Optional filter by user email
+            disabled: true
+          - name: task
+            value: "{{ _.harveyTask }}"
+            description: Optional filter by task type
+            disabled: true
+          - name: page
+            value: "1"
+            description: Page number (default 1)
+            disabled: false
+          - name: page_size
+            value: "50"
+            description: Results per page (default 50, max 100)
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: Microsoft 365 Copilot
+    meta:
+      id: fld_copilot_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -750
+      description: Microsoft 365 Copilot usage metrics and analytics
+    children:
+      - url: "{{ _.baseUrl }}/reports/getMicrosoft365CopilotUsageUserDetail(period='D7')"
+        name: GET D7 Usage
+        meta:
+          id: req_copilot_d7_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Get Copilot usage for past 7 days
+          sortKey: -1000
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')"
+        name: GET D30 Usage
+        meta:
+          id: req_copilot_d30_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Get Copilot usage for past 30 days
+          sortKey: -900
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/reports/getMicrosoft365CopilotUsageUserDetail(period='D90')"
+        name: GET D90 Usage
+        meta:
+          id: req_copilot_d90_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Get Copilot usage for past 90 days
+          sortKey: -800
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/reports/getMicrosoft365CopilotUsageUserDetail(period='D180')"
+        name: GET D180 Usage
+        meta:
+          id: req_copilot_d180_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Get Copilot usage for past 180 days
+          sortKey: -700
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')"
+        name: GET D30 CSV Export
+        meta:
+          id: req_copilot_csv_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Get Copilot usage for past 30 days in CSV format
+          sortKey: -600
+        method: GET
+        parameters:
+          - name: "$format"
+            value: "text/csv"
+            description: CSV export format
+            disabled: false
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
+  - name: Qualtrics Survey Export
+    meta:
+      id: fld_qualtrics_001
+      created: 1736433600000
+      modified: 1736433600000
+      sortKey: -700
+      description: "Three-step survey export workflow: 1. Start export → 2. Check progress → 3. Download ZIP"
+    children:
+      - url: "{{ _.baseUrl }}/API/v3/surveys/{{ _.qualtricsSurveyId }}/export-responses"
+        name: "1. Start Export"
+        meta:
+          id: req_qualtrics_start_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Start a survey response export job and receive progressId
+          sortKey: -1000
+        method: POST
+        body:
+          mimeType: application/json
+          text: '{"format": "json"}'
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/API/v3/surveys/{{ _.qualtricsSurveyId }}/export-responses/{{ _.qualtricsProgressId }}"
+        name: "2. Check Progress"
+        meta:
+          id: req_qualtrics_progress_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Poll export progress (queued → inProgress → complete) and receive fileId
+          sortKey: -900
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.baseUrl }}/API/v3/surveys/{{ _.qualtricsSurveyId }}/export-responses/{{ _.qualtricsFileId }}/file"
+        name: "3. Download ZIP"
+        meta:
+          id: req_qualtrics_download_001
+          created: 1736433600000
+          modified: 1736433600000
+          isPrivate: false
+          description: Download the exported survey responses as ZIP file
+          sortKey: -800
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.0.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    authentication:
+      type: basic
+      useISO88591: false
+      username: "{{ _.apiKey }}"
+      password: ""
+      disabled: false
 cookieJar:
   name: Default Jar
   meta:
@@ -1541,3 +1807,9 @@ environments:
         repoName: payment-service
         prNumber: "1"
         commitSha: abc123
+        harveyUser: user@example.com
+        harveyTask: legal-review
+        copilotPeriod: D30
+        qualtricsSurveyId: SV_XXXXXXXXXXXXX
+        qualtricsProgressId: PROGRESS_ID_123456
+        qualtricsFileId: FILE_ID_123456

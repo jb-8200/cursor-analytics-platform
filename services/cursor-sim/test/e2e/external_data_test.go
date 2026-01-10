@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/models"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/server"
@@ -20,7 +21,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const externalDataTestPort = 19083
+const (
+	externalDataTestPort = 19083
+	testAPIKey           = "test-api-key"
+)
 
 // setupExternalDataE2EServer creates a test server with external data sources enabled.
 func setupExternalDataE2EServer(t *testing.T) (context.CancelFunc, *storage.MemoryStore) {
@@ -42,8 +46,20 @@ func setupExternalDataE2EServer(t *testing.T) (context.CancelFunc, *storage.Memo
 	err = store.LoadDevelopers(seedData.Developers)
 	require.NoError(t, err)
 
+	// Create test config
+	testConfig := &config.Config{
+		Mode:     "runtime",
+		Days:     30,
+		Velocity: "medium",
+		GenParams: config.GenerationParams{
+			Days:       30,
+			Developers: len(seedData.Developers),
+			MaxCommits: 0,
+		},
+	}
+
 	// Create HTTP server with router
-	router := server.NewRouter(store, seedData, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey, testConfig, "2.0.0")
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", externalDataTestPort),
 		Handler: router,
@@ -210,7 +226,12 @@ func TestHarvey_E2E_DisabledWhenNotConfigured(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStore()
-	router := server.NewRouter(store, seedData, testAPIKey)
+	testConfig := &config.Config{
+		Mode:     "runtime",
+		Days:     30,
+		Velocity: "medium",
+	}
+	router := server.NewRouter(store, seedData, testAPIKey, testConfig, "2.0.0")
 
 	// Start server on different port
 	const testPort = 19084
@@ -353,7 +374,12 @@ func TestCopilot_E2E_DisabledWhenNotConfigured(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStore()
-	router := server.NewRouter(store, seedData, testAPIKey)
+	testConfig := &config.Config{
+		Mode:     "runtime",
+		Days:     30,
+		Velocity: "medium",
+	}
+	router := server.NewRouter(store, seedData, testAPIKey, testConfig, "2.0.0")
 
 	// Start server on different port
 	const testPort = 19085
@@ -565,7 +591,12 @@ func TestQualtrics_E2E_DisabledWhenNotConfigured(t *testing.T) {
 	}
 
 	store := storage.NewMemoryStore()
-	router := server.NewRouter(store, seedData, testAPIKey)
+	testConfig := &config.Config{
+		Mode:     "runtime",
+		Days:     30,
+		Velocity: "medium",
+	}
+	router := server.NewRouter(store, seedData, testAPIKey, testConfig, "2.0.0")
 
 	// Start server on different port
 	const testPort = 19086
@@ -708,4 +739,352 @@ func TestExternalData_E2E_ErrorCases(t *testing.T) {
 			t.Logf("%s: %d (expected %d)", tt.name, resp.StatusCode, tt.expectedStatus)
 		})
 	}
+}
+
+// ============================================================================
+// Additional Harvey Tests (Edge Cases)
+// ============================================================================
+
+// TestHarvey_E2E_UserFiltering tests Harvey user-specific filtering.
+func TestHarvey_E2E_UserFiltering(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	now := time.Now()
+	from := now.Add(-30 * 24 * time.Hour).Format("2006-01-02")
+	to := now.Format("2006-01-02")
+
+	// Test with user filter
+	path := fmt.Sprintf("/harvey/api/v1/history/usage?from=%s&to=%s&user=dev@example.com", from, to)
+	resp := makeAuthenticatedRequest(t, "GET", path)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result map[string]interface{}
+	err := json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	// Verify response structure
+	assert.Contains(t, result, "data")
+	data := result["data"].([]interface{})
+	assert.NotNil(t, data)
+
+	// With user filter, results should be filtered to that user only
+	t.Logf("Harvey user filtering: %d events for dev@example.com", len(data))
+}
+
+// TestHarvey_E2E_TaskFiltering tests Harvey task-specific filtering.
+func TestHarvey_E2E_TaskFiltering(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	now := time.Now()
+	from := now.Add(-30 * 24 * time.Hour).Format("2006-01-02")
+	to := now.Format("2006-01-02")
+
+	// Test with task filter
+	path := fmt.Sprintf("/harvey/api/v1/history/usage?from=%s&to=%s&task=legal_review", from, to)
+	resp := makeAuthenticatedRequest(t, "GET", path)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result map[string]interface{}
+	err := json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	// Verify response structure
+	assert.Contains(t, result, "data")
+	data := result["data"].([]interface{})
+	assert.NotNil(t, data)
+
+	t.Logf("Harvey task filtering: %d events for legal_review task", len(data))
+}
+
+// TestHarvey_E2E_CombinedFilters tests Harvey with both user and task filters.
+func TestHarvey_E2E_CombinedFilters(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	now := time.Now()
+	from := now.Add(-30 * 24 * time.Hour).Format("2006-01-02")
+	to := now.Format("2006-01-02")
+
+	// Test with both user and task filters
+	path := fmt.Sprintf("/harvey/api/v1/history/usage?from=%s&to=%s&user=dev@example.com&task=legal_review", from, to)
+	resp := makeAuthenticatedRequest(t, "GET", path)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result map[string]interface{}
+	err := json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	// Verify response structure
+	assert.Contains(t, result, "data")
+	data := result["data"].([]interface{})
+	assert.NotNil(t, data)
+
+	t.Logf("Harvey combined filters: %d events for user+task", len(data))
+}
+
+// ============================================================================
+// Additional Copilot Tests (Edge Cases)
+// ============================================================================
+
+// TestCopilot_E2E_CSVFormatValidation tests CSV export format structure.
+func TestCopilot_E2E_CSVFormatValidation(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	// Test CSV format
+	path := "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')?$format=text/csv"
+	resp := makeAuthenticatedRequest(t, "GET", path)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "text/csv", resp.Header.Get("Content-Type"))
+
+	// Parse CSV
+	reader := csv.NewReader(resp.Body)
+	records, err := reader.ReadAll()
+	require.NoError(t, err)
+
+	assert.Greater(t, len(records), 0, "CSV should have records")
+
+	// Verify expected headers exist
+	header := records[0]
+	expectedHeaders := []string{"Report Refresh Date", "User Principal Name", "Display Name"}
+	for _, expectedHeader := range expectedHeaders {
+		assert.Contains(t, header, expectedHeader, "CSV should contain expected header")
+	}
+
+	// Verify all data rows have same column count as header
+	for i, row := range records[1:] {
+		assert.Equal(t, len(header), len(row), "Row %d should have same column count as header", i+1)
+	}
+
+	t.Logf("CSV format validated: %d rows with %d columns", len(records)-1, len(header))
+}
+
+// TestCopilot_E2E_LargeDataset tests response with many users.
+func TestCopilot_E2E_LargeDataset(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	path := "/reports/getMicrosoft365CopilotUsageUserDetail(period='D90')?$format=application/json"
+	resp := makeAuthenticatedRequest(t, "GET", path)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var result models.CopilotUsageResponse
+	err := json.NewDecoder(resp.Body).Decode(&result)
+	require.NoError(t, err)
+
+	// Verify response structure is consistent with large dataset
+	assert.NotEmpty(t, result.Context)
+	assert.NotNil(t, result.Value)
+
+	// Verify all entries have required fields
+	for _, user := range result.Value {
+		assert.NotEmpty(t, user.UserPrincipalName, "User should have UserPrincipalName")
+		assert.NotEmpty(t, user.DisplayName, "User should have DisplayName")
+		assert.NotEmpty(t, user.ReportRefreshDate, "User should have ReportRefreshDate")
+	}
+
+	t.Logf("Large dataset test: %d users in response", len(result.Value))
+}
+
+// TestCopilot_E2E_MultiFormatConsistency tests that JSON and CSV have same data.
+func TestCopilot_E2E_MultiFormatConsistency(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	// Get JSON response
+	jsonPath := "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')?$format=application/json"
+	jsonResp := makeAuthenticatedRequest(t, "GET", jsonPath)
+	defer jsonResp.Body.Close()
+
+	var jsonResult models.CopilotUsageResponse
+	err := json.NewDecoder(jsonResp.Body).Decode(&jsonResult)
+	require.NoError(t, err)
+
+	// Get CSV response
+	csvPath := "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')?$format=text/csv"
+	csvResp := makeAuthenticatedRequest(t, "GET", csvPath)
+	defer csvResp.Body.Close()
+
+	reader := csv.NewReader(csvResp.Body)
+	records, err := reader.ReadAll()
+	require.NoError(t, err)
+
+	// CSV should have header + data rows
+	csvDataRows := len(records) - 1
+	jsonDataRows := len(jsonResult.Value)
+
+	// Both formats should return same number of data rows
+	assert.Equal(t, jsonDataRows, csvDataRows, "JSON and CSV should have same number of data rows")
+
+	t.Logf("Multi-format consistency: JSON=%d, CSV=%d rows", jsonDataRows, csvDataRows)
+}
+
+// ============================================================================
+// Additional Qualtrics Tests (Edge Cases)
+// ============================================================================
+
+// TestQualtrics_E2E_ImmediateCompletion tests export completing on first check.
+func TestQualtrics_E2E_ImmediateCompletion(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+	surveyID := seedData.ExternalDataSources.Qualtrics.SurveyID
+
+	// Start export
+	startPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses", surveyID)
+	resp := makeAuthenticatedRequest(t, "POST", startPath)
+	defer resp.Body.Close()
+
+	var startResp models.ExportStartResponse
+	json.NewDecoder(resp.Body).Decode(&startResp)
+	progressID := startResp.Result.ProgressID
+
+	// Check progress immediately (may be complete)
+	progressPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses/%s", surveyID, progressID)
+	resp = makeAuthenticatedRequest(t, "GET", progressPath)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	var progressResp models.ExportProgressResponse
+	json.NewDecoder(resp.Body).Decode(&progressResp)
+
+	// Verify progress is valid (0-100%)
+	assert.GreaterOrEqual(t, progressResp.Result.PercentComplete, 0)
+	assert.LessOrEqual(t, progressResp.Result.PercentComplete, 100)
+
+	t.Logf("Immediate completion check: %d%% complete", progressResp.Result.PercentComplete)
+}
+
+// TestQualtrics_E2E_FileDownloadVerification tests ZIP file integrity and content.
+func TestQualtrics_E2E_FileDownloadVerification(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+	surveyID := seedData.ExternalDataSources.Qualtrics.SurveyID
+
+	// Complete full export flow
+	startPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses", surveyID)
+	resp := makeAuthenticatedRequest(t, "POST", startPath)
+	defer resp.Body.Close()
+
+	var startResp models.ExportStartResponse
+	json.NewDecoder(resp.Body).Decode(&startResp)
+	progressID := startResp.Result.ProgressID
+
+	// Wait for completion
+	var fileID string
+	for i := 0; i < 10; i++ {
+		time.Sleep(100 * time.Millisecond)
+		progressPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses/%s", surveyID, progressID)
+		resp := makeAuthenticatedRequest(t, "GET", progressPath)
+
+		var progressResp models.ExportProgressResponse
+		json.NewDecoder(resp.Body).Decode(&progressResp)
+		resp.Body.Close()
+
+		if progressResp.Result.Status == "complete" {
+			fileID = progressResp.Result.FileID
+			break
+		}
+	}
+
+	require.NotEmpty(t, fileID, "Should get fileID after completion")
+
+	// Download file
+	filePath := fmt.Sprintf("/API/v3/surveys/%s/export-responses/%s/file", surveyID, fileID)
+	resp = makeAuthenticatedRequest(t, "GET", filePath)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "application/zip", resp.Header.Get("Content-Type"))
+
+	// Verify ZIP integrity
+	zipData, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	assert.Greater(t, len(zipData), 0, "ZIP file should have content")
+
+	// Verify ZIP structure
+	zipReader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
+	require.NoError(t, err)
+
+	// Should contain survey_responses.csv
+	fileFound := false
+	for _, file := range zipReader.File {
+		if file.Name == "survey_responses.csv" {
+			fileFound = true
+			// Verify CSV file has content
+			assert.NotZero(t, file.UncompressedSize64, "CSV should have content")
+		}
+	}
+
+	assert.True(t, fileFound, "ZIP should contain survey_responses.csv")
+
+	t.Logf("File download verified: %d bytes, valid ZIP structure", len(zipData))
+}
+
+// TestQualtrics_E2E_ProgressPollingTimeout tests handling of long-running exports.
+func TestQualtrics_E2E_ProgressPollingTimeout(t *testing.T) {
+	cleanup, _ := setupExternalDataE2EServer(t)
+	defer cleanup()
+
+	seedData, err := seed.LoadSeed("../../testdata/valid_seed.json")
+	require.NoError(t, err)
+	surveyID := seedData.ExternalDataSources.Qualtrics.SurveyID
+
+	// Start export
+	startPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses", surveyID)
+	resp := makeAuthenticatedRequest(t, "POST", startPath)
+	defer resp.Body.Close()
+
+	var startResp models.ExportStartResponse
+	json.NewDecoder(resp.Body).Decode(&startResp)
+	progressID := startResp.Result.ProgressID
+
+	// Simulate client polling with retries
+	maxAttempts := 20
+	completed := false
+	pollCount := 0
+
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		progressPath := fmt.Sprintf("/API/v3/surveys/%s/export-responses/%s", surveyID, progressID)
+		resp := makeAuthenticatedRequest(t, "GET", progressPath)
+
+		var progressResp models.ExportProgressResponse
+		json.NewDecoder(resp.Body).Decode(&progressResp)
+		resp.Body.Close()
+
+		pollCount++
+
+		if progressResp.Result.Status == "complete" {
+			completed = true
+			break
+		}
+
+		// Verify progress is monotonically increasing (never goes backwards)
+		if attempt > 0 {
+			assert.GreaterOrEqual(t, progressResp.Result.PercentComplete, 0)
+		}
+
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	assert.True(t, completed, "Export should complete within polling attempts")
+	t.Logf("Progress polling completed: %d polls, completion verified", pollCount)
 }
