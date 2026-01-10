@@ -1,5 +1,71 @@
 # Analytics Stack Architecture
 
+## Data Contract Hierarchy
+
+**cursor-sim is the authoritative source of truth** for the analytics platform. All downstream layers must validate against and preserve the API contract.
+
+### Contract Levels
+
+```
+LEVEL 1: API CONTRACT (cursor-sim SPEC.md) ← SOURCE OF TRUTH
+├─ Endpoints: /analytics/ai-code/commits, /teams/members, /repos/*/pulls
+├─ Response format: {items: [...], totalCount, page, pageSize}
+├─ Field names: camelCase (commitHash, userEmail, tabLinesAdded, ...)
+├─ Data types: strings, numbers, dates in ISO format
+└─ Responsibility: cursor-sim API (P4)
+
+LEVEL 2: DATA TIER CONTRACT (api-loader → dbt → DuckDB)
+├─ Raw schema (main_raw.*): Preserves API fields exactly
+│  ├─ Data: camelCase, flat structure
+│  ├─ Responsibility: api-loader extraction + DuckDB table creation
+│  └─ Validation: Schema matches API response structure
+│
+├─ Staging schema (main_staging.stg_*): Transforms camelCase → snake_case
+│  ├─ Data: snake_case, typed columns, cleaned
+│  ├─ Responsibility: dbt staging models
+│  └─ Validation: Column mapping contract (commitHash → commit_hash, etc.)
+│
+└─ Mart schema (main_mart.mart_*): Aggregations for analytics
+   ├─ Data: snake_case, aggregated metrics, analytics-ready
+   ├─ Responsibility: dbt mart models
+   └─ Validation: Correct aggregation logic, required columns present
+
+LEVEL 3: DASHBOARD CONTRACT (Streamlit)
+├─ Queries: SELECT from main_mart.* only, never raw or staging
+├─ Parameters: Parameterized queries ($param syntax), never f-strings
+├─ Schema: Use main_mart.* prefix (DuckDB requirement)
+└─ Responsibility: streamlit-dashboard query modules
+```
+
+### Data Fidelity
+
+Each layer must preserve data fidelity from the previous layer:
+
+```
+cursor-sim API (fact)
+    ↓ [api-loader: validates response format, extracts items]
+main_raw schema (fact copy)
+    ↓ [dbt staging: transforms camelCase → snake_case, validates types]
+main_staging schema (cleaned fact)
+    ↓ [dbt marts: aggregates, calculates metrics]
+main_mart schema (analytics-ready)
+    ↓ [streamlit: parameterized queries, no SQL injection]
+Dashboard KPIs
+```
+
+### Validation at Each Layer
+
+| Layer | Input Contract | Validation | Output Contract |
+|-------|-----------------|------------|-----------------|
+| **API** | N/A | API SPEC.md test | `{items:[...], totalCount, page}` |
+| **Extraction** | API response | Dual format handling | Parquet files with correct columns |
+| **Raw** | Parquet | Schema matches API | main_raw.* tables with camelCase |
+| **Staging** | main_raw.* | Column mapping, type coercion | main_staging.stg_* with snake_case |
+| **Mart** | main_staging.stg_* | Aggregation logic, metrics | main_mart.mart_* analytics-ready |
+| **Dashboard** | main_mart.* | Parameterized queries | KPI visualizations |
+
+---
+
 ## Tool Assessment
 
 | Tool | Role | Strengths | Dev Suitability |
@@ -232,6 +298,33 @@ cursor-analytics-platform/
 
 The loader extracts data from cursor-sim's REST API, mimicking what SnapLogic does in production. This ensures extraction logic is tested in CI.
 
+### cursor-sim API Response Format (Source of Truth)
+
+**Important**: cursor-sim returns API responses in a specific format that must be handled correctly:
+
+```json
+{
+  "items": [
+    {
+      "commitHash": "abc123",
+      "userEmail": "dev@example.com",
+      "tabLinesAdded": 45,
+      "composerLinesAdded": 12,
+      "commitTs": "2026-01-10T10:30:00Z"
+    }
+  ],
+  "totalCount": 1000,
+  "page": 1,
+  "pageSize": 500
+}
+```
+
+**Dual Format Support**: The loader must handle both:
+- **Paginated response** (production format): `{items: [...], totalCount, page, pageSize}`
+- **Raw array response** (fallback format): `[{...}, {...}]`
+
+**Field Naming**: All fields are **camelCase** (commitHash, userEmail, tabLinesAdded, composerLinesAdded, commitTs). These field names must be preserved through the raw schema and transformed to snake_case in the dbt staging layer.
+
 ### loader.py
 
 ```python
@@ -241,54 +334,94 @@ API → Parquet Loader
 
 Extracts data from cursor-sim REST API and writes to Parquet.
 Mimics SnapLogic extraction logic for dev/prod parity.
+
+CRITICAL: Handles dual API response formats:
+1. Paginated: {items: [...], totalCount, page, pageSize}
+2. Raw array: [...]
 """
 
 import requests
 import pandas as pd
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union, Dict, Any, List
 import json
+
+
+class BaseAPIExtractor:
+    """Base class for API extraction with dual-format response handling"""
+
+    @staticmethod
+    def fetch_cursor_style_paginated(
+        base_url: str,
+        endpoint: str,
+        params: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """
+        Fetch from cursor-sim with pagination support.
+
+        Handles both response formats:
+        - Format 1: {items: [...], totalCount, page, pageSize}
+        - Format 2: Raw array [...]
+        """
+        all_items = []
+        page = 1
+        page_size = params.get('pageSize', 1000)
+
+        while True:
+            params_with_page = {**params, 'page': page, 'pageSize': page_size}
+            resp = requests.get(f"{base_url}{endpoint}", params=params_with_page)
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Format 1: Paginated response with items key
+            if isinstance(data, dict) and 'items' in data:
+                items = data.get('items', [])
+                all_items.extend(items)
+                total_count = data.get('totalCount', len(all_items))
+                if page * page_size >= total_count:
+                    break
+            # Format 2: Raw array response
+            elif isinstance(data, list):
+                all_items.extend(data)
+                break
+            else:
+                raise ValueError(f"Unexpected API response format: {type(data)}")
+
+            page += 1
+
+        return all_items
 
 
 class CursorAPIExtractor:
     """Extract data from Cursor API endpoints"""
-    
+
     def __init__(self, base_url: str):
         self.base_url = base_url.rstrip('/')
-    
+
     def extract_commits(self, start_date: str = "90d", end_date: str = "now") -> pd.DataFrame:
         """
         Extract commits from /analytics/ai-code/commits
         Handles pagination automatically.
+
+        Returns DataFrame with camelCase columns (as returned by API).
+        Column transformation to snake_case happens in dbt staging layer.
         """
-        all_items = []
-        page = 1
-        page_size = 1000
-        
-        while True:
-            resp = requests.get(
-                f"{self.base_url}/analytics/ai-code/commits",
-                params={
-                    "startDate": start_date,
-                    "endDate": end_date,
-                    "page": page,
-                    "pageSize": page_size
-                }
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            
-            all_items.extend(data["items"])
-            
-            if page * page_size >= data["totalCount"]:
-                break
-            page += 1
-        
+        all_items = BaseAPIExtractor.fetch_cursor_style_paginated(
+            self.base_url,
+            '/analytics/ai-code/commits',
+            {
+                "startDate": start_date,
+                "endDate": end_date
+            }
+        )
+
         df = pd.DataFrame(all_items)
-        
-        # Normalize column names to snake_case
-        df.columns = [self._to_snake_case(c) for c in df.columns]
-        
+
+        # IMPORTANT: Do NOT transform column names here
+        # API returns camelCase (commitHash, userEmail, etc.)
+        # Transformation to snake_case happens in dbt staging models
+        # This preserves data fidelity through raw schema
+
         return df
     
     def extract_team_members(self) -> pd.DataFrame:
@@ -520,6 +653,90 @@ if __name__ == "__main__":
     "has_hotfix_followup"
   ]
 }
+```
+
+---
+
+## DuckDB Schema Naming Convention
+
+**CRITICAL**: DuckDB requires the `main_` prefix for schema-qualified table names. This is a DuckDB-specific requirement that differs from standard SQL databases.
+
+### Schema Hierarchy in DuckDB
+
+```
+main_raw.commits          ← Raw data from API (camelCase fields preserved)
+main_raw.pull_requests
+main_raw.reviews
+
+main_staging.stg_commits  ← Staging layer (camelCase → snake_case transformation)
+main_staging.stg_pull_requests
+main_staging.stg_reviews
+
+main_mart.mart_velocity   ← Analytics-ready aggregates (snake_case, aggregated)
+main_mart.mart_ai_impact
+main_mart.mart_quality
+main_mart.mart_review_costs
+```
+
+### Correct vs Incorrect Schema References
+
+```sql
+-- ✅ CORRECT: DuckDB requires main_* prefix
+SELECT * FROM main_raw.commits
+SELECT * FROM main_staging.stg_commits
+SELECT * FROM main_mart.mart_velocity
+
+-- ❌ INCORRECT: Will fail with "Catalog Error"
+SELECT * FROM raw.commits
+SELECT * FROM staging.stg_commits
+SELECT * FROM mart.mart_velocity
+```
+
+### Why the `main_` Prefix?
+
+DuckDB organizes catalogs hierarchically: `CATALOG.SCHEMA.TABLE`
+
+- `main` is the default catalog (DuckDB's built-in catalog)
+- Without the `main_` prefix, DuckDB looks for catalog names like `raw`, `staging`, `mart`
+- These catalog names don't exist, resulting in "Catalog Error: Table with name X does not exist"
+
+**Example error you might see**:
+```
+Catalog Error: Table with name mart_velocity does not exist!
+Did you mean "main_mart.mart_velocity"?
+```
+
+This error indicates the correct schema name is `main_mart.mart_velocity`, not `mart.mart_velocity`.
+
+### Parquet Loading to DuckDB
+
+When loading Parquet files from the api-loader into DuckDB, create tables with the correct schema:
+
+```python
+import duckdb
+
+conn = duckdb.connect('data/analytics.duckdb')
+
+# Create raw schema if not exists
+conn.execute("CREATE SCHEMA IF NOT EXISTS main_raw")
+
+# Load Parquet files into raw tables
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS main_raw.commits AS
+    SELECT * FROM read_parquet('data/raw/commits.parquet')
+""")
+
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS main_raw.pull_requests AS
+    SELECT * FROM read_parquet('data/raw/pull_requests.parquet')
+""")
+
+conn.execute("""
+    CREATE TABLE IF NOT EXISTS main_raw.reviews AS
+    SELECT * FROM read_parquet('data/raw/reviews.parquet')
+""")
+
+conn.close()
 ```
 
 ---
