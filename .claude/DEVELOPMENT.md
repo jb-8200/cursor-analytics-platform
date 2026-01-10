@@ -1,8 +1,8 @@
 # Development Session Context
 
 **Last Updated**: January 10, 2026
-**Active Features**: P1-F02 (Admin API Suite)
-**Primary Focus**: Runtime reconfiguration, seed management, statistics API
+**Active Features**: P1-F02 (Admin API Suite) - COMPLETE ✅, P4-F05 (Insomnia External APIs) - PLANNED
+**Primary Focus**: Insomnia collection documentation, E2E test enhancement
 
 ---
 
@@ -22,18 +22,19 @@
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
 | **P8** | Data Tier (dbt + ETL) | COMPLETE ✅ (14/14 tasks) |
 | **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
+| P9 (F02) | Dashboard Hardening | **IN PROGRESS 🔄** |
 
 ### Active Work
 
-#### P1-F02: Admin API Suite (18/24 tasks - 75%) ⏸️ IN PROGRESS
+#### P1-F02: Admin API Suite (24/24 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P1-F02-admin-api-suite/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
-**Commits**: a8afa7c, 93bfe8f, f99ffec
+**Commits**: a8afa7c, 93bfe8f, f99ffec, d47872e
 
 **Phase 1 - Environment Variables**: ✅ COMPLETE (4/4 tasks)
 - TASK-F02-01 through F02-04: ✅ Environment variables, tests, Docker config, docs
 
-**Phase 2 - Admin APIs**: ✅ COMPLETE (18/20 tasks) - Parallel execution
+**Phase 2 - Admin APIs**: ✅ COMPLETE (20/20 tasks) - Parallel execution
 - Track A (Regenerate API): ✅ COMPLETE (5/5 tasks)
   - TASK-F02-05: ✅ Storage ClearAllData() and GetStats() methods
   - TASK-F02-06: ✅ RegenerateRequest/Response models
@@ -54,6 +55,10 @@
 - Track D (Statistics API): ✅ COMPLETE (4/4 tasks)
   - TASK-F02-19 through F02-22: ✅ Models, handler, tests, SPEC.md
 
+- Track E (E2E + Documentation): ✅ COMPLETE (2/2 tasks)
+  - TASK-F02-23: ✅ E2E tests (8 test scenarios, all passing)
+  - TASK-F02-24: ✅ README.md updated (Admin API Suite section)
+
 **Build Status**: ✅ Successful
 **Test Status**: ✅ All admin API tests passing (80%+ coverage)
 **Coverage**: 80%+ for handlers (target met)
@@ -63,11 +68,9 @@
 - Agent a987514 (Track A): Completed Regenerate API
 - Agent a2f710c (Track B): Blocked by permissions on test file write
 - Master agent: Fixed test assertions, created admin_seed_test.go, updated router, completed SPEC.md
-- Total time: ~4h (vs 9h estimated for sequential)
+- Total actual time: 13.5h (vs 20.5h estimated)
 
-**Next Steps**:
-- TASK-F02-23: E2E tests for Admin API suite
-- TASK-F02-24: Final documentation updates (README.md)
+**Status**: All tasks complete. Admin API Suite fully operational.
 
 ---
 
@@ -160,6 +163,60 @@
 | TASK-P9-12 | ✅ COMPLETE | Docker Compose |
 
 **Status**: All tasks complete. Streamlit dashboard is fully integrated.
+
+#### P4-F05: Insomnia External APIs (0/8 tasks - 0%) 📋 PLANNED
+**Work Items**: `.work-items/P4-F05-insomnia-external-apis/`
+**Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
+**Commits**: b77847e
+
+**Planning Summary**:
+- Extend Insomnia collection with Harvey, Copilot, Qualtrics APIs
+- Add 9 E2E test scenarios to existing 14 tests
+- Update SPEC.md and create usage guide
+- NO code changes required (documentation/testing only)
+- Estimated time: 8-9 hours (6-9h with parallelization)
+
+**Phase 1 - Insomnia Collection**: PENDING (4 tasks, 3-4h)
+- TASK-INS-01: Create Harvey AI folder (1h)
+- TASK-INS-02: Create Copilot folder (1h)
+- TASK-INS-03: Create Qualtrics folder (1.5h)
+- TASK-INS-04: Add environment variables (0.5h)
+
+**Phase 2 - E2E Enhancement**: PENDING (2 tasks, 2-3h)
+- TASK-INS-05: Verify existing E2E coverage (1h)
+- TASK-INS-06: Add 9 missing test scenarios (2h)
+
+**Phase 3 - Documentation**: PENDING (2 tasks, 1-2h)
+- TASK-INS-07: Update SPEC.md with External Data Sources section (1h)
+- TASK-INS-08: Create docs/insomnia/README.md usage guide (1h)
+
+**Key Findings**:
+- 14 E2E tests already exist for external APIs (P4-F04)
+- All 3 APIs fully functional (Harvey, Copilot, Qualtrics)
+- No admin endpoints needed (seed config already supports configuration)
+- Risk: LOW (declarative YAML + test additions only)
+
+**Next Steps**:
+- Start with TASK-INS-01, TASK-INS-02, TASK-INS-03 in parallel
+- Then TASK-INS-04 (environment variables)
+- Parallel: TASK-INS-05 and TASK-INS-06 (E2E tests)
+- Final: TASK-INS-07 and TASK-INS-08 (documentation)
+
+---
+
+#### P9-F02: Dashboard Hardening (0/7 tasks - 0%) 🔄 IN PROGRESS
+**Work Items**: `.work-items/P9-F02-dashboard-hardening/`
+**Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
+
+| Task | Status | Description |
+|------|--------|-------------|
+| TASK-P9-H01 | ⬜ TODO | Security: Refactor connector parameter binding |
+| TASK-P9-H02 | ⬜ TODO | Security: Secure velocity.py |
+| TASK-P9-H03 | ⬜ TODO | Security: Secure other queries |
+| TASK-P9-H04 | ⬜ TODO | Security: Secure sidebar filter |
+| TASK-P9-H05 | ⬜ TODO | Infra: Update requirements.txt |
+| TASK-P9-H06 | ⬜ TODO | Infra: Update Dockerfile |
+| TASK-P9-H07 | ⬜ TODO | Config: Fix hardcoded paths |
 
 ---
 
