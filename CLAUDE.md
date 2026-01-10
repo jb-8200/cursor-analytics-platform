@@ -135,11 +135,77 @@ Master Agent → Code review → E2E testing → Fix issues → Update docs → 
 
 ## Services
 
+### Primary Path (GraphQL)
+
 | Service | Tech | Port | Status |
 |---------|------|------|--------|
 | cursor-sim | Go | 8080 | Active |
 | cursor-analytics-core | TypeScript/GraphQL | 4000 | Pending |
 | cursor-viz-spa | React/Vite | 3000 | Pending |
+
+### Alternative Path (dbt + Streamlit)
+
+| Service | Tech | Port | Status |
+|---------|------|------|--------|
+| api-loader | Python | N/A | Active |
+| streamlit-dashboard | Python/Streamlit | 8501 | Active |
+
+**Two Analytics Paths**:
+- **Path 1 (GraphQL)**: cursor-sim → analytics-core (GraphQL) → viz-spa (React)
+- **Path 2 (dbt)**: cursor-sim → api-loader (ETL) → dbt (transforms) → streamlit-dashboard
+
+---
+
+## Data Contract Hierarchy
+
+**cursor-sim is the authoritative source of truth** for the entire platform. All downstream services and layers must validate against the API contract defined in `services/cursor-sim/SPEC.md`.
+
+### Contract Levels
+
+```
+LEVEL 1: API CONTRACT (cursor-sim SPEC.md) ← SOURCE OF TRUTH
+├─ Endpoints: /analytics/ai-code/commits, /repos/*/pulls, /research/dataset
+├─ Response format: {items: [...], totalCount, page, pageSize}
+├─ Field names: camelCase (commitHash, userEmail, tabLinesAdded, ...)
+├─ Data types: strings, numbers, dates in ISO format
+└─ Responsibility: cursor-sim (P4)
+
+LEVEL 2: GRAPHQL PATH (cursor-analytics-core) ← PATH 1
+├─ GraphQL schema reflects API contracts
+├─ Resolvers fetch from cursor-sim API
+├─ Aggregations and joins performed in TypeScript
+└─ Responsibility: analytics-core (P5)
+
+LEVEL 3: DATA TIER PATH (api-loader → dbt → DuckDB) ← PATH 2
+├─ Raw schema: Preserves API fields exactly
+├─ Staging schema: Transforms camelCase → snake_case
+├─ Mart schema: Aggregations for analytics
+└─ Responsibility: api-loader (P8) + dbt (P8) + streamlit-dashboard (P9)
+
+LEVEL 4: VISUALIZATION (cursor-viz-spa + streamlit-dashboard)
+├─ Frontend consumes contracted data
+├─ Path 1: Queries GraphQL API (analytics-core)
+├─ Path 2: Queries mart tables (DuckDB/Snowflake)
+└─ Responsibility: viz-spa (P6) + streamlit-dashboard (P9)
+```
+
+### Key Principles
+
+1. **API as Fact**: cursor-sim SPEC.md is the single source of truth
+2. **Data Fidelity**: Each layer preserves data from previous layer
+3. **Explicit Contracts**: All transformations must be documented
+4. **Two Paths, Same Contract**: Both GraphQL and dbt paths consume same API
+5. **Test at Boundaries**: Validate contract at each layer transition
+
+### Reference Documents (in priority order)
+
+| Priority | Document | Purpose |
+|----------|----------|---------|
+| **1** | `services/cursor-sim/SPEC.md` | API contract (source of truth) |
+| **2** | `docs/design/new_data_architecture.md` | Data pipeline architecture (P8/P9) |
+| **3** | `docs/DESIGN.md` | System architecture overview |
+| **4** | `docs/TESTING_STRATEGY.md` | Testing approaches for contract validation |
+| **5** | `docs/data-contract-testing.md` | Data contract validation patterns |
 
 ---
 
