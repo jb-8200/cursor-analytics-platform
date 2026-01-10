@@ -11,6 +11,360 @@ The project follows Test-Driven Development (TDD) as its primary development met
 
 Writing tests first provides several benefits that improve the overall quality of the codebase. Tests act as documentation that never becomes stale since failing tests indicate incorrect behavior immediately. The TDD cycle of red-green-refactor encourages simple, focused implementations that do exactly what the specification requires. Test-first development also leads to more testable designs because developers must consider how code will be tested before writing it.
 
+### Data Contract and Source of Truth
+
+**cursor-sim (P4) is the authoritative source of truth** for the analytics platform. All data flowing through the system must:
+
+1. **Validate against cursor-sim's API contract** defined in `services/cursor-sim/SPEC.md`
+2. **Preserve data fidelity** as it moves through the pipeline: cursor-sim → Data Tier → Dashboard
+3. **Establish contracts at each layer**:
+   - **API Contract**: cursor-sim response format and fields (source of truth)
+   - **Data Tier Contract**: dbt transformations map API fields to analytics columns
+   - **Dashboard Contract**: Streamlit queries consume only mart tables, never raw data
+
+**Data contract hierarchy:**
+```
+cursor-sim API (camelCase, {items:[]})
+    ↓ [api-loader validates against SPEC.md]
+DuckDB raw schema (raw_commits, raw_pull_requests)
+    ↓ [dbt staging transforms camelCase → snake_case]
+DuckDB staging schema (stg_commits, stg_pull_requests)
+    ↓ [dbt marts aggregate for analytics]
+DuckDB mart schema (mart_velocity, mart_ai_impact, mart_quality, mart_review_costs)
+    ↓ [dashboard queries consume marts only]
+Streamlit Dashboard (KPI visualizations)
+```
+
+**Testing implications**:
+- Data tier tests must verify: API format handling → DuckDB schema alignment → dbt transformation correctness
+- Dashboard tests must verify: parameterized queries → no SQL injection → correct mart column usage
+- E2E tests must trace: API response → DuckDB table → dbt transform → mart result → dashboard display
+
+## Data Pipeline Testing Strategy
+
+The data pipeline (P8-F01 data tier + P9-F01 dashboard) requires specialized testing to validate data contracts and transformations end-to-end.
+
+### P8: Data Tier Testing (api-loader → dbt → DuckDB)
+
+**Contract Validation Tests**: Verify each stage preserves data integrity according to contracts.
+
+```python
+# tools/api-loader/tests/test_api_contract.py
+# Test 1: Verify API response format matches cursor-sim SPEC.md
+
+def test_api_response_format_dual_support():
+    """Cursor-sim may return {items:[...]} or raw array [...] - both must be handled."""
+    extractor = BaseAPIExtractor()
+
+    # Format 1: Paginated response (production format)
+    paginated = {
+        "items": [{"commitHash": "abc123", "userEmail": "dev@example.com"}],
+        "totalCount": 100,
+        "page": 1,
+        "pageSize": 50
+    }
+    result1 = extractor.fetch_cursor_style_paginated('/commits', paginated)
+    assert len(result1) == 1
+    assert result1[0]['commitHash'] == 'abc123'
+
+    # Format 2: Raw array response (fallback format)
+    raw_array = [{"commitHash": "abc123", "userEmail": "dev@example.com"}]
+    result2 = extractor.fetch_cursor_style_paginated('/commits', raw_array)
+    assert len(result2) == 1
+    assert result2[0]['commitHash'] == 'abc123'
+
+
+def test_api_column_mapping_contract():
+    """Verify API response fields match cursor-sim SPEC.md field names."""
+    # Contract: cursor-sim returns camelCase fields
+    api_response = {
+        "items": [{
+            "commitHash": "abc123",
+            "userEmail": "dev@example.com",
+            "tabLinesAdded": 45,
+            "composerLinesAdded": 12,
+            "commitTs": "2026-01-10T10:30:00Z"
+        }]
+    }
+
+    # api-loader must not transform API response
+    # (transformation happens in dbt staging layer)
+    extractor = BaseAPIExtractor()
+    result = extractor.fetch_cursor_style_paginated('/commits', api_response)
+
+    # Verify API fields are preserved as-is
+    commit = result[0]
+    assert 'commitHash' in commit, "API camelCase fields must be preserved"
+    assert 'userEmail' in commit, "API camelCase fields must be preserved"
+    assert 'tabLinesAdded' in commit, "API camelCase fields must be preserved"
+
+
+def test_duckdb_raw_schema_loading():
+    """Verify API data loads into raw_commits without transformation."""
+    api_data = [{
+        "commitHash": "abc123",
+        "userEmail": "dev@example.com",
+        "tabLinesAdded": 45,
+        "composerLinesAdded": 12,
+        "commitTs": "2026-01-10T10:30:00Z"
+    }]
+
+    loader = DuckDBLoader(db_path=":memory:")
+    loader.load_raw_commits(api_data)
+
+    # Raw table should have API fields as-is
+    df = loader.conn.execute("SELECT * FROM raw_commits LIMIT 1").df()
+    assert 'commitHash' in df.columns, "Raw schema should preserve API camelCase"
+    assert df.iloc[0]['commitHash'] == 'abc123'
+
+
+def test_dbt_staging_column_mapping():
+    """Verify dbt staging layer maps camelCase → snake_case correctly."""
+    # This test assumes dbt has been run and staging tables exist
+    db = DuckDBLoader(db_path=":memory:")
+
+    # Query the staging layer (dbt-transformed data)
+    df = db.conn.execute("""
+        SELECT
+            commit_hash,
+            user_email,
+            tab_lines_added,
+            composer_lines_added,
+            committed_at
+        FROM main_staging.stg_commits
+        LIMIT 1
+    """).df()
+
+    # Verify snake_case transformation
+    expected_columns = {
+        'commit_hash': 'commitHash',
+        'user_email': 'userEmail',
+        'tab_lines_added': 'tabLinesAdded',
+        'composer_lines_added': 'composerLinesAdded',
+        'committed_at': 'commitTs'
+    }
+
+    for snake_col, camel_col in expected_columns.items():
+        assert snake_col in df.columns, f"Staging table must have {snake_col}"
+
+
+def test_dbt_mart_aggregation():
+    """Verify dbt mart layer produces correct aggregates for analytics."""
+    db = DuckDBLoader(db_path=":memory:")
+
+    # Query mart_velocity table (dbt mart output)
+    df = db.conn.execute("""
+        SELECT
+            week,
+            repo_name,
+            active_developers,
+            total_prs,
+            avg_total_cycle_time,
+            avg_ai_ratio
+        FROM main_mart.mart_velocity
+        WHERE week >= CURRENT_DATE - INTERVAL '4' WEEK
+        ORDER BY week DESC
+    """).df()
+
+    # Verify all expected columns exist
+    required_columns = {
+        'week', 'repo_name', 'active_developers',
+        'total_prs', 'avg_total_cycle_time', 'avg_ai_ratio'
+    }
+    assert required_columns.issubset(set(df.columns)), \
+        f"Missing columns: {required_columns - set(df.columns)}"
+
+    # Verify no null averages (indicates aggregation worked)
+    assert df['avg_total_cycle_time'].notna().all(), \
+        "avg_total_cycle_time should not be null after aggregation"
+    assert df['avg_ai_ratio'].notna().all(), \
+        "avg_ai_ratio should not be null after aggregation"
+```
+
+### P9: Dashboard Testing (parameterized queries, SQL injection prevention)
+
+**Security and Parameterization Tests**: Verify dashboard is protected against SQL injection.
+
+```python
+# services/streamlit-dashboard/tests/test_query_security.py
+
+def test_velocity_query_parameterized_injection_attempt():
+    """Verify parameterized queries prevent SQL injection."""
+    from queries.velocity import get_velocity_data
+
+    # Malicious input that would work if concatenated, should fail safely with params
+    malicious_repo = "test'; DROP TABLE main_mart.mart_velocity; --"
+
+    # This must NOT execute the DROP TABLE command
+    df = get_velocity_data(repo_name=malicious_repo, days=30)
+
+    # If parameterized correctly, query should execute with malicious string as literal value
+    # and return either empty dataframe or error (no dropped tables)
+    assert isinstance(df, pd.DataFrame), "Query should return DataFrame, not error"
+
+    # Verify table still exists by running another query
+    from db.connector import query
+    verify_df = query("SELECT COUNT(*) as table_count FROM main_mart.mart_velocity")
+    assert len(verify_df) > 0, "Table should still exist after malicious input attempt"
+
+
+def test_schema_naming_requires_main_prefix():
+    """Verify queries use DuckDB required main_mart.* schema prefix."""
+    from queries.velocity import get_velocity_data
+
+    # This should work (correct schema naming)
+    df = get_velocity_data(repo_name="test-repo", days=30)
+    assert isinstance(df, pd.DataFrame), "Should succeed with main_mart.* schema"
+
+    # Verify error if schema name is wrong by checking internal query
+    # (dashboard should never construct mart.* queries)
+    from db.connector import query
+
+    try:
+        # This should fail - incorrect schema name
+        bad_df = query("SELECT * FROM mart.mart_velocity LIMIT 1")
+        assert False, "Should have raised error with incorrect mart.* schema"
+    except Exception as e:
+        assert "Catalog Error" in str(e) or "not found" in str(e).lower(), \
+            "Should fail with catalog/not found error for incorrect schema"
+
+
+def test_interval_syntax_with_days_parameter():
+    """Verify INTERVAL syntax handles days parameter safely."""
+    from queries.velocity import get_velocity_data
+
+    # Days is integer and validated, f-string interpolation is acceptable
+    test_cases = [
+        (7, "last 7 days"),
+        (30, "last 30 days"),
+        (90, "last 90 days"),
+    ]
+
+    for days, description in test_cases:
+        df = get_velocity_data(days=days)
+        assert isinstance(df, pd.DataFrame), f"Should handle {description}"
+
+        # Verify only data from date range is returned
+        if len(df) > 0:
+            cutoff = pd.Timestamp.now(tz='UTC').normalize() - pd.Timedelta(days=days)
+            df['week'] = pd.to_datetime(df['week'])
+            assert (df['week'] >= cutoff).all(), \
+                f"All rows should be >= {days} days ago"
+
+
+def test_filter_parameters_isolation():
+    """Verify sidebar filters don't leak into SQL."""
+    from components.sidebar import get_filter_params
+    from queries.velocity import get_velocity_data
+
+    # Sidebar returns raw values for parameterization downstream
+    repo_name, date_range, days = get_filter_params()
+
+    # get_velocity_data must parameterize these values
+    df = get_velocity_data(repo_name=repo_name, days=days)
+    assert isinstance(df, pd.DataFrame), "Filtered query should succeed"
+```
+
+### Data Contract Validation Test Examples
+
+**Validate end-to-end data flow** from API through to dashboard:
+
+```bash
+#!/bin/bash
+# scripts/test-data-contract-e2e.sh
+# Validates complete data pipeline: API → DuckDB raw → dbt staging/marts → Dashboard
+
+set -e
+
+echo "Data Contract E2E Validation"
+echo "=============================="
+
+# 1. Verify cursor-sim API returns expected format
+echo "1. Checking cursor-sim API contract..."
+response=$(curl -s http://localhost:8080/v1/org/users | head -c 200)
+if [[ $response == *"items"* ]]; then
+    echo "   ✓ API returns {items:[...]} format (matches SPEC.md)"
+elif [[ $response == *"[{"* ]]; then
+    echo "   ✓ API returns raw array format (fallback supported)"
+else
+    echo "   ✗ API response format unknown"
+    exit 1
+fi
+
+# 2. Verify DuckDB raw_commits table has API fields
+echo "2. Checking DuckDB raw schema..."
+docker exec streamlit-dashboard duckdb /data/analytics.duckdb << 'SQL' > /tmp/raw_columns.txt
+.columns raw_commits
+SQL
+
+if grep -q "commitHash" /tmp/raw_columns.txt; then
+    echo "   ✓ Raw schema preserves camelCase API fields"
+else
+    echo "   ✗ Raw schema missing API fields"
+    exit 1
+fi
+
+# 3. Verify dbt staging has snake_case transformation
+echo "3. Checking dbt staging transformation..."
+docker exec streamlit-dashboard duckdb /data/analytics.duckdb << 'SQL' > /tmp/stg_columns.txt
+.columns main_staging.stg_commits
+SQL
+
+if grep -q "commit_hash" /tmp/stg_columns.txt && ! grep -q "commitHash" /tmp/stg_columns.txt; then
+    echo "   ✓ Staging transforms camelCase → snake_case"
+else
+    echo "   ✗ Staging transformation failed"
+    exit 1
+fi
+
+# 4. Verify mart table aggregations work
+echo "4. Checking mart aggregations..."
+docker exec streamlit-dashboard duckdb /data/analytics.duckdb << 'SQL' > /tmp/mart_check.txt
+SELECT COUNT(*) as row_count,
+       COUNT(avg_total_cycle_time) as avg_cycle_non_null,
+       COUNT(avg_ai_ratio) as avg_ai_non_null
+FROM main_mart.mart_velocity
+LIMIT 1
+SQL
+
+rows=$(cat /tmp/mart_check.txt | tail -1)
+if [[ $rows == *"0"* ]]; then
+    echo "   ⚠ Mart table is empty (expected if data not yet loaded)"
+else
+    echo "   ✓ Mart aggregations populated"
+fi
+
+# 5. Verify dashboard queries use parameterized syntax
+echo "5. Checking dashboard query security..."
+grep -r "WHERE repo_name = \$repo" services/streamlit-dashboard/queries/ > /dev/null && \
+    echo "   ✓ Dashboard uses parameterized queries" || \
+    { echo "   ✗ Dashboard has non-parameterized queries"; exit 1; }
+
+# 6. Test SQL injection prevention
+echo "6. Testing SQL injection prevention..."
+docker exec streamlit-dashboard python << 'PYTHON'
+from db.connector import query
+import pandas as pd
+
+# This would DROP TABLE if query was concatenated (not parameterized)
+malicious_input = "test'; DROP TABLE main_mart.mart_velocity; --"
+
+try:
+    df = query(
+        "SELECT * FROM main_mart.mart_velocity WHERE repo_name = $repo LIMIT 1",
+        {"repo": malicious_input}
+    )
+    print("   ✓ Malicious input safely parameterized")
+except Exception as e:
+    print(f"   ✗ Query failed: {e}")
+    exit(1)
+PYTHON
+
+echo ""
+echo "=============================="
+echo "✓ All data contract validations passed!"
+```
+
 ## Testing Stack by Service
 
 Each service uses testing tools appropriate for its technology stack while maintaining consistent patterns across the project.
@@ -670,4 +1024,47 @@ export function mockDashboardSummary(overrides?: Partial<DashboardKPI>): Dashboa
         ...overrides
     };
 }
+```
+
+## Reference Documentation
+
+### Source of Truth Hierarchy
+
+When writing tests, always reference these documents in priority order:
+
+| Priority | Document | Purpose |
+|----------|----------|---------|
+| **1** | `services/cursor-sim/SPEC.md` | API contract: endpoints, response formats, field names/types |
+| **2** | `tools/api-loader/` design docs | Data extraction strategy: API response handling, format normalization |
+| **3** | `dbt/models/` + `docs/` | Transformation contracts: staging layer (camelCase→snake_case), mart aggregations |
+| **4** | `services/streamlit-dashboard/` design docs | Consumer contracts: parameterized queries, schema naming (main_mart.*), column availability |
+
+### Key Testing Checkpoints
+
+When validating data contracts across the pipeline:
+
+**API Contract** (cursor-sim SPEC.md)
+- Response format: `{items: [...], totalCount, page, pageSize}` or raw array `[...]`
+- Field naming: **camelCase** (commitHash, userEmail, tabLinesAdded, composerLinesAdded, commitTs)
+- Pagination: cursor-sim implements cursor-based pagination
+
+**Data Tier Contract** (api-loader → dbt → DuckDB)
+- Raw layer: Preserves API fields as-is (camelCase)
+- Staging layer: Transforms to snake_case (commit_hash, user_email, tab_lines_added, etc.)
+- Mart layer: Aggregations produce analytics columns (avg_total_cycle_time, avg_ai_ratio, revert_rate, etc.)
+
+**Dashboard Contract** (Streamlit → DuckDB)
+- Query syntax: Parameterized with `$param` placeholders (DuckDB requirement)
+- Schema naming: `main_mart.mart_*` not `mart.*` (DuckDB prefix requirement)
+- INTERVAL syntax: Use f-string for days parameter: `CURRENT_DATE - INTERVAL '{days}' DAY`
+- SQL injection: All user inputs from sidebar → parameterized in queries
+
+### Testing checklist
+
+✓ Does my test verify against the source of truth (cursor-sim SPEC.md)?
+✓ Am I testing the contract boundary (input → transformation → output)?
+✓ Does my test handle both API response formats ({items:[]} and raw array)?
+✓ Do my dashboard tests verify parameterized queries (no f-string SQL)?
+✓ Am I using correct schema naming (main_mart.mart_* not mart.*)?
+✓ Do I handle the INTERVAL syntax correctly (f-string for days, not parameter)?
 ```
