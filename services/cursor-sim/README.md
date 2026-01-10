@@ -369,6 +369,309 @@ See [SPEC.md](./SPEC.md) for complete endpoint documentation.
 
 ---
 
+## Admin API Suite
+
+Runtime administration endpoints for managing the simulator without restart (P1-F02).
+
+### Available Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/admin/regenerate` | POST | Regenerate data with new parameters (append/override) |
+| `/admin/seed` | POST | Upload new seed file (JSON/YAML/CSV) |
+| `/admin/seed/presets` | GET | Get predefined seed configurations |
+| `/admin/config` | GET | Get current runtime configuration |
+| `/admin/stats` | GET | Get detailed statistics and metrics |
+
+### Examples
+
+#### Regenerate with Override Mode
+
+Clear all existing data and generate fresh dataset with new parameters:
+
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "override",
+    "days": 400,
+    "velocity": "high",
+    "developers": 1200,
+    "max_commits": 500
+  }'
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "mode": "override",
+  "data_cleaned": true,
+  "commits_added": 600000,
+  "prs_added": 60000,
+  "total_commits": 600000,
+  "duration": "8.5s",
+  "config": {
+    "days": 400,
+    "velocity": "high",
+    "developers": 1200,
+    "max_commits": 500
+  }
+}
+```
+
+#### Regenerate with Append Mode
+
+Add new data to existing storage (cumulative):
+
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "append",
+    "days": 30,
+    "velocity": "medium",
+    "developers": 0,
+    "max_commits": 0
+  }'
+```
+
+#### Upload New Seed (JSON)
+
+Replace the current seed file without restart:
+
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "{\"version\":\"1.0\",\"developers\":[...]}",
+    "format": "json",
+    "regenerate": false
+  }'
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "seed_loaded": true,
+  "developers": 50,
+  "repositories": 5,
+  "organizations": ["acme-corp"],
+  "divisions": ["Engineering", "Product"],
+  "teams": ["Backend", "Frontend", "Mobile"]
+}
+```
+
+#### Upload CSV and Regenerate
+
+Upload a CSV seed file and immediately regenerate data:
+
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "user_id,email,name\nuser_001,dev1@example.com,Developer One\nuser_002,dev2@example.com,Developer Two",
+    "format": "csv",
+    "regenerate": true,
+    "regenerate_config": {
+      "mode": "override",
+      "days": 90,
+      "velocity": "medium",
+      "developers": 0,
+      "max_commits": 0
+    }
+  }'
+```
+
+#### Get Seed Presets
+
+Retrieve predefined seed configurations for quick setup:
+
+```bash
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/seed/presets
+```
+
+**Response:**
+```json
+{
+  "presets": [
+    {
+      "name": "small-team",
+      "description": "Small team (10 developers, 2 teams)",
+      "developers": 10,
+      "teams": 2,
+      "regions": ["US"],
+      "suggested_days": 30,
+      "suggested_velocity": "low"
+    },
+    {
+      "name": "medium-team",
+      "description": "Medium team (50 developers, 5 teams)",
+      "developers": 50,
+      "teams": 5,
+      "regions": ["US", "EU"],
+      "suggested_days": 90,
+      "suggested_velocity": "medium"
+    },
+    {
+      "name": "enterprise",
+      "description": "Enterprise (200 developers, 10 teams)",
+      "developers": 200,
+      "teams": 10,
+      "regions": ["US", "EU", "APAC"],
+      "suggested_days": 180,
+      "suggested_velocity": "high"
+    },
+    {
+      "name": "multi-region",
+      "description": "Multi-region global team (100 developers, 8 teams)",
+      "developers": 100,
+      "teams": 8,
+      "regions": ["US", "EU", "APAC", "LATAM"],
+      "suggested_days": 120,
+      "suggested_velocity": "medium"
+    }
+  ]
+}
+```
+
+#### Get Current Configuration
+
+Inspect runtime configuration and seed structure:
+
+```bash
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/config
+```
+
+**Response:**
+```json
+{
+  "generation": {
+    "days": 90,
+    "velocity": "medium",
+    "developers": 50,
+    "max_commits": 1000
+  },
+  "seed": {
+    "version": "1.0",
+    "developers": 50,
+    "repositories": 5,
+    "organizations": ["acme-corp"],
+    "divisions": ["Engineering"],
+    "teams": ["Backend", "Frontend"],
+    "by_seniority": {"senior": 10, "mid": 25, "junior": 15},
+    "by_region": {"US": 30, "EU": 15, "APAC": 5}
+  },
+  "external_sources": {
+    "harvey": {"enabled": true},
+    "copilot": {"enabled": true},
+    "qualtrics": {"enabled": true}
+  },
+  "server": {
+    "port": 8080,
+    "version": "2.0.0",
+    "uptime": "5m30s"
+  }
+}
+```
+
+#### Get Statistics
+
+Retrieve comprehensive statistics with optional time series:
+
+```bash
+# Basic statistics
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/stats
+
+# With time series data
+curl -u cursor-sim-dev-key: "http://localhost:8080/admin/stats?include_timeseries=true"
+```
+
+**Response:**
+```json
+{
+  "generation": {
+    "total_commits": 4500,
+    "total_prs": 450,
+    "total_reviews": 900,
+    "total_issues": 150,
+    "total_developers": 100,
+    "data_size": "5.2 MB"
+  },
+  "developers": {
+    "by_seniority": {"junior": 20, "mid": 50, "senior": 30},
+    "by_region": {"US": 50, "EU": 30, "APAC": 20},
+    "by_team": {"Backend": 40, "Frontend": 35, "DevOps": 25}
+  },
+  "quality": {
+    "avg_revert_rate": 0.02,
+    "avg_hotfix_rate": 0.08,
+    "avg_code_survival_30d": 0.85,
+    "avg_review_thoroughness": 0.75
+  },
+  "variance": {
+    "commits_std_dev": 15.2,
+    "pr_size_std_dev": 75.5
+  },
+  "performance": {
+    "last_generation_time": "2.34s",
+    "memory_usage": "125 MB"
+  },
+  "time_series": {
+    "commits_per_day": [15, 18, 12, 20, 16],
+    "prs_per_day": [3, 2, 4, 3, 2]
+  }
+}
+```
+
+### Common Workflows
+
+#### Scenario 1: Scale Up for Load Testing
+
+```bash
+# Start with default seed
+./bin/cursor-sim -mode runtime -seed testdata/valid_seed.json
+
+# Scale up to 1200 developers for load testing
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"override","days":400,"velocity":"high","developers":1200,"max_commits":500}'
+
+# Verify new configuration
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/config
+```
+
+#### Scenario 2: Hot-Swap Team Structure
+
+```bash
+# Upload new seed with different team structure
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
+  -H "Content-Type: application/json" \
+  -d @new_seed_payload.json
+
+# Regenerate with new seed
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"override","days":90,"velocity":"medium","developers":0,"max_commits":0}'
+```
+
+#### Scenario 3: Monitor Generation Progress
+
+```bash
+# Start regeneration
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"override","days":180,"velocity":"high","developers":500,"max_commits":1000}'
+
+# Poll statistics to monitor progress
+watch -n 5 'curl -s -u cursor-sim-dev-key: http://localhost:8080/admin/stats | jq ".generation"'
+```
+
+For complete API documentation including request/response schemas and validation rules, see [SPEC.md](./SPEC.md#admin-api-p1-f02).
+
+---
+
 ## Seed Files
 
 Seed files define your simulated team's structure and behavior patterns.
