@@ -155,26 +155,29 @@ func TestGetPull(t *testing.T) {
 func TestListPullReviews(t *testing.T) {
 	store := setupTestStore()
 
-	// Add some review comments
+	// Get the PR to find its ID
+	pr, err := store.GetPR("acme/api", 1)
+	require.NoError(t, err)
+	require.NotNil(t, pr)
+
+	// Add some reviews
 	now := time.Now()
-	_ = store.AddReviewComment(models.ReviewComment{
-		ID:        1,
-		PRNumber:  1,
-		RepoName:  "acme/api",
-		AuthorID:  "user_002",
-		Body:      "LGTM",
-		State:     models.ReviewStateApproved,
-		CreatedAt: now,
+	_ = store.StoreReview(models.Review{
+		ID:          1,
+		PRID:        int(pr.ID),
+		Reviewer:    "user_002",
+		Body:        "LGTM",
+		State:       models.ReviewStateApproved,
+		SubmittedAt: now,
 	})
 
-	_ = store.AddReviewComment(models.ReviewComment{
-		ID:        2,
-		PRNumber:  1,
-		RepoName:  "acme/api",
-		AuthorID:  "user_003",
-		Body:      "Needs refactoring",
-		State:     models.ReviewStateChangesRequested,
-		CreatedAt: now,
+	_ = store.StoreReview(models.Review{
+		ID:          2,
+		PRID:        int(pr.ID),
+		Reviewer:    "user_003",
+		Body:        "Needs refactoring",
+		State:       models.ReviewStateChangesRequested,
+		SubmittedAt: now,
 	})
 
 	t.Run("list reviews for PR", func(t *testing.T) {
@@ -187,7 +190,7 @@ func TestListPullReviews(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
-		var response []models.ReviewComment
+		var response []models.Review
 		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
 
@@ -204,7 +207,7 @@ func TestListPullReviews(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, rec.Code)
 
-		var response []models.ReviewComment
+		var response []models.Review
 		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
 

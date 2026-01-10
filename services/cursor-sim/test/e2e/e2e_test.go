@@ -30,11 +30,13 @@ func setupTestServer(t *testing.T) (context.CancelFunc, *storage.MemoryStore) {
 
 	// Initialize storage
 	store := storage.NewMemoryStore()
+	err = store.LoadDevelopers(seedData.Developers)
+	require.NoError(t, err)
 
-	// Generate sample commits (1 day of history)
+	// Generate sample commits (30 days of history to match default query range)
 	gen := generator.NewCommitGenerator(seedData, store, "medium")
 	ctx := context.Background()
-	err = gen.GenerateCommits(ctx, 1, 0)
+	err = gen.GenerateCommits(ctx, 30, 0)
 	require.NoError(t, err)
 
 	// Create and start HTTP server
@@ -517,10 +519,10 @@ func setupTestServerWithSeed(t *testing.T, seedPath string, port int) (context.C
 	err = store.LoadDevelopers(seedData.Developers)
 	require.NoError(t, err)
 
-	// Generate sample commits (1 day of history)
+	// Generate sample commits (30 days of history to match default query range)
 	gen := generator.NewCommitGenerator(seedData, store, "medium")
 	ctx := context.Background()
-	err = gen.GenerateCommits(ctx, 1, 0)
+	err = gen.GenerateCommits(ctx, 30, 0)
 	require.NoError(t, err)
 
 	// Create and start HTTP server

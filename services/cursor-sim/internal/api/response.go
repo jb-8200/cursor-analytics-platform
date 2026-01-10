@@ -272,10 +272,13 @@ func ParseQueryParams(r *http.Request) (models.Params, error) {
 	params.From = params.StartDate
 	params.To = params.EndDate
 
-	// Parse optional user filter (supports both 'user' and legacy 'userId')
+	// Parse optional user filter (supports 'user', 'users', and legacy 'userId')
 	params.User = r.URL.Query().Get("user")
 	if params.User == "" {
-		params.User = r.URL.Query().Get("userId")
+		params.User = r.URL.Query().Get("users") // Support plural form
+	}
+	if params.User == "" {
+		params.User = r.URL.Query().Get("userId") // Legacy support
 	}
 	params.UserID = params.User // Legacy field
 

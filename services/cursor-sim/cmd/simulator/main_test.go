@@ -61,7 +61,7 @@ func TestRun_InvalidMode(t *testing.T) {
 	// Replay mode not supported
 	err := run(ctx, cfg)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "only runtime mode is supported")
+	assert.Contains(t, err.Error(), "invalid mode")
 }
 
 func TestRun_InvalidSeedFile(t *testing.T) {
