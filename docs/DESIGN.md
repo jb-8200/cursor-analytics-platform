@@ -949,3 +949,127 @@ Based on integration testing, the following test coverage gaps exist:
 | **services/{service}/SPEC.md** | Technical specification per service | Service developers |
 | **.work-items/{feature}/task.md** | Task-level implementation tracking | Individual contributors |
 
+---
+
+## 13. Data Pipeline Architecture (P8/P9)
+
+### 13.1 Alternative Analytics Path: dbt + DuckDB/Snowflake
+
+Beyond the primary GraphQL path (cursor-sim → analytics-core → viz-spa), the platform includes an alternative analytics implementation using dbt and DuckDB for local development, with Snowflake for production:
+
+```
+Path 1 (GraphQL):   cursor-sim → cursor-analytics-core → cursor-viz-spa
+                    (P4)        (P5 TypeScript/GraphQL)   (P6 React)
+
+Path 2 (dbt):       cursor-sim → api-loader → dbt → streamlit-dashboard
+                    (P4)        (P8 Python)   (SQL)  (P9 Python)
+```
+
+**Key Distinction**:
+- **Path 1 (GraphQL)**: Type-safe, real-time aggregations, complex business logic in TypeScript
+- **Path 2 (dbt)**: SQL-first transformations, reproducible data pipeline, analytics-optimized
+
+### 13.2 Data Contract Hierarchy
+
+**cursor-sim is the authoritative source of truth**. All downstream layers validate against the API contract:
+
+```
+LEVEL 1: API CONTRACT (cursor-sim SPEC.md) ← SOURCE OF TRUTH
+  • Endpoints: /analytics/ai-code/commits, /repos/*/pulls, /research/dataset
+  • Response format: {items: [...], totalCount, page, pageSize}
+  • Field names: camelCase (commitHash, userEmail, tabLinesAdded, composerLinesAdded, commitTs)
+  • Pagination: Cursor-based with configurable page size
+
+LEVEL 2: DATA TIER CONTRACT (api-loader → dbt → DuckDB/Snowflake)
+  • Raw schema (raw_*): Preserves API fields exactly (camelCase)
+  • Staging schema (stg_*): Transforms camelCase → snake_case, validates types
+  • Mart schema (mart_*): Aggregations for analytics (velocity, ai_impact, quality, review_costs)
+
+LEVEL 3: DASHBOARD CONTRACT (Streamlit)
+  • Queries: SELECT from mart_* only, never raw or staging
+  • Parameters: Parameterized queries ($param syntax)
+  • Security: SQL injection prevention via parameter binding
+```
+
+### 13.3 Development vs Production Parity
+
+| Layer | Development | Production | Parity |
+|-------|-------------|-----------|--------|
+| **API Source** | cursor-sim | Cursor + GitHub APIs | ✅ Same contract |
+| **Extraction** | api-loader (Python) | SnapLogic | ✅ Same logic, tested in CI |
+| **Landing** | Parquet files | Snowflake Stage | ✅ Same format |
+| **Raw Tables** | DuckDB | Snowflake | ✅ Same schema |
+| **Transforms** | dbt (DuckDB dialect) | dbt (Snowflake dialect) | ✅ Identical SQL |
+| **Marts** | DuckDB | Snowflake | ✅ Same schema |
+| **Dashboard** | Streamlit (local) | Streamlit (Cloud) | ✅ Identical |
+
+### 13.4 DuckDB Schema Naming (Critical)
+
+DuckDB requires the `main_` prefix for schema-qualified table names:
+
+```sql
+-- ✅ CORRECT
+SELECT * FROM main_raw.commits
+SELECT * FROM main_staging.stg_commits
+SELECT * FROM main_mart.mart_velocity
+
+-- ❌ INCORRECT (fails with "Catalog Error")
+SELECT * FROM raw.commits
+SELECT * FROM staging.stg_commits
+SELECT * FROM mart.mart_velocity
+```
+
+This is a DuckDB-specific requirement where `main` is the default catalog. Queries without the `main_` prefix attempt to reference non-existent catalogs.
+
+### 13.5 Lessons Learned: Data Pipeline Implementation
+
+**Issue #1: API Response Format Duality**
+- **Problem**: cursor-sim supports both `{items:[...]}` and raw array formats; api-loader initially didn't handle both
+- **Root Cause**: API contract wasn't explicitly documented; assumption that only one format was supported
+- **Resolution**: Implemented dual-format detection in BaseAPIExtractor
+- **Lesson**: Document all supported response formats in API contract
+
+**Issue #2: Column Mapping (camelCase vs snake_case)**
+- **Problem**: API returns camelCase (commitHash); dashboard queries expected snake_case (commit_hash)
+- **Root Cause**: Confusion about where transformation should happen (extraction vs staging)
+- **Resolution**: Preserve API format in raw layer, transform in dbt staging models
+- **Lesson**: Establish clear responsibility boundaries: API fields as-is → staging transforms → marts aggregate
+
+**Issue #3: DuckDB Schema Naming**
+- **Problem**: Dashboard queries failed with "Catalog Error: Table not found"; SQL used `mart.table` instead of `main_mart.table`
+- **Root Cause**: DuckDB catalog/schema concept differs from standard SQL; documentation didn't specify DuckDB requirements
+- **Resolution**: Added `main_` prefix requirement to all schema-qualified table names
+- **Lesson**: Document database-specific quirks (e.g., DuckDB catalog naming) in early design docs
+
+**Issue #4: Column Availability Mismatch**
+- **Problem**: Dashboard tried to access columns that don't exist in dbt marts (p50_cycle_time, avg_coding_lead_time, avg_review_iterations)
+- **Root Cause**: Assumed columns existed based on Snowflake documentation; dbt mart didn't define them
+- **Resolution**: Removed references to non-existent columns; verified actual marts via `SELECT * FROM main_mart.mart_*`
+- **Lesson**: Test column availability early; don't assume columns exist without verification
+
+**Issue #5: INTERVAL Syntax in DuckDB**
+- **Problem**: Parameterized INTERVAL syntax failed: `WHERE week >= CURRENT_DATE - INTERVAL $days DAY`
+- **Root Cause**: DuckDB doesn't support parameterized INTERVAL expressions
+- **Resolution**: Use f-string interpolation for days (integer is validated): `f"CURRENT_DATE - INTERVAL '{days}' DAY"`
+- **Lesson**: Document database-specific SQL syntax limitations
+
+**Issue #6: SQL Injection Prevention**
+- **Problem**: Early dashboard code used f-strings for user input: `f"WHERE repo_name = '{repo_name}'"`
+- **Root Cause**: Code reuse pattern from pandas/Python without SQL context
+- **Resolution**: Refactored to parameterized queries with DuckDB's `$param` placeholders
+- **Lesson**: Always parameterize user input; never use f-strings for SQL user input
+
+---
+
+## 14. Recommended Reading Order
+
+For new developers joining the project, read in this order:
+
+1. **This file (DESIGN.md)**: Overall architecture and design decisions
+2. **services/cursor-sim/SPEC.md**: API contract and data formats (source of truth)
+3. **docs/design/new_data_architecture.md**: Data pipeline details (P8/P9)
+4. **docs/TESTING_STRATEGY.md**: Testing approaches and data contract validation
+5. **services/{service}/README.md**: Service-specific setup and development
+6. **.work-items/{feature}/design.md**: Active feature design details
+7. **.work-items/{feature}/task.md**: Implementation task breakdown
+
