@@ -17,7 +17,7 @@ Usage:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from components.sidebar import render_sidebar, get_filter_where_clause
+from components.sidebar import render_sidebar, get_filter_params
 from queries.quality import (
     get_quality_data,
     get_quality_summary,
@@ -41,13 +41,13 @@ st.markdown("Track revert rates, bug fixes, and quality trends over time.")
 
 st.divider()
 
-# Get filter WHERE clause from sidebar state
-where = get_filter_where_clause()
+# Get filter params from sidebar state
+repo_name, date_range, days = get_filter_params()
 
 # Fetch data
 try:
-    df = get_quality_data(where)
-    summary = get_quality_summary(where)
+    df = get_quality_data(repo_name=repo_name, days=days)
+    summary = get_quality_summary(repo_name=repo_name, days=days)
 
     if df.empty:
         st.warning("No data available for the selected filters.")
@@ -96,7 +96,7 @@ try:
     st.subheader("📈 Revert Rate Trend")
     st.markdown("Track how revert rates change week over week")
 
-    trends = get_revert_trends(where)
+    trends = get_revert_trends(repo_name=repo_name, days=days)
 
     if not trends.empty:
         trends_sorted = trends.sort_values("week")
@@ -186,7 +186,7 @@ try:
     st.subheader("🤖 Quality by AI Usage Band")
     st.markdown("Compare revert rates across different AI usage levels")
 
-    quality_by_band = get_quality_by_ai_band(where)
+    quality_by_band = get_quality_by_ai_band(repo_name=repo_name, days=days)
 
     if not quality_by_band.empty:
         # Sort for proper ordering

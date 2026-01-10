@@ -17,7 +17,7 @@ Usage:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from components.sidebar import render_sidebar, get_filter_where_clause
+from components.sidebar import render_sidebar, get_filter_params
 from queries.review_costs import (
     get_review_costs_data,
     get_review_costs_summary,
@@ -41,13 +41,13 @@ st.markdown("Analyze review iterations, reviewer workload, and review time metri
 
 st.divider()
 
-# Get filter WHERE clause from sidebar state
-where = get_filter_where_clause()
+# Get filter params from sidebar state
+repo_name, date_range, days = get_filter_params()
 
 # Fetch data
 try:
-    df = get_review_costs_data(where)
-    summary = get_review_costs_summary(where)
+    df = get_review_costs_data(repo_name=repo_name, days=days)
+    summary = get_review_costs_summary(repo_name=repo_name, days=days)
 
     if df.empty:
         st.warning("No data available for the selected filters.")
@@ -96,7 +96,7 @@ try:
     st.subheader("📈 Review Time Trend")
     st.markdown("Track how review turnaround time changes over time")
 
-    workload = get_reviewer_workload(where)
+    workload = get_reviewer_workload(repo_name=repo_name, days=days)
 
     if not workload.empty:
         workload_sorted = workload.sort_values("week")
@@ -164,7 +164,7 @@ try:
     st.subheader("🤖 Review Costs by AI Usage Band")
     st.markdown("Compare review burden across different AI usage levels")
 
-    costs_by_band = get_review_costs_by_ai_band(where)
+    costs_by_band = get_review_costs_by_ai_band(repo_name=repo_name, days=days)
 
     if not costs_by_band.empty:
         # Sort for proper ordering

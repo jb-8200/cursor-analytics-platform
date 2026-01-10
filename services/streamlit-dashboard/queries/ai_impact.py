@@ -12,31 +12,36 @@ This module provides parameterized SQL queries for AI impact analysis:
 Depends on: mart.ai_impact (P8 dbt mart)
 """
 
+from typing import Optional, Tuple, Dict, Any
 from db.connector import query
 import pandas as pd
 
 
-def get_ai_impact_data(where_clause: str = "") -> pd.DataFrame:
+def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, Dict[str, Any]]:
+    """Helper to build WHERE clause and parameters."""
+    conditions = []
+    params = {}
+
+    if repo_name and repo_name != "All":
+        conditions.append("repo_name = $repo")
+        params["repo"] = repo_name
+
+    if days:
+        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
+        params["days"] = days
+
+    if not conditions:
+        return "", {}
+        
+    return "WHERE " + " AND ".join(conditions), params
+
+
+def get_ai_impact_data(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get AI impact metrics grouped by usage band.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering (e.g., "WHERE week >= '2026-01-01'")
-
-    Returns:
-        DataFrame with AI impact metrics including:
-        - week: Week start date
-        - ai_usage_band: AI usage band (low, medium, high)
-        - pr_count: Number of PRs in this band
-        - avg_ai_ratio: Average AI contribution ratio
-        - avg_coding_lead_time: Average coding lead time (days)
-        - avg_review_cycle_time: Average review cycle time (days)
-        - revert_rate: Revert rate for this band
-
-    Example:
-        >>> df = get_ai_impact_data()
-        >>> df = get_ai_impact_data("WHERE week >= '2026-01-01'")
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         week,
@@ -50,29 +55,15 @@ def get_ai_impact_data(where_clause: str = "") -> pd.DataFrame:
     {where_clause}
     ORDER BY week DESC, ai_usage_band
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_band_comparison(where_clause: str = "") -> pd.DataFrame:
+def get_band_comparison(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get comparison of metrics across AI usage bands.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame aggregated by band with average metrics:
-        - ai_usage_band: Band name (low, medium, high)
-        - total_prs: Total PRs in band
-        - avg_ai_ratio: Average AI ratio
-        - avg_coding_lead_time: Average coding lead time
-        - avg_review_cycle_time: Average review cycle time
-        - avg_revert_rate: Average revert rate
-
-    Example:
-        >>> comparison = get_band_comparison()
-        >>> print(comparison[comparison['ai_usage_band'] == 'high'])
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         ai_usage_band,
@@ -86,28 +77,15 @@ def get_band_comparison(where_clause: str = "") -> pd.DataFrame:
     GROUP BY ai_usage_band
     ORDER BY ai_usage_band
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_band_trends(where_clause: str = "") -> pd.DataFrame:
+def get_band_trends(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get week-over-week trends for each AI usage band.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame with weekly trends by band:
-        - week: Week start date
-        - ai_usage_band: Band name
-        - pr_count: PRs in this week/band
-        - avg_coding_lead_time: Coding lead time for this week/band
-        - revert_rate: Revert rate for this week/band
-
-    Example:
-        >>> trends = get_band_trends()
-        >>> high_ai = trends[trends['ai_usage_band'] == 'high']
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         week,
@@ -119,4 +97,4 @@ def get_band_trends(where_clause: str = "") -> pd.DataFrame:
     {where_clause}
     ORDER BY week DESC, ai_usage_band
     """
-    return query(sql)
+    return query(sql, params)

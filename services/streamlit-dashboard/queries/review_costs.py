@@ -13,32 +13,36 @@ This module provides parameterized SQL queries for review cost analysis:
 Depends on: mart.review_costs (P8 dbt mart)
 """
 
+from typing import Optional, Tuple, Dict, Any
 from db.connector import query
 import pandas as pd
 
 
-def get_review_costs_data(where_clause: str = "") -> pd.DataFrame:
+def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, Dict[str, Any]]:
+    """Helper to build WHERE clause and parameters."""
+    conditions = []
+    params = {}
+
+    if repo_name and repo_name != "All":
+        conditions.append("repo_name = $repo")
+        params["repo"] = repo_name
+
+    if days:
+        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
+        params["days"] = days
+
+    if not conditions:
+        return "", {}
+        
+    return "WHERE " + " AND ".join(conditions), params
+
+
+def get_review_costs_data(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get weekly review cost metrics.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering (e.g., "WHERE repo_name = 'acme/platform'")
-
-    Returns:
-        DataFrame with review cost metrics including:
-        - week: Week start date
-        - repo_name: Repository name
-        - total_prs: Total PRs reviewed
-        - avg_review_iterations: Average number of review cycles per PR
-        - avg_reviewers_per_pr: Average number of reviewers per PR
-        - avg_review_comments: Average number of review comments per PR
-        - avg_review_time: Average time spent in review (days)
-        - total_review_hours: Total review hours for the week
-
-    Example:
-        >>> df = get_review_costs_data()
-        >>> df = get_review_costs_data("WHERE repo_name = 'acme/platform'")
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         week,
@@ -53,26 +57,15 @@ def get_review_costs_data(where_clause: str = "") -> pd.DataFrame:
     {where_clause}
     ORDER BY week DESC
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_review_iteration_distribution(where_clause: str = "") -> pd.DataFrame:
+def get_review_iteration_distribution(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get distribution of PRs by number of review iterations.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame with iteration distribution:
-        - iteration_count: Number of iterations (1, 2, 3+)
-        - pr_count: Number of PRs with this iteration count
-        - percentage: Percentage of total PRs
-
-    Example:
-        >>> dist = get_review_iteration_distribution()
-        >>> one_iteration = dist[dist['iteration_count'] == 1]
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         CASE
@@ -87,27 +80,15 @@ def get_review_iteration_distribution(where_clause: str = "") -> pd.DataFrame:
     GROUP BY iteration_count
     ORDER BY iteration_count
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_reviewer_workload(where_clause: str = "") -> pd.DataFrame:
+def get_reviewer_workload(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get reviewer workload metrics.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame with workload metrics:
-        - week: Week start date
-        - avg_reviewers_per_pr: Average reviewers per PR
-        - total_review_hours: Total review hours
-        - avg_review_time: Average time per review
-
-    Example:
-        >>> workload = get_reviewer_workload()
-        >>> recent = workload.head(12)  # Last 12 weeks
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         week,
@@ -118,28 +99,15 @@ def get_reviewer_workload(where_clause: str = "") -> pd.DataFrame:
     {where_clause}
     ORDER BY week DESC
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_review_costs_summary(where_clause: str = "") -> dict:
+def get_review_costs_summary(repo_name: Optional[str] = None, days: Optional[int] = None) -> dict:
     """
     Get summary statistics for review costs.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        Dictionary with summary stats:
-        - total_prs: Total number of PRs reviewed
-        - avg_iterations: Average review iterations
-        - avg_reviewers: Average reviewers per PR
-        - avg_comments: Average comments per PR
-        - total_hours: Total review hours
-
-    Example:
-        >>> summary = get_review_costs_summary()
-        >>> print(f"Total review hours: {summary['total_hours']:.0f}")
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         SUM(total_prs) as total_prs,
@@ -150,28 +118,18 @@ def get_review_costs_summary(where_clause: str = "") -> dict:
     FROM mart.review_costs
     {where_clause}
     """
-    result = query(sql)
+    result = query(sql, params)
+    if result.empty:
+        return {}
     return result.iloc[0].to_dict()
 
 
-def get_review_costs_by_ai_band(where_clause: str = "") -> pd.DataFrame:
+def get_review_costs_by_ai_band(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get review costs grouped by AI usage band.
-
-    Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame with costs by AI band:
-        - ai_usage_band: AI usage band (low, medium, high)
-        - avg_review_iterations: Average iterations for this band
-        - avg_review_comments: Average comments for this band
-        - avg_review_time: Average review time for this band
-
-    Example:
-        >>> by_band = get_review_costs_by_ai_band()
-        >>> high_ai = by_band[by_band['ai_usage_band'] == 'high']
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         ai_usage_band,
@@ -183,4 +141,4 @@ def get_review_costs_by_ai_band(where_clause: str = "") -> pd.DataFrame:
     GROUP BY ai_usage_band
     ORDER BY ai_usage_band
     """
-    return query(sql)
+    return query(sql, params)

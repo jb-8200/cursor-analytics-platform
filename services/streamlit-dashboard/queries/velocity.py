@@ -13,36 +13,52 @@ This module provides parameterized SQL queries for velocity metrics:
 Depends on: mart.velocity (P8 dbt mart)
 """
 
+from typing import Optional, Tuple, Dict, Any
 from db.connector import query
 import pandas as pd
 
 
-def get_velocity_data(where_clause: str = "") -> pd.DataFrame:
+def _build_filter(repo_name: Optional[str], days: Optional[int]) -> Tuple[str, Dict[str, Any]]:
+    """
+    Build WHERE clause and parameters for filtering.
+    
+    Args:
+        repo_name: Repository name filter (or None for all)
+        days: Number of days lookback (or None for all time)
+        
+    Returns:
+        Tuple of (where_clause, params_dict)
+    """
+    conditions = []
+    params = {}
+
+    if repo_name and repo_name != "All":
+        conditions.append("repo_name = $repo")
+        params["repo"] = repo_name
+
+    if days:
+        conditions.append("week >= CURRENT_DATE - INTERVAL $days DAY")
+        params["days"] = days
+
+    if not conditions:
+        return "", {}
+        
+    return "WHERE " + " AND ".join(conditions), params
+
+
+def get_velocity_data(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get weekly velocity metrics.
 
     Args:
-        where_clause: Optional SQL WHERE clause for filtering (e.g., "WHERE repo_name = 'acme/platform'")
+        repo_name: Optional repository name for filtering
+        days: Optional number of days for date range filter
 
     Returns:
-        DataFrame with velocity metrics including:
-        - week: Week start date
-        - repo_name: Repository name
-        - active_developers: Count of active developers
-        - total_prs: Total PRs merged
-        - avg_pr_size: Average PR size (lines changed)
-        - coding_lead_time: Average time from first commit to PR open (days)
-        - pickup_time: Average time from PR open to first review (days)
-        - review_lead_time: Average time from first review to merge (days)
-        - total_cycle_time: Total cycle time (days)
-        - p50_cycle_time: Median cycle time (days)
-        - p90_cycle_time: 90th percentile cycle time (days)
-        - avg_ai_ratio: Average AI contribution ratio
-
-    Example:
-        >>> df = get_velocity_data()
-        >>> df = get_velocity_data("WHERE repo_name = 'acme/platform'")
+        DataFrame with velocity metrics
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         week,
@@ -61,25 +77,19 @@ def get_velocity_data(where_clause: str = "") -> pd.DataFrame:
     {where_clause}
     ORDER BY week DESC
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_cycle_time_breakdown(where_clause: str = "") -> pd.DataFrame:
+def get_cycle_time_breakdown(repo_name: Optional[str] = None, days: Optional[int] = None) -> pd.DataFrame:
     """
     Get cycle time breakdown by component.
 
     Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        DataFrame with columns:
-        - component: Component name (Coding, Pickup, Review)
-        - hours: Average hours for this component
-
-    Example:
-        >>> breakdown = get_cycle_time_breakdown()
-        >>> breakdown = get_cycle_time_breakdown("WHERE repo_name = 'acme/platform'")
+        repo_name: Optional repository name filter
+        days: Optional number of days filter
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         'Coding' as component,
@@ -96,27 +106,19 @@ def get_cycle_time_breakdown(where_clause: str = "") -> pd.DataFrame:
         AVG(review_lead_time) * 24 as hours
     FROM mart.velocity {where_clause}
     """
-    return query(sql)
+    return query(sql, params)
 
 
-def get_velocity_summary(where_clause: str = "") -> dict:
+def get_velocity_summary(repo_name: Optional[str] = None, days: Optional[int] = None) -> dict:
     """
     Get summary statistics for velocity metrics.
 
     Args:
-        where_clause: Optional SQL WHERE clause for filtering
-
-    Returns:
-        Dictionary with summary stats:
-        - total_prs: Total number of PRs
-        - avg_cycle_time: Average cycle time
-        - max_developers: Maximum active developers
-        - avg_ai_ratio: Average AI ratio
-
-    Example:
-        >>> summary = get_velocity_summary()
-        >>> print(summary['total_prs'])
+        repo_name: Optional repository name filter
+        days: Optional number of days filter
     """
+    where_clause, params = _build_filter(repo_name, days)
+    
     sql = f"""
     SELECT
         SUM(total_prs) as total_prs,
@@ -126,5 +128,8 @@ def get_velocity_summary(where_clause: str = "") -> dict:
     FROM mart.velocity
     {where_clause}
     """
-    result = query(sql)
+    result = query(sql, params)
+    if result.empty:
+        return {}
     return result.iloc[0].to_dict()
+

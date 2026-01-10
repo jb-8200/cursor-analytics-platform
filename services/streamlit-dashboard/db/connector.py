@@ -44,7 +44,7 @@ def _get_duckdb_connection():
     """
     import duckdb
 
-    db_path = os.getenv("DUCKDB_PATH", "/data/analytics.duckdb")
+    db_path = os.getenv("DUCKDB_PATH", "data/analytics.duckdb")
     return duckdb.connect(db_path, read_only=False)
 
 
@@ -97,8 +97,8 @@ def query(sql: str, params: Optional[dict] = None) -> pd.DataFrame:
     else:
         # DuckDB
         if params:
-            # DuckDB parameterized query
-            return conn.execute(sql, list(params.values())).df()
+            # DuckDB parameterized query (supports dict for $param style)
+            return conn.execute(sql, params).df()
         return conn.execute(sql).df()
 
 
@@ -125,7 +125,8 @@ def refresh_data():
     import subprocess
 
     cursor_sim_url = os.getenv("CURSOR_SIM_URL", "http://localhost:8080")
-    duckdb_path = os.getenv("DUCKDB_PATH", "/data/analytics.duckdb")
+    duckdb_path = os.getenv("DUCKDB_PATH", "data/analytics.duckdb")
+    raw_data_path = os.getenv("RAW_DATA_PATH", "data/raw")
 
     try:
         # Step 1: Extract data from cursor-sim
@@ -137,7 +138,7 @@ def refresh_data():
                 "--url",
                 cursor_sim_url,
                 "--output",
-                "/data/raw",
+                raw_data_path,
             ],
             capture_output=True,
             text=True,
@@ -149,19 +150,20 @@ def refresh_data():
         # Import dynamically to avoid import errors in test environment
         try:
             from pipeline.duckdb_loader import load_parquet_to_duckdb
-            load_parquet_to_duckdb("/data/raw", duckdb_path)
+            load_parquet_to_duckdb(raw_data_path, duckdb_path)
         except ImportError:
             # Fallback for testing environment
             import sys
             sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
             from pipeline.duckdb_loader import load_parquet_to_duckdb
-            load_parquet_to_duckdb("/data/raw", duckdb_path)
+            load_parquet_to_duckdb(os.getenv("RAW_DATA_PATH", "data/raw"), duckdb_path)
 
         # Step 3: Run dbt
         print("Running dbt transformations...")
+        dbt_project_dir = os.getenv("DBT_PROJECT_DIR", "/app/dbt")
         result = subprocess.run(
             ["dbt", "build", "--target", "dev"],
-            cwd="/app/dbt",
+            cwd=dbt_project_dir,
             capture_output=True,
             text=True,
             check=True,

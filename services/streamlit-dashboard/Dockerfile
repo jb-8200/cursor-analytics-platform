@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . ./
 
+# Copy dbt project (requires build context at repo root)
+COPY dbt /app/dbt
+
 # Create data directory for DuckDB (dev mode)
 RUN mkdir -p /data/raw
 

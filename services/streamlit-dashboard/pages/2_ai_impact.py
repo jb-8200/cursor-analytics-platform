@@ -17,7 +17,7 @@ Usage:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from components.sidebar import render_sidebar, get_filter_where_clause
+from components.sidebar import render_sidebar, get_filter_params
 from queries.ai_impact import get_ai_impact_data, get_band_comparison, get_band_trends
 
 # Page configuration
@@ -36,13 +36,13 @@ st.markdown("Analyze how AI-assisted development affects cycle times, quality, a
 
 st.divider()
 
-# Get filter WHERE clause from sidebar state
-where = get_filter_where_clause()
+# Get filter params from sidebar state
+repo_name, date_range, days = get_filter_params()
 
 # Fetch data
 try:
-    df = get_ai_impact_data(where)
-    band_comparison = get_band_comparison(where)
+    df = get_ai_impact_data(repo_name=repo_name, days=days)
+    band_comparison = get_band_comparison(repo_name=repo_name, days=days)
 
     if df.empty:
         st.warning("No data available for the selected filters.")
@@ -215,7 +215,7 @@ try:
     st.subheader("📈 AI Usage Trend Over Time")
     st.markdown("Track how AI usage distribution changes week over week")
 
-    trends = get_band_trends(where)
+    trends = get_band_trends(repo_name=repo_name, days=days)
 
     if not trends.empty:
         # Pivot for stacked area chart

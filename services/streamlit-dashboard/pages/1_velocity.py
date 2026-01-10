@@ -17,7 +17,7 @@ Usage:
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
-from components.sidebar import render_sidebar, get_filter_where_clause
+from components.sidebar import render_sidebar, get_filter_params
 from queries.velocity import get_velocity_data, get_cycle_time_breakdown, get_velocity_summary
 
 # Page configuration
@@ -36,13 +36,13 @@ st.markdown("Track PR throughput, cycle times, and developer activity.")
 
 st.divider()
 
-# Get filter WHERE clause from sidebar state
-where = get_filter_where_clause()
+# Get filter params from sidebar state
+repo_name, date_range, days = get_filter_params()
 
 # Fetch data
 try:
-    df = get_velocity_data(where)
-    summary = get_velocity_summary(where)
+    df = get_velocity_data(repo_name=repo_name, days=days)
+    summary = get_velocity_summary(repo_name=repo_name, days=days)
 
     if df.empty:
         st.warning("No data available for the selected filters.")
@@ -146,7 +146,7 @@ try:
     st.subheader("⏱️ Average Cycle Time Breakdown")
     st.markdown("Average hours spent in each phase across all PRs")
 
-    breakdown = get_cycle_time_breakdown(where)
+    breakdown = get_cycle_time_breakdown(repo_name=repo_name, days=days)
 
     # Create bar chart
     fig2 = px.bar(

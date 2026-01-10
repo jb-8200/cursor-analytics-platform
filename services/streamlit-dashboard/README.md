@@ -54,12 +54,18 @@ streamlit-dashboard/
 # Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
-export DB_MODE=duckdb
-export DUCKDB_PATH=/data/analytics.duckdb
-export CURSOR_SIM_URL=http://localhost:8080
+# Create local data directories
+mkdir -p data/raw
 
-# Run dashboard
+# Run dashboard (uses default relative paths)
+streamlit run app.py
+
+# OR with explicit configuration
+export DB_MODE=duckdb
+export DUCKDB_PATH=data/analytics.duckdb
+export RAW_DATA_PATH=data/raw
+export DBT_PROJECT_DIR=../../dbt
+export CURSOR_SIM_URL=http://localhost:8080
 streamlit run app.py
 ```
 
@@ -132,6 +138,13 @@ pytest tests/
 pytest --cov=. --cov-report=html tests/
 ```
 
+### Security Testing
+
+Verify SQL injection protection:
+1. Launch dashboard
+2. Modify sidebar selectbox value via dev tools to: `'; DROP TABLE mart.velocity; --`
+3. Verify no SQL errors occur and data remains intact
+
 ## Dependencies
 
 - **P8 (Data Tier)**: Requires dbt mart tables (mart.velocity, mart.ai_impact, mart.quality, mart.review_costs)
@@ -143,8 +156,12 @@ pytest --cov=. --cov-report=html tests/
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
 | `DB_MODE` | No | `duckdb` | Database mode: `duckdb` or `snowflake` |
-| `DUCKDB_PATH` | No | `/data/analytics.duckdb` | Path to DuckDB file |
+| `DUCKDB_PATH` | No | `data/analytics.duckdb` | Path to DuckDB file (relative to app) |
+| `RAW_DATA_PATH` | No | `data/raw` | Directory for raw extracted data |
+| `DBT_PROJECT_DIR` | No | `/app/dbt` | Path to dbt project directory |
 | `CURSOR_SIM_URL` | No | `http://localhost:8080` | cursor-sim API URL |
 | `SNOWFLAKE_ACCOUNT` | Yes (prod) | - | Snowflake account identifier |
 | `SNOWFLAKE_USER` | Yes (prod) | - | Snowflake username |

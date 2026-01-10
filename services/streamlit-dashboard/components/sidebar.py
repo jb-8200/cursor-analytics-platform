@@ -102,48 +102,28 @@ def render_sidebar():
             st.warning("🟡 Development")
 
 
-def get_filter_where_clause() -> str:
+def get_filter_params() -> tuple[str, str, int]:
     """
-    Build SQL WHERE clause from current filter state.
+    Get filter parameters from session state.
 
     Returns:
-        SQL WHERE clause string based on session state filters.
-        Returns empty string if no filters applied (All repos, All time).
-
+        Tuple of (repo_name or None, date_range_label, days or None)
+        
     Example:
-        >>> where = get_filter_where_clause()
-        >>> df = get_velocity_data(where)
-
-        # With repo filter:
-        "WHERE repo_name = 'acme/platform' AND week >= CURRENT_DATE - INTERVAL '90 days'"
-
-        # All repos, last 30 days:
-        "WHERE week >= CURRENT_DATE - INTERVAL '30 days'"
-
-        # All repos, all time:
-        ""
+        >>> repo, label, days = get_filter_params()
+        >>> df = get_velocity_data(repo_name=repo, days=days)
     """
-    conditions = []
-
-    # Repository filter
     repo = st.session_state.get("filter_repo", "All")
-    if repo != "All":
-        conditions.append(f"repo_name = '{repo}'")
+    repo_name = None if repo == "All" else repo
 
-    # Date range filter
     date_range = st.session_state.get("filter_date_range", "All time")
-    if date_range != "All time":
-        # Extract number of days from date range string
-        days_map = {
-            "Last 7 days": 7,
-            "Last 30 days": 30,
-            "Last 90 days": 90,
-        }
-        days = days_map.get(date_range)
-        if days:
-            conditions.append(f"week >= CURRENT_DATE - INTERVAL '{days} days'")
+    
+    # Map label to number of days
+    days_map = {
+        "Last 7 days": 7,
+        "Last 30 days": 30,
+        "Last 90 days": 90,
+    }
+    days = days_map.get(date_range)  # Returns None for "All time"
 
-    # Build WHERE clause
-    if conditions:
-        return "WHERE " + " AND ".join(conditions)
-    return ""
+    return (repo_name, date_range, days)
