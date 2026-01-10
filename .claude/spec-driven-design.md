@@ -265,6 +265,25 @@ go test ./... -v -race -count=5
 | `internal/api/**/*.go` | SPEC.md endpoints, E2E tests | Documentation + Test |
 | `internal/storage/*.go` | All handlers using storage, tests | Code + Test |
 
+**API Change Impact Analysis** (cursor-sim only):
+
+If modifying cursor-sim API (endpoints, response formats, fields):
+
+| Change Type | Downstream Impact | Validation Required |
+|---|---|---|
+| New endpoint | P8: Add extractor | Review data availability |
+| Response format change | P8: Update handling, dbt schema | CRITICAL: Test extraction |
+| Field rename | P8: Update dbt mapping, P9: Update queries | CRITICAL: E2E test |
+| Field removal | P8: Remove staging models, P9: Remove from queries | CRITICAL: Breaking change |
+| Field type change | P8: Add dbt type casting | High priority |
+
+**Downstream Impact Checklist**:
+- [ ] P8 (api-loader, dbt): api-loader extraction, dbt column mapping, DuckDB schema
+- [ ] P9 (streamlit-dashboard): Streamlit queries, available columns, parameterization
+- [ ] E2E Test: cursor-sim → api-loader → dbt → dashboard
+
+**Reference**: `.claude/rules/05-api-change-impact.md`
+
 ### Phase 5: Sync (SPEC.md Updates)
 
 **NEW**: Update service specifications when implementation changes warrant it.
@@ -285,11 +304,16 @@ Run `spec-sync-check` to determine if SPEC.md needs updating:
    - Created/modified handler in `internal/api/`
    - Update: Endpoints table with method, path, auth, status
 
-3. **New Service/Package Created**
+3. **API Contract Change** (cursor-sim only)
+   - Modified endpoint, response format, or field names/types
+   - Update: Response Schemas, Endpoints, Field Names sections
+   - Action: Create impact review task for P8/P9
+
+4. **New Service/Package Created**
    - Created directory in `internal/`
    - Update: Package Structure section
 
-4. **CLI Configuration Changes**
+5. **CLI Configuration Changes**
    - Modified `internal/config/` or `cmd/`
    - Update: CLI Configuration, environment variables
 

@@ -155,6 +155,46 @@ Go API/Generator specialist for cursor-sim backend.
 
 ---
 
+## API Change Impact Protocol
+
+**CRITICAL**: When cursor-sim-api-dev modifies the API, it triggers downstream validation.
+
+### When API Changes Occur
+
+1. **Agent Responsibility**: cursor-sim-api-dev immediately notifies orchestrator:
+   ```
+   ⚠️ API CHANGE: [endpoint/field/format] modified
+   Downstream impact: P8 (api-loader, dbt), P9 (Streamlit queries)
+   Action required: Create impact review task
+   ```
+
+2. **Master Agent Action**: Create P4-F##-api-change-impact-review task:
+   - Scope: Validate P8/P9 alignment with new API contract
+   - Assign validation to data-tier-dev (P8) and streamlit-dev (P9)
+   - Deliverables: Updated api-loader, dbt models, dashboard queries
+
+3. **Validation Required**:
+   - **P8**: api-loader extraction, dbt column mapping, DuckDB schema
+   - **P9**: Streamlit queries, available columns, parameterization
+   - **E2E**: Full pipeline test (cursor-sim → dbt → dashboard)
+
+4. **Sign-off**: E2E tests must pass before merging API changes
+
+### Impact Matrix
+
+| API Change Type | P8 Impact | P9 Impact | Review |
+|---|---|---|---|
+| New endpoint | Add extractor | Add queries | ✅ YES |
+| Response format change | Update handling | N/A | ✅ YES (CRITICAL) |
+| Field rename | Update mapping | Update refs | ✅ YES (CRITICAL) |
+| Field type change | Add casting | Validate types | ✅ YES |
+| Field removal | Remove from staging | Remove from queries | ✅ YES (CRITICAL) |
+| New field | Optional | Optional | ⚠️ Maybe |
+
+**Reference**: `.claude/rules/05-api-change-impact.md` for full details.
+
+---
+
 ## Legacy Agents (P5-P7)
 
 ### analytics-core-dev (DEPRECATED)

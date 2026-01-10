@@ -129,3 +129,14 @@ services/cursor-sim/
 - [ ] Only CLI-related files modified
 - [ ] Tests pass: `go test ./cmd/... ./internal/config/...`
 - [ ] Main API still works: `go test ./internal/api/...`
+
+## API Stability and Downstream Dependencies
+
+**IMPORTANT**: P5 (cursor-analytics-core) and P6 (cursor-viz-spa) depend on stable cursor-sim API contracts.
+
+Your CLI changes are **isolated and safe** because:
+- You NEVER modify API handlers (`internal/api/`)
+- You NEVER modify data models (`internal/models/`)
+- You NEVER modify generators (`internal/generator/`)
+
+**If you discover that CLI flag changes expose or document new API behavior**, notify the orchestrator. API changes require thorough downstream review (rule 05-api-change-impact.md).

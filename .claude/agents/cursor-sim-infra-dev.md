@@ -364,6 +364,23 @@ echo "Service URL: ${SERVICE_URL}"
 echo "Health check: curl -u cursor-sim-dev-key: ${SERVICE_URL}/health"
 ```
 
+## Downstream Dependency: URL Stability
+
+**CRITICAL**: P5 (cursor-analytics-core), P6 (cursor-viz-spa), P8 (api-loader), and P9 (streamlit-dashboard) all depend on stable cursor-sim URLs.
+
+When making infrastructure changes:
+- ✅ URL changes must be documented and communicated to all consuming services
+- ✅ Blue-green deployments protect against downtime
+- ✅ Health checks must validate API endpoints still work
+- ⚠️ Environment variable changes might affect how services connect to cursor-sim
+
+**If changing the cursor-sim service URL**, notify the orchestrator so that:
+- P5/P6 connection strings can be updated
+- P8 api-loader extraction endpoint is updated
+- P9 dashboard data refresh configuration is updated
+
+---
+
 ## Reference Documentation
 
 Always consult `docs/cursor-sim-cloud-run.md` for:

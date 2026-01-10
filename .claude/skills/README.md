@@ -13,6 +13,7 @@ Skills are auto-triggered knowledge modules that activate when your request matc
 | Skill | Triggers | Service | Purpose |
 |-------|----------|---------|---------|
 | `api-contract` | "API", "endpoint", "contract", "request", "response" | P4 (cursor-sim) | Reference for cursor-sim REST API endpoints, models, and response formats |
+| `api-change-impact` | "API change", "field rename", "endpoint modified", "format change" | P4→P8→P9 | Validates downstream pipeline alignment when cursor-sim API changes |
 | `cursor-api-patterns` | "API implementation", "handler", "authentication", "pagination" | P4 (cursor-sim) | Patterns for implementing HTTP handlers, auth, pagination, and CSV exports |
 | `go-best-practices` | Go code, "handlers", "structs", "error", "testing" | P4 (cursor-sim) | Go naming conventions, error handling, concurrency, testing patterns |
 | `typescript-graphql-patterns` | GraphQL, "resolver", "schema", "mutation", "query" | P5 (analytics-core) | Apollo Server, resolver implementations, type safety, error handling |

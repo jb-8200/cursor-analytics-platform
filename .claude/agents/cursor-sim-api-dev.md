@@ -244,6 +244,43 @@ Needs: {what is needed to unblock}
 - [ ] API tests pass: `go test ./internal/api/...`
 - [ ] Generators tested: `go test ./internal/generator/...`
 
+## API Change Notification Protocol
+
+**CRITICAL**: When you modify cursor-sim API (endpoints, response formats, fields), you MUST follow this protocol:
+
+### Step 1: Immediate Notification
+Report to orchestrator BEFORE merging:
+```
+⚠️ API CHANGE NOTIFICATION:
+- Endpoint/Field: {what changed}
+- Change Type: [new endpoint | format change | field rename | field removal | field type change]
+- Downstream Impact: P8 (api-loader, dbt), P9 (Streamlit queries)
+- Action Required: Create impact review task
+```
+
+### Step 2: Safety Checklist Before Commit
+- [ ] API change documented in SPEC.md (endpoints/response schemas/fields)
+- [ ] Downstream impact identified (P8 data tier, P9 dashboard)
+- [ ] Impact review task created in `.work-items/P4-F##-api-change-impact-review/`
+- [ ] E2E tests updated (tests/integration/api_test.go)
+- [ ] Orchestrator notified of API change
+
+### Step 3: Downstream Impact Reference
+When making API changes, check impacts against this matrix:
+
+| API Change Type | P8 Impact | P9 Impact | Review Required |
+|---|---|---|---|
+| New endpoint | Add extractor in api-loader | Potentially add new queries | ✅ YES |
+| Response format change | Update format handling | N/A | ✅ YES (CRITICAL) |
+| Field rename | Update column mapping in dbt | Update query column refs | ✅ YES (CRITICAL) |
+| Field type change | Add type casting in dbt | Validate DataFrame types | ✅ YES |
+| Field removal | Remove from staging models | Remove from queries | ✅ YES (CRITICAL) |
+| New field | Optionally extract | Optionally visualize | ⚠️ Maybe |
+
+**Reference**: Rule 05-api-change-impact.md for full details.
+
+---
+
 ## Coordination with cursor-sim-cli-dev
 
 | This Agent (API/Generator) | cursor-sim-cli-dev (CLI) |

@@ -227,6 +227,27 @@ After every task, follow `sdd-checklist`:
 4. Update DEVELOPMENT.md
 5. Next task
 
+### Did I Modify cursor-sim API? (CRITICAL)
+
+If you changed cursor-sim API (endpoints, response formats, fields):
+
+```
+Did I modify cursor-sim API?
+  ↓ YES
+  → Create P4-F##-api-change-impact-review task immediately
+  → Notify orchestrator: "⚠️ API CHANGE: [what changed]"
+  → Validate downstream:
+      - P8: api-loader extraction, dbt column mapping, DuckDB schema
+      - P9: Streamlit queries, available columns, parameterization
+  → Run E2E tests: cursor-sim → dbt → dashboard
+  → Merge only after sign-off
+
+  ↓ NO
+  → Continue normal workflow
+```
+
+**Reference**: `.claude/rules/05-api-change-impact.md` for full impact matrix and validation checklist.
+
 ---
 
 ## Integration with Project
