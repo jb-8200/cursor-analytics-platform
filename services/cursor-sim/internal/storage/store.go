@@ -83,4 +83,25 @@ type Store interface {
 	// Ask mode operations
 	AddAskMode(event models.AskModeEvent) error
 	GetAskModeByTimeRange(from, to time.Time) []models.AskModeEvent
+
+	// Admin API operations (P1-F02)
+	ClearAllData() error
+	GetStats() StorageStats
+}
+
+// StorageStats represents current storage statistics.
+// Used by Admin API for observability and regenerate operations.
+type StorageStats struct {
+	Commits        int `json:"commits"`
+	PullRequests   int `json:"pull_requests"`
+	Reviews        int `json:"reviews"`
+	Issues         int `json:"issues"`
+	Developers     int `json:"developers"`
+	ModelUsage     int `json:"model_usage"`
+	ClientVersions int `json:"client_versions"`
+	FileExtensions int `json:"file_extensions"`
+	MCPTools       int `json:"mcp_tools"`
+	Commands       int `json:"commands"`
+	Plans          int `json:"plans"`
+	AskModes       int `json:"ask_modes"`
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/microsoft"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/qualtrics"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/research"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/generator"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/services"
@@ -19,7 +20,7 @@ import (
 )
 
 // NewRouter creates and configures the HTTP router with all endpoints and middleware.
-func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Handler {
+func NewRouter(store storage.Store, seedData interface{}, apiKey string, cfg *config.Config, version string) http.Handler {
 	mux := http.NewServeMux()
 
 	// Health check (no auth required)
@@ -71,15 +72,20 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string) http.Ha
 
 	// Research API (5 endpoints)
 	// Create research generator from seed data
-	researchGen := generator.NewResearchGenerator(seedData.(*seed.SeedData), store)
+	sd := seedData.(*seed.SeedData)
+	researchGen := generator.NewResearchGenerator(sd, store)
 	mux.Handle("/research/dataset", research.DatasetHandler(researchGen))
 	mux.Handle("/research/metrics/velocity", research.VelocityMetricsHandler(researchGen))
 	mux.Handle("/research/metrics/review-costs", research.ReviewCostMetricsHandler(researchGen))
 	mux.Handle("/research/metrics/quality", research.QualityMetricsHandler(researchGen))
 
+	// Admin API (P1-F02)
+	mux.Handle("/admin/stats", cursor.GetStats(store, sd))
+	mux.Handle("/admin/config", cursor.GetConfig(cfg, sd, version))
+	mux.Handle("/admin/regenerate", cursor.Regenerate(store, sd))
+
 	// Harvey API (External Data Source - P4-F04)
 	// Only register if Harvey is enabled in seed data
-	sd := seedData.(*seed.SeedData)
 	if sd.ExternalDataSources != nil && sd.ExternalDataSources.Harvey != nil && sd.ExternalDataSources.Harvey.Enabled {
 		// Create external memory store
 		externalStore := storage.NewExternalMemoryStore()

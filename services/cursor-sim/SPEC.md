@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete ✅
-**Last Updated**: January 9, 2026 (TASK-DS-16: External Data E2E Tests)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P1-F02 (Admin API - Regenerate) Partial ✅
+**Last Updated**: January 10, 2026 (TASK-F02-09: Admin Regenerate API Documentation)
 
 ## Overview
 
@@ -264,7 +264,7 @@ curl -u API_KEY: http://localhost:8080/teams/members
 | Team Analytics | 100 req/min | 429 Too Many Requests |
 | By-User Analytics | 50 req/min | 429 Too Many Requests |
 
-### Endpoints (30 Total)
+### Endpoints (31 Total)
 
 #### Health Check
 
@@ -434,6 +434,228 @@ curl -u API_KEY: http://localhost:8080/teams/members
     "to": "2026-01-31"
   }
 }
+```
+
+#### Admin API (P1-F02)
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | `/admin/config` | Yes | ✅ Implemented |
+| GET | `/admin/stats` | Yes | ✅ Implemented |
+| POST | `/admin/regenerate` | Yes | ✅ Implemented |
+
+**POST /admin/regenerate**
+
+Regenerates simulation data with new parameters without service restart. Supports two modes:
+- **append**: Adds new data to existing storage
+- **override**: Clears all data and generates fresh dataset
+
+**Request Body:**
+```json
+{
+  "mode": "override",
+  "days": 400,
+  "velocity": "high",
+  "developers": 1200,
+  "max_commits": 500
+}
+```
+
+**Request Parameters:**
+- `mode` (string, required): "append" or "override"
+- `days` (integer, required): Days of history to generate (1-3650)
+- `velocity` (string, required): Event generation rate - "low", "medium", or "high"
+- `developers` (integer, required): Number of developers (0-10000, 0 = use seed count)
+- `max_commits` (integer, required): Maximum commits per developer (0-100000, 0 = unlimited)
+
+**Response:**
+```json
+{
+  "status": "success",
+  "mode": "override",
+  "data_cleaned": true,
+  "commits_added": 600000,
+  "prs_added": 60000,
+  "reviews_added": 120000,
+  "issues_added": 20000,
+  "total_commits": 600000,
+  "total_prs": 60000,
+  "total_developers": 1200,
+  "duration": "8.5s",
+  "config": {
+    "days": 400,
+    "velocity": "high",
+    "developers": 1200,
+    "max_commits": 500
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid parameters (invalid mode, velocity, or out-of-range values)
+- `401 Unauthorized`: Missing or invalid API key
+- `405 Method Not Allowed`: Non-POST request
+- `500 Internal Server Error`: Generation failed
+
+**Examples:**
+
+Append mode (add to existing data):
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "append",
+    "days": 30,
+    "velocity": "medium",
+    "developers": 0,
+    "max_commits": 0
+  }'
+```
+
+Override mode (replace all data):
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mode": "override",
+    "days": 400,
+    "velocity": "high",
+    "developers": 1200,
+    "max_commits": 500
+  }'
+```
+
+---
+
+**GET /admin/config**
+
+Retrieves current runtime configuration including generation parameters, seed structure, external data sources, and server information.
+
+**Query Parameters:** None
+
+**Response:**
+```json
+{
+  "generation": {
+    "days": 90,
+    "velocity": "medium",
+    "developers": 50,
+    "max_commits": 1000
+  },
+  "seed": {
+    "version": "1.0",
+    "developers": 2,
+    "repositories": 2,
+    "organizations": ["acme-corp"],
+    "divisions": ["Engineering"],
+    "teams": ["Backend", "Frontend"],
+    "regions": ["US", "EU"],
+    "by_seniority": {"senior": 1, "mid": 1},
+    "by_region": {"US": 1, "EU": 1},
+    "by_team": {"Backend": 1, "Frontend": 1}
+  },
+  "external_sources": {
+    "harvey": {
+      "enabled": true,
+      "models": ["gpt-4", "claude-3-sonnet"]
+    },
+    "copilot": {
+      "enabled": true,
+      "total_licenses": 50,
+      "active_users": 35
+    },
+    "qualtrics": {
+      "enabled": true,
+      "survey_id": "SV_aitools_q1_2026",
+      "response_count": 150
+    }
+  },
+  "server": {
+    "port": 8080,
+    "version": "2.0.0",
+    "uptime": "5m30s"
+  }
+}
+```
+
+**Example:**
+```bash
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/config
+```
+
+**GET /admin/stats**
+
+Retrieves comprehensive statistics about generated simulation data for monitoring, debugging, and observability.
+
+**Query Parameters:**
+- `include_timeseries` (bool): Include time series data (default: false)
+
+**Response:**
+```json
+{
+  "generation": {
+    "total_commits": 4500,
+    "total_prs": 450,
+    "total_reviews": 900,
+    "total_issues": 150,
+    "total_developers": 100,
+    "data_size": "5.2 MB"
+  },
+  "developers": {
+    "by_seniority": {"junior": 20, "mid": 50, "senior": 30},
+    "by_region": {"US": 50, "EU": 30, "APAC": 20},
+    "by_team": {"Backend": 40, "Frontend": 35, "DevOps": 25},
+    "by_activity": {"low": 15, "medium": 50, "high": 35}
+  },
+  "quality": {
+    "avg_revert_rate": 0.02,
+    "avg_hotfix_rate": 0.08,
+    "avg_code_survival_30d": 0.85,
+    "avg_review_thoroughness": 0.75,
+    "avg_pr_iterations": 1.5
+  },
+  "variance": {
+    "commits_std_dev": 15.2,
+    "pr_size_std_dev": 75.5,
+    "cycle_time_std_dev": 2.3
+  },
+  "performance": {
+    "last_generation_time": "2.34s",
+    "memory_usage": "125 MB",
+    "storage_efficiency": "95%"
+  },
+  "organization": {
+    "teams": ["Backend", "Frontend", "DevOps"],
+    "divisions": ["Engineering", "Infrastructure"],
+    "repositories": ["acme/platform", "acme/api"]
+  },
+  "time_series": {
+    "commits_per_day": [15, 18, 12, 20, 16],
+    "prs_per_day": [3, 2, 4, 3, 2],
+    "avg_cycle_time": [4.5, 3.2, 5.1, 4.0, 3.8]
+  }
+}
+```
+
+**Field Descriptions:**
+- `generation`: Overall counts of generated data and estimated data size
+- `developers`: Developer distribution by seniority, region, team, and activity level
+- `quality`: Quality metrics including revert rate, hotfix rate, code survival, review thoroughness, and PR iterations
+  - Note: `avg_revert_rate`, `avg_hotfix_rate`, and `avg_code_survival_30d` currently return placeholder mock values
+  - `avg_review_thoroughness` and `avg_pr_iterations` are calculated from actual review data
+- `variance`: Standard deviation metrics calculated from actual commit and PR data
+- `performance`: Real-time performance metrics including memory usage
+- `organization`: Organizational structure (teams, divisions, repositories)
+- `time_series`: Optional daily time series data (only included if `?include_timeseries=true`)
+  - Limited to 365 days for performance
+
+**Examples:**
+```bash
+# Get basic statistics
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/stats
+
+# Get statistics with time series data
+curl -u cursor-sim-dev-key: "http://localhost:8080/admin/stats?include_timeseries=true"
 ```
 
 **Legend**: ✅ Fully implemented

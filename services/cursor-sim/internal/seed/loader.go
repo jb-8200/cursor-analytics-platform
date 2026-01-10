@@ -1,8 +1,10 @@
 package seed
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -188,4 +190,119 @@ func isValidSeniority(seniority string) bool {
 		"senior": true,
 	}
 	return validLevels[seniority]
+}
+
+// LoadFromCSV reads a CSV file and creates a minimal SeedData structure.
+// CSV format: user_id, email, name
+// Returns a basic seed with developers only, using default values for other fields.
+func LoadFromCSV(reader io.Reader) (*SeedData, error) {
+	csvReader := csv.NewReader(reader)
+
+	// Read header row
+	headers, err := csvReader.Read()
+	if err != nil {
+		return nil, fmt.Errorf("failed to read CSV header: %w", err)
+	}
+
+	// Validate headers (must contain at least user_id, email, name)
+	if len(headers) < 3 {
+		return nil, fmt.Errorf("CSV must have at least 3 columns: user_id, email, name")
+	}
+
+	// Find column indices
+	var userIDIdx, emailIdx, nameIdx int = -1, -1, -1
+	for i, header := range headers {
+		switch strings.ToLower(strings.TrimSpace(header)) {
+		case "user_id":
+			userIDIdx = i
+		case "email":
+			emailIdx = i
+		case "name":
+			nameIdx = i
+		}
+	}
+
+	if userIDIdx == -1 || emailIdx == -1 || nameIdx == -1 {
+		return nil, fmt.Errorf("CSV must have columns: user_id, email, name")
+	}
+
+	// Read all developer rows
+	developers := make([]Developer, 0)
+	rowNum := 1 // Start at 1 (header is row 0)
+
+	for {
+		row, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CSV row %d: %w", rowNum+1, err)
+		}
+
+		if len(row) < 3 {
+			return nil, fmt.Errorf("CSV row %d has fewer than 3 columns", rowNum+1)
+		}
+
+		// Create developer with minimal fields
+		dev := Developer{
+			UserID:         strings.TrimSpace(row[userIDIdx]),
+			Email:          strings.TrimSpace(row[emailIdx]),
+			Name:           strings.TrimSpace(row[nameIdx]),
+			Org:            "default-org",
+			Division:       "Engineering",
+			Team:           "Development",
+			Role:           "developer",
+			Region:         "US",
+			Timezone:       "America/New_York",
+			Locale:         "en-US",
+			Seniority:      "mid",
+			ActivityLevel:  "medium",
+			AcceptanceRate: 0.7,
+			PRBehavior: PRBehavior{
+				PRsPerWeek:         2.0,
+				AvgPRSizeLOC:       200,
+				AvgFilesPerPR:      5,
+				ReviewThoroughness: 0.7,
+				IterationTolerance: 2,
+			},
+			CodingSpeed: CodingSpeed{
+				Mean: 4.0,
+				Std:  1.0,
+			},
+			PreferredModels: []string{"gpt-4"},
+			ChatVsCodeRatio: ChatCodeRatio{
+				Chat: 0.3,
+				Code: 0.7,
+			},
+			WorkingHoursBand: WorkingHours{
+				Start: 9,
+				End:   17,
+				Peak:  13,
+			},
+		}
+
+		developers = append(developers, dev)
+		rowNum++
+	}
+
+	if len(developers) == 0 {
+		return nil, fmt.Errorf("CSV contains no developer data")
+	}
+
+	// Load the default seed template and replace developers
+	// This ensures we get valid Correlations and PRLifecycle structures
+	templateSeed, err := LoadSeed("testdata/valid_seed.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load seed template: %w", err)
+	}
+
+	// Replace developers with CSV data
+	templateSeed.Developers = developers
+
+	// Validate the generated seed
+	if err := templateSeed.Validate(); err != nil {
+		return nil, fmt.Errorf("CSV seed validation failed: %w", err)
+	}
+
+	return templateSeed, nil
 }

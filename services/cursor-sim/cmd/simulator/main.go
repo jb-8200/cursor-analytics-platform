@@ -241,7 +241,7 @@ func runRuntimeMode(ctx context.Context, cfg *config.Config) error {
 	log.Printf("Generated feature events\n")
 
 	// Create HTTP router
-	router := server.NewRouter(store, seedData, DefaultAPIKey)
+	router := server.NewRouter(store, seedData, DefaultAPIKey, cfg, Version)
 
 	// Start HTTP server
 	httpServer := &http.Server{

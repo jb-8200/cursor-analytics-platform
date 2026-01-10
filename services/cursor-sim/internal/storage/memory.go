@@ -956,3 +956,86 @@ func (m *MemoryStore) GetIssuesByRepo(repoName string) ([]models.Issue, error) {
 
 	return result, nil
 }
+
+// Admin API Methods (P1-F02)
+
+// ClearAllData removes all data from the store.
+// Used by regenerate endpoint in override mode.
+// This method is thread-safe and resets all data structures to their initial state.
+func (m *MemoryStore) ClearAllData() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	// Reset developer data
+	m.developers = make(map[string]*seed.Developer)
+	m.developerEmails = make(map[string]string)
+
+	// Reset commit data
+	m.commits = make([]*models.Commit, 0, 10000)
+	m.commitsByHash = make(map[string]*models.Commit)
+	m.commitsByUser = make(map[string][]*models.Commit)
+	m.commitsByRepo = make(map[string][]*models.Commit)
+	m.needsSort = false
+
+	// Reset PR data
+	m.prsByRepo = make(map[string]map[int]*models.PullRequest)
+	m.prsByAuthor = make(map[string][]*models.PullRequest)
+	m.prsByID = make(map[int]*models.PullRequest)
+	m.prsByEmail = make(map[string][]*models.PullRequest)
+	m.nextPRID = 1
+
+	// Reset review data
+	m.reviewsByID = make(map[int]*models.Review)
+	m.reviewsByPRID = make(map[int][]*models.Review)
+	m.reviewsByReviewer = make(map[string][]*models.Review)
+
+	// Reset issue data
+	m.issuesByRepo = make(map[string]map[int]*models.Issue)
+	m.issuesByState = make(map[string]map[models.IssueState][]*models.Issue)
+
+	// Reset review comments
+	m.reviewComments = make(map[string]map[int][]*models.ReviewComment)
+
+	// Reset event data
+	m.modelUsage = make([]*models.ModelUsageEvent, 0, 1000)
+	m.clientVersions = make([]*models.ClientVersionEvent, 0, 1000)
+	m.fileExtensions = make([]*models.FileExtensionEvent, 0, 5000)
+	m.mcpTools = make([]*models.MCPToolEvent, 0, 2000)
+	m.commands = make([]*models.CommandEvent, 0, 2000)
+	m.plans = make([]*models.PlanEvent, 0, 1500)
+	m.askModes = make([]*models.AskModeEvent, 0, 1500)
+
+	return nil
+}
+
+// GetStats returns current storage statistics.
+// Used by Admin API for observability and to calculate deltas during regeneration.
+// This method is thread-safe.
+func (m *MemoryStore) GetStats() StorageStats {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	// Count issues across all repos
+	issueCount := 0
+	for _, repoIssues := range m.issuesByRepo {
+		issueCount += len(repoIssues)
+	}
+
+	// Count reviews by ID (most accurate)
+	reviewCount := len(m.reviewsByID)
+
+	return StorageStats{
+		Commits:        len(m.commits),
+		PullRequests:   len(m.prsByID),
+		Reviews:        reviewCount,
+		Issues:         issueCount,
+		Developers:     len(m.developers),
+		ModelUsage:     len(m.modelUsage),
+		ClientVersions: len(m.clientVersions),
+		FileExtensions: len(m.fileExtensions),
+		MCPTools:       len(m.mcpTools),
+		Commands:       len(m.commands),
+		Plans:          len(m.plans),
+		AskModes:       len(m.askModes),
+	}
+}
