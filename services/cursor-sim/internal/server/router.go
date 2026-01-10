@@ -83,6 +83,8 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string, cfg *co
 	mux.Handle("/admin/stats", cursor.GetStats(store, sd))
 	mux.Handle("/admin/config", cursor.GetConfig(cfg, sd, version))
 	mux.Handle("/admin/regenerate", cursor.Regenerate(store, sd))
+	mux.Handle("/admin/seed", cursor.UploadSeed(store, &sd))
+	mux.Handle("/admin/seed/presets", cursor.GetSeedPresets())
 
 	// Harvey API (External Data Source - P4-F04)
 	// Only register if Harvey is enabled in seed data

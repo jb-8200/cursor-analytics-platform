@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P1-F02 (Admin API - Regenerate) Partial ✅
-**Last Updated**: January 10, 2026 (TASK-F02-09: Admin Regenerate API Documentation)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P1-F02 (Admin API Suite) Parts 2-3 Complete ✅
+**Last Updated**: January 10, 2026 (TASK-F02-14: Admin Seed Management API Documentation)
 
 ## Overview
 
@@ -443,6 +443,8 @@ curl -u API_KEY: http://localhost:8080/teams/members
 | GET | `/admin/config` | Yes | ✅ Implemented |
 | GET | `/admin/stats` | Yes | ✅ Implemented |
 | POST | `/admin/regenerate` | Yes | ✅ Implemented |
+| POST | `/admin/seed` | Yes | ✅ Implemented |
+| GET | `/admin/seed/presets` | Yes | ✅ Implemented |
 
 **POST /admin/regenerate**
 
@@ -523,6 +525,156 @@ curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/regenerate \
     "developers": 1200,
     "max_commits": 500
   }'
+```
+
+---
+
+**POST /admin/seed**
+
+Uploads a new seed file to the simulator and optionally regenerates data using the new seed. Supports JSON, YAML, and CSV formats.
+
+**Request Body:**
+```json
+{
+  "data": "{\"version\":\"1.0\",\"developers\":[...]}",
+  "format": "json",
+  "regenerate": true,
+  "regenerate_config": {
+    "mode": "override",
+    "days": 90,
+    "velocity": "medium",
+    "developers": 0,
+    "max_commits": 0
+  }
+}
+```
+
+**Request Parameters:**
+- `data` (string, required): Seed file content (JSON, YAML, or CSV string)
+- `format` (string, required): "json", "yaml", or "csv"
+- `regenerate` (boolean, optional): Whether to regenerate data after upload (default: false)
+- `regenerate_config` (object, optional): Regeneration parameters (required if regenerate=true)
+
+**Supported Formats:**
+
+1. **JSON** - Full seed schema with all fields
+2. **YAML** - Full seed schema in YAML format
+3. **CSV** - Minimal format with columns: `user_id,email,name`
+   - Uses default values for other fields
+   - Creates default organization structure
+
+**Response:**
+```json
+{
+  "status": "success",
+  "seed_loaded": true,
+  "developers": 50,
+  "repositories": 5,
+  "organizations": ["acme-corp"],
+  "divisions": ["Engineering", "Product"],
+  "teams": ["Backend", "Frontend", "Mobile"],
+  "regenerated": true,
+  "generate_stats": {
+    "status": "success",
+    "total_commits": 15000,
+    "total_prs": 1500,
+    "duration": "2.3s"
+  }
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Invalid format or malformed seed data
+- `401 Unauthorized`: Missing or invalid API key
+- `405 Method Not Allowed`: Non-POST request
+- `500 Internal Server Error`: Seed loading or generation failed
+
+**Examples:**
+
+Upload JSON seed without regeneration:
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "{\"version\":\"1.0\",\"developers\":[...]}",
+    "format": "json",
+    "regenerate": false
+  }'
+```
+
+Upload CSV seed with regeneration:
+```bash
+curl -X POST -u cursor-sim-dev-key: http://localhost:8080/admin/seed \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "user_id,email,name\nuser_001,dev1@example.com,Developer One\nuser_002,dev2@example.com,Developer Two",
+    "format": "csv",
+    "regenerate": true,
+    "regenerate_config": {
+      "mode": "override",
+      "days": 90,
+      "velocity": "medium",
+      "developers": 0,
+      "max_commits": 0
+    }
+  }'
+```
+
+---
+
+**GET /admin/seed/presets**
+
+Returns predefined seed file presets for quick setup.
+
+**Query Parameters:** None
+
+**Response:**
+```json
+{
+  "presets": [
+    {
+      "name": "small-team",
+      "description": "Small team (10 developers, 2 teams)",
+      "developers": 10,
+      "teams": 2,
+      "regions": ["US"],
+      "suggested_days": 30,
+      "suggested_velocity": "low"
+    },
+    {
+      "name": "medium-team",
+      "description": "Medium team (50 developers, 5 teams)",
+      "developers": 50,
+      "teams": 5,
+      "regions": ["US", "EU"],
+      "suggested_days": 90,
+      "suggested_velocity": "medium"
+    },
+    {
+      "name": "enterprise",
+      "description": "Enterprise (200 developers, 10 teams)",
+      "developers": 200,
+      "teams": 10,
+      "regions": ["US", "EU", "APAC"],
+      "suggested_days": 180,
+      "suggested_velocity": "high"
+    },
+    {
+      "name": "multi-region",
+      "description": "Multi-region global team (100 developers, 8 teams)",
+      "developers": 100,
+      "teams": 8,
+      "regions": ["US", "EU", "APAC", "LATAM"],
+      "suggested_days": 120,
+      "suggested_velocity": "medium"
+    }
+  ]
+}
+```
+
+**Example:**
+```bash
+curl -u cursor-sim-dev-key: http://localhost:8080/admin/seed/presets
 ```
 
 ---

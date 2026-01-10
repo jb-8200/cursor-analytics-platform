@@ -224,7 +224,7 @@ func TestRegenerateInvalidMode(t *testing.T) {
 	err = json.Unmarshal(rec.Body.Bytes(), &errResp)
 	require.NoError(t, err)
 
-	assert.Equal(t, "INVALID_PARAMETERS", errResp["code"])
+	assert.Contains(t, errResp["error"], "mode must be")
 }
 
 // TestRegenerateInvalidVelocity tests validation of velocity parameter.
@@ -255,7 +255,7 @@ func TestRegenerateInvalidVelocity(t *testing.T) {
 	err = json.Unmarshal(rec.Body.Bytes(), &errResp)
 	require.NoError(t, err)
 
-	assert.Equal(t, "INVALID_PARAMETERS", errResp["code"])
+	assert.Contains(t, errResp["error"], "velocity must be")
 }
 
 // TestValidateRegenerateRequest tests the validation function.
