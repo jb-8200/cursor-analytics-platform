@@ -29,13 +29,12 @@ services:
     environment:
       # Server configuration
       - CURSOR_SIM_PORT=8080
-      # Simulation parameters
-      - CURSOR_SIM_DEVELOPERS=${CURSOR_SIM_DEVELOPERS:-50}
-      - CURSOR_SIM_VELOCITY=${CURSOR_SIM_VELOCITY:-high}
-      - CURSOR_SIM_FLUCTUATION=${CURSOR_SIM_FLUCTUATION:-0.2}
-      - CURSOR_SIM_TEAMS=${CURSOR_SIM_TEAMS:-5}
-      # Use fixed seed for reproducible demos (path to seed file in container)
       - CURSOR_SIM_SEED=${CURSOR_SIM_SEED:-/app/seed.json}
+      # Generation parameters
+      - CURSOR_SIM_DAYS=${CURSOR_SIM_DAYS:-90}
+      - CURSOR_SIM_VELOCITY=${CURSOR_SIM_VELOCITY:-medium}
+      - CURSOR_SIM_DEVELOPERS=${CURSOR_SIM_DEVELOPERS:-50}
+      - CURSOR_SIM_MAX_COMMITS=${CURSOR_SIM_MAX_COMMITS:-1000}
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
       interval: 10s

@@ -54,5 +54,6 @@ USER appuser
 # Set entrypoint
 ENTRYPOINT ["/app/cursor-sim"]
 
-# Default arguments (can be overridden at runtime)
-CMD ["-mode", "runtime", "-seed", "/app/seed.json", "-port", "8080", "-days", "90", "-velocity", "medium"]
+# Default arguments (can be overridden at runtime or via environment variables)
+# Use environment variables for days/velocity instead of hardcoding in CMD
+CMD ["-mode", "runtime", "-seed", "/app/seed.json", "-port", "8080"]

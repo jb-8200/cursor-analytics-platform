@@ -402,3 +402,83 @@ func TestConfig_MonthsToDaysConversion(t *testing.T) {
 		})
 	}
 }
+
+// TASK-F02-02: Test environment variable override for developers
+func TestParseFlags_EnvironmentOverrides_Developers(t *testing.T) {
+	t.Setenv("CURSOR_SIM_DEVELOPERS", "100")
+
+	args := []string{"-seed=test.json"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 100, cfg.GenParams.Developers, "CURSOR_SIM_DEVELOPERS should set cfg.GenParams.Developers")
+}
+
+// TASK-F02-02: Test environment variable override for months (converts to days)
+func TestParseFlags_EnvironmentOverrides_Months(t *testing.T) {
+	t.Setenv("CURSOR_SIM_MONTHS", "6")
+
+	args := []string{"-seed=test.json"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 180, cfg.GenParams.Days, "CURSOR_SIM_MONTHS=6 should convert to 180 days")
+	assert.Equal(t, 180, cfg.Days, "cfg.Days should also be 180 for consistency")
+}
+
+// TASK-F02-02: Test environment variable override for max commits
+func TestParseFlags_EnvironmentOverrides_MaxCommits(t *testing.T) {
+	t.Setenv("CURSOR_SIM_MAX_COMMITS", "500")
+
+	args := []string{"-seed=test.json"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 500, cfg.GenParams.MaxCommits, "CURSOR_SIM_MAX_COMMITS should set cfg.GenParams.MaxCommits")
+}
+
+// TASK-F02-02: Test all three environment variable overrides together
+func TestParseFlags_EnvironmentOverrides_AllGenParams(t *testing.T) {
+	t.Setenv("CURSOR_SIM_DEVELOPERS", "100")
+	t.Setenv("CURSOR_SIM_MONTHS", "6")
+	t.Setenv("CURSOR_SIM_MAX_COMMITS", "500")
+
+	args := []string{"-seed=test.json"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 100, cfg.GenParams.Developers, "Developers should be set from env")
+	assert.Equal(t, 180, cfg.GenParams.Days, "6 months should convert to 180 days")
+	assert.Equal(t, 180, cfg.Days, "cfg.Days should match GenParams.Days")
+	assert.Equal(t, 500, cfg.GenParams.MaxCommits, "MaxCommits should be set from env")
+}
+
+// TASK-F02-02: Test CLI flags override environment variables (precedence)
+func TestParseFlags_CLIOverridesEnvironment(t *testing.T) {
+	t.Setenv("CURSOR_SIM_DEVELOPERS", "100")
+
+	args := []string{"-seed=test.json", "-developers=200"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	assert.Equal(t, 200, cfg.GenParams.Developers, "CLI flag should override environment variable")
+}
+
+// TASK-F02-02: Test environment variables do not trigger mixed mode error
+func TestParseFlags_EnvVarsDoNotTriggerMixedMode(t *testing.T) {
+	t.Setenv("CURSOR_SIM_DEVELOPERS", "100")
+	t.Setenv("CURSOR_SIM_MONTHS", "6")
+	t.Setenv("CURSOR_SIM_MAX_COMMITS", "500")
+
+	args := []string{"-interactive", "-seed=test.json"}
+	cfg, err := parseFlagsWithArgs(args)
+	require.NoError(t, err, "Environment variables should not trigger mixed mode error with -interactive flag")
+	require.NotNil(t, cfg)
+
+	assert.True(t, cfg.Interactive, "Interactive flag should be true")
+}

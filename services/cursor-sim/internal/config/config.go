@@ -71,19 +71,14 @@ func parseFlagsWithArgs(args []string) (*Config, error) {
 		return nil, err
 	}
 
-	// TASK-CLI-03: Build GenParams from non-interactive flags
-	cfg.GenParams = GenerationParams{
-		Developers: developers,
-		Days:       months * 30, // Convert months to days
-		MaxCommits: maxCommits,
-	}
-
 	// TASK-CLI-03: Validate that interactive and non-interactive modes are not mixed
+	// This validation must happen BEFORE applying environment variables, so we only check CLI flags
 	if err := validateFlagModes(cfg.Interactive, developers, months, maxCommits); err != nil {
 		return nil, err
 	}
 
-	// Apply environment variable overrides
+	// Apply environment variable overrides (only if CLI flags not set)
+	// Note: Environment variables should have lower precedence than CLI flags
 	if v := os.Getenv("CURSOR_SIM_MODE"); v != "" {
 		cfg.Mode = v
 	}
@@ -105,6 +100,36 @@ func parseFlagsWithArgs(args []string) (*Config, error) {
 	}
 	if v := os.Getenv("CURSOR_SIM_VELOCITY"); v != "" {
 		cfg.Velocity = v
+	}
+
+	// Apply environment variable overrides for GenerationParams (only if CLI flags were not set)
+	// CLI flag precedence: if flag was explicitly set (non-zero), it takes precedence over env var
+	if v := os.Getenv("CURSOR_SIM_DEVELOPERS"); v != "" && developers == 0 {
+		if dev, err := strconv.Atoi(v); err == nil {
+			developers = dev
+		}
+	}
+	if v := os.Getenv("CURSOR_SIM_MONTHS"); v != "" && months == 0 {
+		if envMonths, err := strconv.Atoi(v); err == nil {
+			months = envMonths
+		}
+	}
+	if v := os.Getenv("CURSOR_SIM_MAX_COMMITS"); v != "" && maxCommits == 0 {
+		if mc, err := strconv.Atoi(v); err == nil {
+			maxCommits = mc
+		}
+	}
+
+	// TASK-CLI-03: Build GenParams from non-interactive flags (after env var processing)
+	cfg.GenParams = GenerationParams{
+		Developers: developers,
+		Days:       months * 30, // Convert months to days
+		MaxCommits: maxCommits,
+	}
+
+	// Update cfg.Days if months was provided (for consistency with GenParams.Days)
+	if months > 0 {
+		cfg.Days = months * 30
 	}
 
 	// Validate configuration

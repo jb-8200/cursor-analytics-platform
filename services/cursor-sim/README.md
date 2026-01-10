@@ -200,23 +200,51 @@ Specify all configuration via flags:
 
 #### Environment Variables
 
-All flags can be set via environment variables:
+All flags can be set via environment variables. **CLI flags take precedence over environment variables.**
 
-| Variable | Flag Equivalent |
-|----------|-----------------|
-| `CURSOR_SIM_MODE` | `-mode` |
-| `CURSOR_SIM_SEED` | `-seed` |
-| `CURSOR_SIM_PORT` | `-port` |
-| `CURSOR_SIM_DAYS` | `-days` |
-| `CURSOR_SIM_VELOCITY` | `-velocity` |
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `CURSOR_SIM_MODE` | string | `runtime` | Operation mode: runtime, replay, or preview |
+| `CURSOR_SIM_SEED` | string | _(required)_ | Path to seed.json file |
+| `CURSOR_SIM_PORT` | int | `8080` | HTTP server port |
+| `CURSOR_SIM_DAYS` | int | `90` | Days of history to generate |
+| `CURSOR_SIM_VELOCITY` | string | `medium` | Event rate: low, medium, high |
+| `CURSOR_SIM_DEVELOPERS` | int | `0` | Number of developers (0 = use seed count) |
+| `CURSOR_SIM_MONTHS` | int | `0` | Period in months (converted to days = months × 30) |
+| `CURSOR_SIM_MAX_COMMITS` | int | `0` | Maximum commits per developer (0 = unlimited) |
 
-**Example:**
+**Examples:**
 
 ```bash
+# Example 1: Basic configuration via environment variables
 export CURSOR_SIM_SEED=testdata/valid_seed.json
 export CURSOR_SIM_PORT=8080
-./bin/cursor-sim -interactive
+export CURSOR_SIM_DAYS=90
+export CURSOR_SIM_VELOCITY=medium
+./bin/cursor-sim
+
+# Example 2: Large-scale simulation (1200 developers, 400 days, high velocity)
+export CURSOR_SIM_DEVELOPERS=1200
+export CURSOR_SIM_DAYS=400
+export CURSOR_SIM_VELOCITY=high
+export CURSOR_SIM_MAX_COMMITS=500
+./bin/cursor-sim -seed testdata/valid_seed.json
+
+# Example 3: Using months instead of days
+export CURSOR_SIM_MONTHS=12  # Automatically converts to 360 days
+./bin/cursor-sim -seed testdata/valid_seed.json -developers 100
+
+# Example 4: Docker Compose with .env file
+cat > .env << EOF
+CURSOR_SIM_DEVELOPERS=1200
+CURSOR_SIM_DAYS=400
+CURSOR_SIM_VELOCITY=high
+CURSOR_SIM_MAX_COMMITS=500
+EOF
+docker-compose up -d cursor-sim
 ```
+
+**Precedence:** CLI flags > Environment variables > Defaults
 
 ---
 

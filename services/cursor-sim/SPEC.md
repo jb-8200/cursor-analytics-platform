@@ -73,13 +73,31 @@ Flags:
 
 ### Environment Variables
 
-| Variable | Flag Equivalent | Default |
-|----------|-----------------|---------|
-| CURSOR_SIM_MODE | --mode | runtime |
-| CURSOR_SIM_SEED | --seed | (required) |
-| CURSOR_SIM_PORT | --port | 8080 |
-| CURSOR_SIM_DAYS | --days | 90 |
-| CURSOR_SIM_VELOCITY | --velocity | medium |
+All CLI flags can be set via environment variables. **CLI flags take precedence over environment variables.**
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| CURSOR_SIM_MODE | string | runtime | Operation mode: runtime, replay, or preview |
+| CURSOR_SIM_SEED | string | (required) | Path to seed.json file |
+| CURSOR_SIM_PORT | int | 8080 | HTTP server port |
+| CURSOR_SIM_DAYS | int | 90 | Days of history to generate |
+| CURSOR_SIM_VELOCITY | string | medium | Event rate: low, medium, high |
+| CURSOR_SIM_DEVELOPERS | int | 0 | Number of developers (0 = use seed count) |
+| CURSOR_SIM_MONTHS | int | 0 | Period in months (converted to days = months × 30) |
+| CURSOR_SIM_MAX_COMMITS | int | 0 | Maximum commits per developer (0 = unlimited) |
+
+**Precedence:** CLI flags > Environment variables > Defaults
+
+**Example:**
+
+```bash
+# Docker Compose with environment variables
+export CURSOR_SIM_DEVELOPERS=1200
+export CURSOR_SIM_DAYS=400
+export CURSOR_SIM_VELOCITY=high
+export CURSOR_SIM_MAX_COMMITS=500
+docker-compose up -d cursor-sim
+```
 
 ---
 
