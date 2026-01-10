@@ -1,7 +1,8 @@
 # Development Session Context
 
-**Last Updated**: January 10, 2026
+**Last Updated**: January 10, 2026 (Post-Documentation Updates)
 **Active Features**: P1-F02 (Admin API Suite) - COMPLETE ✅, P4-F05 (Insomnia External APIs) - PLANNED
+**Recent Work**: Retroactive documentation for P8-F01, P9-F01, P9-F02 completed (31 files, commit 8410222)
 **Primary Focus**: Insomnia collection documentation, E2E test enhancement
 
 ---
@@ -220,7 +221,51 @@
 
 ---
 
-## Recent Commits (January 9, 2026)
+## Retroactive Documentation Updates (January 10, 2026)
+
+### P8-F01: Data Tier (ETL Pipeline)
+**Status**: Documentation Updated
+- ✅ user-story.md: Status updated to COMPLETE (14/14 tasks), added core philosophy section, API response format details
+- ✅ design.md: Added API response handling, column mapping contract, DuckDB schema naming
+- ✅ task.md: Added 3 retroactive tasks (TASK-P8-15, P8-16, P8-17) documenting API format fix, schema naming fix, column availability fix
+
+**Key Discoveries Documented**:
+- API format duality: cursor-sim returns `{items:[]}` not `{data:[]}`
+- Column mapping: camelCase (API) → snake_case (dbt)
+- Schema naming: DuckDB requires `main_mart.mart_*` prefix
+- Lessons learned from implementation
+
+### P9-F01: Streamlit Dashboard
+**Status**: Documentation Updated
+- ✅ user-story.md: Status updated to COMPLETE (12/12 tasks), added data flow philosophy with contract hierarchy
+- ✅ Security section documenting parameterized query patterns
+
+### P9-F02: Dashboard Hardening
+**Status**: Documentation Expanded
+- ✅ task.md: Expanded from sparse checklist to comprehensive 300+ line document
+- ✅ Each task now includes: problem statement, before/after code, security impact, files modified, testing steps
+- ✅ Added "Data Contract Discoveries" section documenting fixes for schema naming, missing columns, INTERVAL syntax, API format, column mapping
+
+### Testing & Design Docs
+**Status**: Partially Updated
+- ✅ docs/data-contract-testing.md: Added cursor-sim API contract section with response format handling and column mapping
+- ✅ docs/e2e-testing-strategy.md: Added "Data Pipeline E2E Testing" section with test scenarios, health checks
+- ✅ services/streamlit-dashboard/README.md: Added data contract section, available columns reference, security section
+
+**Commit**: 8410222 - "docs: retroactive documentation updates for P8-F01, P9-F01, P9-F02"
+**Files Changed**: 31 total | Insertions: 961 | Deletions: 369
+
+### Architecture Principles Documented
+
+All updates emphasize:
+1. **API as Source of Truth**: cursor-sim SPEC.md defines all contracts
+2. **Data Tier Contract**: dbt maps API fields to analytics-ready columns
+3. **Dashboard Consumer**: Queries `main_mart.*` tables, never raw API
+4. **Security First**: All queries parameterized, SQL injection prevented
+
+---
+
+## Recent Commits (January 9-10, 2026)
 
 ```bash
 cb1521a feat(cursor-sim): complete TASK-DS-16 - External Data E2E Tests

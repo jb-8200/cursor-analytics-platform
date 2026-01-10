@@ -37,6 +37,132 @@ This document proposes a comprehensive testing pyramid with emphasis on integrat
 - ❌ No E2E tests with P5 GraphQL
 - ❌ No visual regression tests
 
+### Streamlit Dashboard (P9) & Data Tier (P8)
+- ✅ Unit tests: Query module tests with parameterized binding
+- ✅ Integration tests: dbt models with real DuckDB data
+- ✅ E2E tests: Full pipeline from cursor-sim to dashboard
+- ✅ Data contract tests: Column availability, schema validation
+- ✅ Security tests: SQL injection prevention with parameterized queries
+
+---
+
+## Data Pipeline E2E Testing (P8-P9)
+
+### Test Scope
+
+E2E tests for the data pipeline cover:
+1. **API Extraction**: cursor-sim → Parquet files
+2. **DuckDB Loading**: Parquet → raw schema tables
+3. **dbt Transforms**: raw → staging → mart tables
+4. **Dashboard Queries**: mart tables → pandas DataFrames
+5. **UI Rendering**: Data displayed correctly in Streamlit
+
+### Test Scenarios (Validated January 10, 2026)
+
+#### P8 Data Tier E2E
+
+| Scenario | Input | Expected Output | Status |
+|----------|-------|-----------------|--------|
+| API extraction | cursor-sim running | 4 Parquet files created | ✅ |
+| DuckDB loading | Parquet files | `main_raw.*` tables populated | ✅ |
+| dbt staging | raw tables | `main_staging.stg_*` views created | ✅ |
+| dbt marts | staging views | `main_mart.mart_*` tables created | ✅ |
+| Schema validation | mart tables | All expected columns present | ✅ |
+| API format handling | Both {items:[]} and [] | Data extracted correctly | ✅ |
+| Column mapping | API camelCase | dbt snake_case columns created | ✅ |
+
+#### P9 Dashboard E2E
+
+| Scenario | Input | Expected Output | Status |
+|----------|-------|-----------------|--------|
+| Velocity query | repo="All", days=30 | DataFrame with velocity metrics | ✅ |
+| AI Impact query | repo="All", days=90 | DataFrame with AI band breakdown | ✅ |
+| Quality query | repo="All", days=30 | DataFrame with revert rates | ✅ |
+| Review Costs query | repo="All", days=30 | DataFrame with review metrics | ✅ |
+| SQL injection test | repo="'; DROP TABLE--" | Empty result, no SQL error | ✅ |
+| Filter parameterization | repo="acme/platform" | Filtered DataFrame | ✅ |
+| Schema naming | Query to `main_mart.mart_*` | Data returned | ✅ |
+| INTERVAL syntax | days=30 | Date filtering works | ✅ |
+
+### Data Contract Validation Tests
+
+**API → dbt Contract Test**:
+```bash
+# Test that API fields map correctly to dbt staging columns
+dbt test --select stg_commits
+
+# Expected: All columns exist and have correct types
+# - API: commitHash → dbt: commit_hash (VARCHAR)
+# - API: tabLinesAdded → dbt: tab_lines_added (INTEGER)
+```
+
+**dbt → Dashboard Contract Test**:
+```bash
+# Test that mart columns match dashboard expectations
+docker exec streamlit-dashboard python -c "
+from queries.velocity import get_velocity_data
+df = get_velocity_data(repo_name='All', days=30)
+
+# Verify expected columns exist
+expected_cols = ['week', 'repo_name', 'active_developers',
+                 'total_prs', 'avg_total_cycle_time', 'avg_ai_ratio']
+for col in expected_cols:
+    assert col in df.columns, f'Missing: {col}'
+
+print('✅ All required columns present')
+"
+```
+
+**SQL Injection Prevention Test**:
+```bash
+# Test that malicious input is safely parameterized
+docker exec streamlit-dashboard python -c "
+from queries.velocity import get_velocity_data
+
+# This would have caused SQL error before fix
+df = get_velocity_data(repo_name=\"test'; DROP TABLE--\")
+assert len(df) == 0  # Returns empty, doesn't error
+print('✅ SQL injection prevented')
+"
+```
+
+### Pipeline Health Checks
+
+Run these before each dashboard deployment:
+
+```bash
+#!/bin/bash
+# health-check.sh - Validate full data pipeline
+
+echo "1. Checking API extraction..."
+curl -s http://localhost:8080/health | grep -q "ok" && echo "✅ cursor-sim running" || exit 1
+
+echo "2. Checking DuckDB raw tables..."
+duckdb data/analytics.duckdb "SELECT COUNT(*) FROM main_raw.commits" | grep -q "[0-9]" && echo "✅ Raw data loaded" || exit 1
+
+echo "3. Checking dbt marts..."
+duckdb data/analytics.duckdb "SELECT COUNT(*) FROM main_mart.mart_velocity" | grep -q "[0-9]" && echo "✅ Marts created" || exit 1
+
+echo "4. Checking dashboard queries..."
+docker exec streamlit-dashboard python -c "
+from queries.velocity import get_velocity_data
+df = get_velocity_data()
+assert len(df) > 0, 'No data in velocity mart'
+print('✅ Dashboard queries working')
+" || exit 1
+
+echo "5. Checking schema naming..."
+docker exec streamlit-dashboard python -c "
+import duckdb
+conn = duckdb.connect('/data/analytics.duckdb')
+tables = conn.execute('SELECT table_name FROM information_schema.tables WHERE table_schema = \"main_mart\"').df()
+assert len(tables) == 4, f'Expected 4 marts, got {len(tables)}'
+print('✅ Schema naming correct')
+" || exit 1
+
+echo "✅ All health checks passed!"
+```
+
 ---
 
 ## Testing Pyramid (Proposed)
