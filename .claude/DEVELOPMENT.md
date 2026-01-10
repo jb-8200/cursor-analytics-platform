@@ -22,7 +22,7 @@
 | **P7** | Deployment Infrastructure | COMPLETE ✅ |
 | **P8** | Data Tier (dbt + ETL) | COMPLETE ✅ (14/14 tasks) |
 | **P9** | Streamlit Dashboard | COMPLETE ✅ (12/12 tasks) |
-| P9 (F02) | Dashboard Hardening | **IN PROGRESS 🔄** |
+| P9 (F02) | Dashboard Hardening | **COMPLETE ✅** (7/7 tasks) |
 
 ### Active Work
 
@@ -204,19 +204,19 @@
 
 ---
 
-#### P9-F02: Dashboard Hardening (0/7 tasks - 0%) 🔄 IN PROGRESS
+#### P9-F02: Dashboard Hardening (7/7 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P9-F02-dashboard-hardening/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
 
 | Task | Status | Description |
 |------|--------|-------------|
-| TASK-P9-H01 | ⬜ TODO | Security: Refactor connector parameter binding |
-| TASK-P9-H02 | ⬜ TODO | Security: Secure velocity.py |
-| TASK-P9-H03 | ⬜ TODO | Security: Secure other queries |
-| TASK-P9-H04 | ⬜ TODO | Security: Secure sidebar filter |
-| TASK-P9-H05 | ⬜ TODO | Infra: Update requirements.txt |
-| TASK-P9-H06 | ⬜ TODO | Infra: Update Dockerfile |
-| TASK-P9-H07 | ⬜ TODO | Config: Fix hardcoded paths |
+| TASK-P9-H01 | ✅ COMPLETE | Security: Refactor connector parameter binding |
+| TASK-P9-H02 | ✅ COMPLETE | Security: Secure velocity.py |
+| TASK-P9-H03 | ✅ COMPLETE | Security: Secure other queries |
+| TASK-P9-H04 | ✅ COMPLETE | Security: Secure sidebar filter |
+| TASK-P9-H05 | ✅ COMPLETE | Infra: Update requirements.txt |
+| TASK-P9-H06 | ✅ COMPLETE | Infra: Update Dockerfile |
+| TASK-P9-H07 | ✅ COMPLETE | Config: Fix hardcoded paths |
 
 ---
 
