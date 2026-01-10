@@ -79,3 +79,4 @@ temp/
 # OS
 .DS_Store
 Thumbs.db
+services/cursor-sim/simulator
