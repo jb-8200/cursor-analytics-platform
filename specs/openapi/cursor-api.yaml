@@ -3,13 +3,14 @@ info:
   title: Cursor Business API (Simulated)
   description: |
     OpenAPI specification for cursor-sim that exactly matches the Cursor Business API.
-    
+
     This simulator implements:
-    - Admin API: Team management, daily usage, spending, usage events
+    - Admin API: Team management, daily usage, spending, usage events, configuration, data regeneration
     - AI Code Tracking API: Per-commit metrics, granular code changes (Enterprise)
-    
+    - External Data Sources: Harvey AI, Microsoft 365 Copilot, Qualtrics survey export
+
     All response shapes, field names, and behaviors match the production Cursor API.
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: Cursor Analytics Platform
     url: https://github.com/example/cursor-analytics-platform
@@ -25,9 +26,13 @@ security:
 
 tags:
   - name: Admin API
-    description: Team management and usage metrics
+    description: Team management, usage metrics, configuration, and data regeneration
+  - name: Admin Configuration
+    description: Service configuration, statistics, and data management
   - name: AI Code Tracking
     description: Enterprise - Per-commit AI code metrics
+  - name: External Data Sources
+    description: Integration with third-party data sources (Harvey, Copilot, Qualtrics)
 
 paths:
   # ===========================================================================
@@ -115,6 +120,125 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SpendResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ===========================================================================
+  # Admin Configuration API (P1-F02)
+  # ===========================================================================
+
+  /admin/config:
+    get:
+      tags: [Admin Configuration]
+      summary: Get current configuration
+      description: Retrieve current simulator configuration including generation parameters and enabled features.
+      operationId: getAdminConfig
+      responses:
+        '200':
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminConfigResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/stats:
+    get:
+      tags: [Admin Configuration]
+      summary: Get statistics
+      description: Retrieve simulator statistics including data counts and metrics.
+      operationId: getAdminStats
+      parameters:
+        - name: time_series
+          in: query
+          required: false
+          description: Include time series data if true
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Statistics data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStatsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/regenerate:
+    post:
+      tags: [Admin Configuration]
+      summary: Regenerate simulation data
+      description: |
+        Regenerate simulation data with new parameters. Supports two modes:
+        - append: Adds new data to existing storage
+        - override: Clears all data and generates fresh dataset
+      operationId: regenerateData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegenerateRequest'
+      responses:
+        '200':
+          description: Regeneration started/completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegenerateResponse'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/seed:
+    post:
+      tags: [Admin Configuration]
+      summary: Upload seed file
+      description: Upload a new seed file (JSON, YAML, or CSV) to configure the simulator.
+      operationId: uploadSeed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SeedUploadRequest'
+      responses:
+        '200':
+          description: Seed file uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedUploadResponse'
+        '400':
+          description: Invalid seed file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /admin/seed/presets:
+    get:
+      tags: [Admin Configuration]
+      summary: Get available seed presets
+      description: List all available seed presets for quick configuration.
+      operationId: getSeedPresets
+      responses:
+        '200':
+          description: Available presets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SeedPresetsResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -218,6 +342,206 @@ paths:
               schema:
                 type: string
                 format: binary
+
+  # ===========================================================================
+  # External Data Sources API (P4-F05)
+  # ===========================================================================
+
+  /harvey/api/v1/history/usage:
+    get:
+      tags: [External Data Sources]
+      summary: Get Harvey AI usage history
+      description: |
+        Returns Harvey AI legal document analysis usage events.
+        Requires Harvey to be enabled in seed configuration.
+      operationId: getHarveyUsage
+      parameters:
+        - name: from
+          in: query
+          required: true
+          description: Start date (YYYY-MM-DD or RFC3339 format)
+          schema:
+            type: string
+            example: "2026-01-01"
+        - name: to
+          in: query
+          required: true
+          description: End date (YYYY-MM-DD or RFC3339 format)
+          schema:
+            type: string
+            example: "2026-01-10"
+        - name: user
+          in: query
+          required: false
+          description: Filter by user email
+          schema:
+            type: string
+        - name: task
+          in: query
+          required: false
+          description: Filter by task type (e.g., legal_review, contract_analysis)
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number (default 1)
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          required: false
+          description: Items per page (default 50, max 100)
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      responses:
+        '200':
+          description: Harvey AI usage events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HarveyUsageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Harvey data source not enabled
+
+  /reports/getMicrosoft365CopilotUsageUserDetail(period='{period}'):
+    get:
+      tags: [External Data Sources]
+      summary: Get Microsoft 365 Copilot usage metrics
+      description: |
+        Returns Microsoft 365 Copilot usage metrics. OData-compliant endpoint.
+        Supports JSON or CSV export. Requires Copilot to be enabled in seed configuration.
+      operationId: getCopilotUsage
+      parameters:
+        - name: period
+          in: query
+          required: true
+          description: Report period - D7, D30, D90, or D180
+          schema:
+            type: string
+            enum: [D7, D30, D90, D180]
+            example: "D30"
+        - name: $format
+          in: query
+          required: false
+          description: Response format (application/json or text/csv)
+          schema:
+            type: string
+            enum: [application/json, text/csv]
+            default: application/json
+      responses:
+        '200':
+          description: Copilot usage metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotUsageResponse'
+            text/csv:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Copilot data source not enabled
+
+  /API/v3/surveys/{surveyId}/export-responses:
+    post:
+      tags: [External Data Sources]
+      summary: Start Qualtrics survey export
+      description: |
+        Starts a Qualtrics survey response export job.
+        Returns immediately with a progress ID for polling.
+        Requires Qualtrics to be enabled in seed configuration.
+      operationId: startQualtricExport
+      parameters:
+        - name: surveyId
+          in: path
+          required: true
+          description: Qualtrics survey ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Export job started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QualticsExportStartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Survey not found or Qualtrics not enabled
+
+  /API/v3/surveys/{surveyId}/export-responses/{progressId}:
+    get:
+      tags: [External Data Sources]
+      summary: Poll Qualtrics export progress
+      description: |
+        Polls the status of a Qualtrics export job.
+        Response includes completion percentage and file ID when ready.
+      operationId: getQualtricExportProgress
+      parameters:
+        - name: surveyId
+          in: path
+          required: true
+          description: Qualtrics survey ID
+          schema:
+            type: string
+        - name: progressId
+          in: path
+          required: true
+          description: Progress ID from export start response
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Export progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QualticsExportProgressResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Survey or progress ID not found
+
+  /API/v3/surveys/{surveyId}/export-responses/{fileId}/file:
+    get:
+      tags: [External Data Sources]
+      summary: Download Qualtrics export file
+      description: |
+        Downloads the exported survey responses as a ZIP file containing CSV data.
+      operationId: downloadQualtricExportFile
+      parameters:
+        - name: surveyId
+          in: path
+          required: true
+          description: Qualtrics survey ID
+          schema:
+            type: string
+        - name: fileId
+          in: path
+          required: true
+          description: File ID from progress poll response
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ZIP file with survey responses
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: File not found
 
   # ===========================================================================
   # Health Check
@@ -763,6 +1087,339 @@ components:
         linesDeleted:
           type: integer
           example: 3
+
+    # =========================================================================
+    # Admin Configuration Schemas (P1-F02)
+    # =========================================================================
+
+    AdminConfigResponse:
+      type: object
+      required: [mode, days, velocity, developers, max_commits, external_sources]
+      properties:
+        mode:
+          type: string
+          enum: [runtime, replay]
+          description: Simulator operation mode
+        days:
+          type: integer
+          description: Days of history generated
+          example: 90
+        velocity:
+          type: string
+          enum: [low, medium, high]
+          description: Event generation rate
+        developers:
+          type: integer
+          description: Number of developers
+          example: 50
+        max_commits:
+          type: integer
+          description: Maximum commits per developer
+          example: 1000
+        external_sources:
+          type: object
+          properties:
+            harvey:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                models:
+                  type: array
+                  items:
+                    type: string
+            copilot:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+            qualtrics:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+                surveyId:
+                  type: string
+
+    AdminStatsResponse:
+      type: object
+      required: [commits_count, prs_count, reviews_count, issues_count, developers_count, last_generation_time]
+      properties:
+        commits_count:
+          type: integer
+          example: 50000
+        prs_count:
+          type: integer
+          example: 5000
+        reviews_count:
+          type: integer
+          example: 10000
+        issues_count:
+          type: integer
+          example: 1500
+        developers_count:
+          type: integer
+          example: 50
+        last_generation_time:
+          type: string
+          description: Duration of last generation
+          example: "5.2s"
+        time_series:
+          type: array
+          description: Time series data if requested
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              commits:
+                type: integer
+              prs:
+                type: integer
+
+    RegenerateRequest:
+      type: object
+      required: [mode, days, velocity, developers, max_commits]
+      properties:
+        mode:
+          type: string
+          enum: [append, override]
+          description: "append: adds to existing data, override: replaces all"
+          example: override
+        days:
+          type: integer
+          description: Days of history to generate (1-3650)
+          example: 90
+        velocity:
+          type: string
+          enum: [low, medium, high]
+          description: Event generation rate
+          example: medium
+        developers:
+          type: integer
+          description: Number of developers (0-10000, 0 = use seed count)
+          example: 50
+        max_commits:
+          type: integer
+          description: Maximum commits per developer (0-100000, 0 = unlimited)
+          example: 1000
+
+    RegenerateResponse:
+      type: object
+      required: [status, mode, commits_added, prs_added, reviews_added, issues_added, duration, config]
+      properties:
+        status:
+          type: string
+          enum: [success, in_progress]
+          example: success
+        mode:
+          type: string
+          enum: [append, override]
+          example: override
+        data_cleaned:
+          type: boolean
+          example: true
+        commits_added:
+          type: integer
+          example: 45000
+        prs_added:
+          type: integer
+          example: 4500
+        reviews_added:
+          type: integer
+          example: 9000
+        issues_added:
+          type: integer
+          example: 1350
+        total_commits:
+          type: integer
+          example: 45000
+        total_prs:
+          type: integer
+          example: 4500
+        total_developers:
+          type: integer
+          example: 50
+        duration:
+          type: string
+          example: "5.2s"
+        config:
+          $ref: '#/components/schemas/RegenerateRequest'
+
+    SeedUploadRequest:
+      type: object
+      required: [seed_data, format]
+      properties:
+        seed_data:
+          type: string
+          description: Seed file content (JSON, YAML, or CSV)
+        format:
+          type: string
+          enum: [json, yaml, csv]
+          description: Format of seed data
+
+    SeedUploadResponse:
+      type: object
+      required: [status, developers_count, repos_count]
+      properties:
+        status:
+          type: string
+          enum: [success]
+          example: success
+        developers_count:
+          type: integer
+          example: 50
+        repos_count:
+          type: integer
+          example: 10
+
+    SeedPresetsResponse:
+      type: object
+      required: [presets]
+      properties:
+        presets:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "small"
+              description:
+                type: string
+                example: "Small team (10 devs, 30 days)"
+              developers:
+                type: integer
+              days:
+                type: integer
+
+    # =========================================================================
+    # External Data Source Schemas (P4-F05)
+    # =========================================================================
+
+    HarveyUsageResponse:
+      type: object
+      required: [data, pagination]
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            required: [id, timestamp, user_email, task_type]
+            properties:
+              id:
+                type: string
+                example: "event_001"
+              timestamp:
+                type: string
+                format: date-time
+              user_email:
+                type: string
+                example: "dev@example.com"
+              task_type:
+                type: string
+                example: "legal_review"
+              document_name:
+                type: string
+              duration_seconds:
+                type: integer
+              status:
+                type: string
+                enum: [completed, failed]
+        pagination:
+          type: object
+          required: [page, pageSize, totalCount, totalPages]
+          properties:
+            page:
+              type: integer
+              example: 1
+            pageSize:
+              type: integer
+              example: 50
+            totalCount:
+              type: integer
+              example: 156
+            totalPages:
+              type: integer
+              example: 4
+            hasNextPage:
+              type: boolean
+
+    CopilotUsageResponse:
+      type: object
+      properties:
+        '@odata.context':
+          type: string
+          example: "https://graph.microsoft.com/v1.0/$metadata#reports.getM365CopilotUsageUserDetail()"
+        value:
+          type: array
+          items:
+            type: object
+            required: [reportRefreshDate, userPrincipalName, displayName, reportPeriod]
+            properties:
+              reportRefreshDate:
+                type: string
+                format: date
+              userPrincipalName:
+                type: string
+                example: "user@company.com"
+              displayName:
+                type: string
+              reportPeriod:
+                type: integer
+                enum: [7, 30, 90, 180]
+              copilotCompletionEventsCount:
+                type: integer
+              copilotCompletionTokenCount:
+                type: integer
+              copilotCitations:
+                type: integer
+
+    QualticsExportStartResponse:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: object
+          required: [progressId, status, percentComplete]
+          properties:
+            progressId:
+              type: string
+              example: "ES_abc123def456"
+            status:
+              type: string
+              enum: [inProgress, complete, failed]
+              example: "inProgress"
+            percentComplete:
+              type: integer
+              example: 0
+            estimatedSeconds:
+              type: integer
+
+    QualticsExportProgressResponse:
+      type: object
+      required: [result]
+      properties:
+        result:
+          type: object
+          required: [progressId, status, percentComplete]
+          properties:
+            progressId:
+              type: string
+              example: "ES_abc123def456"
+            status:
+              type: string
+              enum: [inProgress, complete, failed]
+              example: "complete"
+            percentComplete:
+              type: integer
+              example: 100
+            fileId:
+              type: string
+              example: "FILE_xyz789abc123"
+              nullable: true
+              description: Null if status is not complete
 
     # =========================================================================
     # Common Schemas
