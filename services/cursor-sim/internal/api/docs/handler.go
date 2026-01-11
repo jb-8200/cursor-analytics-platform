@@ -402,39 +402,23 @@ const docsHTML = `<!DOCTYPE html>
         </select>
     </div>
 
-    <scalar-api-reference
-        id="scalar-ref"
-        configuration='{
-            "theme": "dark",
-            "showModels": true,
-            "searchHotKey": ["cmd+k", "ctrl+k"]
-        }'>
-    </scalar-api-reference>
+    <script
+        id="api-reference"
+        data-url="/docs/openapi/cursor-api.yaml"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@latest/dist/standalone.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
     <script>
-        // Initial load
-        loadSpec('cursor');
-
         function loadSpec(type) {
             const specUrl = type === 'cursor'
                 ? '/docs/openapi/cursor-api.yaml'
                 : '/docs/openapi/github-sim-api.yaml';
 
-            const config = {
-                theme: 'dark',
-                showModels: true,
-                searchHotKey: ['cmd+k', 'ctrl+k'],
-                spec: {
-                    url: specUrl
-                }
-            };
+            // Update the data-url attribute
+            const scriptEl = document.getElementById('api-reference');
+            scriptEl.setAttribute('data-url', specUrl);
 
-            // Reload Scalar with new spec
-            const ref = document.getElementById('scalar-ref');
-            if (window.ScalarApiReference) {
-                window.ScalarApiReference.mount(ref, config);
-            }
+            // Reload the page to apply new spec
+            window.location.reload();
         }
     </script>
 </body>
