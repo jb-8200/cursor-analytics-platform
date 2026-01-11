@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"encoding/json"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"fmt"
 	"strings"
 	"testing"

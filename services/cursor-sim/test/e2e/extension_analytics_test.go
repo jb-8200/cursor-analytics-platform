@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -40,7 +41,7 @@ func TestE2E_TeamFileExtensions(t *testing.T) {
 	require.NoError(t, err, "Failed to generate file extensions")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/top-file-extensions", nil)
@@ -108,7 +109,7 @@ func TestE2E_ByUserFileExtensions(t *testing.T) {
 	require.NoError(t, err, "Failed to generate file extensions")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/top-file-extensions", nil)
@@ -154,7 +155,7 @@ func TestE2E_FileExtensionsEmpty_WithoutGenerator(t *testing.T) {
 	// NOTE: Intentionally NOT calling ExtensionGenerator to show the bug
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Test team file-extensions endpoint
 	req := httptest.NewRequest("GET", "/analytics/team/top-file-extensions", nil)

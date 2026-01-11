@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -40,7 +41,7 @@ func setupTestServer(t *testing.T) (context.CancelFunc, *storage.MemoryStore) {
 	require.NoError(t, err)
 
 	// Create and start HTTP server
-	router := server.NewRouter(store, seedData, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey, createTestConfig(), testVersion)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", testPort),
 		Handler: router,
@@ -526,7 +527,7 @@ func setupTestServerWithSeed(t *testing.T, seedPath string, port int) (context.C
 	require.NoError(t, err)
 
 	// Create and start HTTP server
-	router := server.NewRouter(store, seedData, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey, createTestConfig(), testVersion)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: router,

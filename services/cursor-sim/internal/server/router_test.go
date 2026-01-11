@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/seed"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -34,12 +35,26 @@ func createTestSeedData() *seed.SeedData {
 	}
 }
 
+func createTestConfig() *config.Config {
+	return &config.Config{
+		Mode:       "runtime",
+		Port:       8080,
+		Days:       1,
+		Velocity:   "medium",
+		SeedPath:   "",
+		CorpusPath: "",
+	}
+}
+
+const testVersion = "1.0.0"
+
 func TestNewRouter(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
 	apiKey := "test-key"
+	cfg := createTestConfig()
 
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, cfg, testVersion)
 
 	assert.NotNil(t, router)
 }
@@ -47,7 +62,7 @@ func TestNewRouter(t *testing.T) {
 func TestRouter_HealthEndpoint(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/health", nil)
 	rec := httptest.NewRecorder()
@@ -60,7 +75,7 @@ func TestRouter_HealthEndpoint(t *testing.T) {
 func TestRouter_TeamsMembers(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/teams/members", nil)
 	req.SetBasicAuth("test-key", "")
@@ -74,7 +89,7 @@ func TestRouter_TeamsMembers(t *testing.T) {
 func TestRouter_AICodeCommits(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/analytics/ai-code/commits", nil)
 	req.SetBasicAuth("test-key", "")
@@ -88,7 +103,7 @@ func TestRouter_AICodeCommits(t *testing.T) {
 func TestRouter_WithoutAuth(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/teams/members", nil)
 	// No auth header
@@ -103,7 +118,7 @@ func TestRouter_WithoutAuth(t *testing.T) {
 func TestRouter_NotFound(t *testing.T) {
 	store := storage.NewMemoryStore()
 	seedData := createTestSeedData()
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/nonexistent", nil)
 	req.SetBasicAuth("test-key", "")
@@ -135,7 +150,7 @@ func TestRouter_HarveyRoutes_Enabled(t *testing.T) {
 		},
 	}
 
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
 	req.SetBasicAuth("test-key", "")
@@ -160,7 +175,7 @@ func TestRouter_HarveyRoutes_DisabledNilConfig(t *testing.T) {
 		ExternalDataSources: nil, // No external data sources
 	}
 
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
 	req.SetBasicAuth("test-key", "")
@@ -187,7 +202,7 @@ func TestRouter_HarveyRoutes_DisabledNilHarvey(t *testing.T) {
 		},
 	}
 
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
 	req.SetBasicAuth("test-key", "")
@@ -216,7 +231,7 @@ func TestRouter_HarveyRoutes_DisabledFalse(t *testing.T) {
 		},
 	}
 
-	router := NewRouter(store, seedData, "test-key")
+	router := NewRouter(store, seedData, "test-key", createTestConfig(), testVersion)
 
 	req := httptest.NewRequest("GET", "/harvey/api/v1/history/usage?from=2025-01-01&to=2025-01-31", nil)
 	req.SetBasicAuth("test-key", "")
@@ -251,7 +266,7 @@ func TestRouter_CopilotRoutes_Enabled(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Copilot endpoint
 	req := httptest.NewRequest("GET", "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')", nil)
@@ -287,7 +302,7 @@ func TestRouter_CopilotRoutes_Disabled(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Copilot endpoint
 	req := httptest.NewRequest("GET", "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')", nil)
@@ -320,7 +335,7 @@ func TestRouter_CopilotRoutes_EnabledButFalse(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Copilot endpoint
 	req := httptest.NewRequest("GET", "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')", nil)
@@ -354,7 +369,7 @@ func TestRouter_CopilotRoutes_RequiresAuth(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request WITHOUT authentication
 	req := httptest.NewRequest("GET", "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')", nil)
@@ -388,7 +403,7 @@ func TestRouter_CopilotRoutes_CSVFormat(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request CSV format
 	req := httptest.NewRequest("GET", "/reports/getMicrosoft365CopilotUsageUserDetail(period='D30')?$format=text/csv", nil)
@@ -427,7 +442,7 @@ func TestRouter_QualtricsRoutes_Enabled(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Qualtrics start export endpoint
 	req := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)
@@ -463,7 +478,7 @@ func TestRouter_QualtricsRoutes_Disabled(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Qualtrics endpoint
 	req := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)
@@ -496,7 +511,7 @@ func TestRouter_QualtricsRoutes_EnabledButFalse(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request the Qualtrics endpoint
 	req := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)
@@ -531,7 +546,7 @@ func TestRouter_QualtricsRoutes_RequiresAuth(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// Act: Request WITHOUT authentication
 	req := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)
@@ -565,7 +580,7 @@ func TestRouter_QualtricsRoutes_ProgressEndpoint(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// First, start an export to get a progressID
 	startReq := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)
@@ -597,6 +612,61 @@ func TestRouter_QualtricsRoutes_ProgressEndpoint(t *testing.T) {
 	assert.Contains(t, progressResp, "result", "Response should have result object")
 }
 
+// TestRouter_DocsLoginPage verifies /docs/login endpoint is accessible without auth.
+func TestRouter_DocsLoginPage(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := createTestSeedData()
+	apiKey := "test-key"
+	cfg := createTestConfig()
+	router := NewRouter(store, seedData, apiKey, cfg, testVersion)
+
+	req := httptest.NewRequest("GET", "/docs/login", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Should return 200 and HTML content
+	assert.Equal(t, 200, rec.Code)
+	assert.Contains(t, rec.Header().Get("Content-Type"), "text/html")
+}
+
+// TestRouter_DocsWithoutSession verifies /docs redirects to login without session.
+func TestRouter_DocsWithoutSession(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := createTestSeedData()
+	apiKey := "test-key"
+	cfg := createTestConfig()
+	router := NewRouter(store, seedData, apiKey, cfg, testVersion)
+
+	req := httptest.NewRequest("GET", "/docs", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Should redirect to login
+	assert.Equal(t, 302, rec.Code)
+	assert.Contains(t, rec.Header().Get("Location"), "/docs/login")
+}
+
+// TestRouter_DocsOpenAPISpec verifies /docs/openapi/ endpoint serves YAML specs.
+func TestRouter_DocsOpenAPISpec(t *testing.T) {
+	store := storage.NewMemoryStore()
+	seedData := createTestSeedData()
+	apiKey := "test-key"
+	cfg := createTestConfig()
+	router := NewRouter(store, seedData, apiKey, cfg, testVersion)
+
+	req := httptest.NewRequest("GET", "/docs/openapi/cursor-api.yaml", nil)
+	rec := httptest.NewRecorder()
+
+	router.ServeHTTP(rec, req)
+
+	// Should return 200 and YAML content type
+	assert.Equal(t, 200, rec.Code)
+	assert.Equal(t, "application/yaml", rec.Header().Get("Content-Type"))
+	assert.NotEmpty(t, rec.Body.String())
+}
+
 // TestRouter_QualtricsRoutes_FileDownloadEndpoint verifies the file download endpoint works.
 func TestRouter_QualtricsRoutes_FileDownloadEndpoint(t *testing.T) {
 	// Arrange: Create seed data WITH Qualtrics enabled
@@ -620,7 +690,7 @@ func TestRouter_QualtricsRoutes_FileDownloadEndpoint(t *testing.T) {
 
 	store := storage.NewMemoryStore()
 	apiKey := "test-api-key"
-	router := NewRouter(store, seedData, apiKey)
+	router := NewRouter(store, seedData, apiKey, createTestConfig(), testVersion)
 
 	// First, start an export
 	startReq := httptest.NewRequest("POST", "/API/v3/surveys/SV_abc123/export-responses", nil)

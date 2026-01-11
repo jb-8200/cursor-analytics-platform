@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"testing"
 	"time"
 

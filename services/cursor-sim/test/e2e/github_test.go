@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -58,7 +59,7 @@ func setupGitHubE2EServer(t *testing.T) (context.CancelFunc, *storage.MemoryStor
 
 	// Create and start HTTP server on unique port for GitHub tests
 	const githubTestPort = 19082
-	router := server.NewRouter(store, seedData, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey, createTestConfig(), testVersion)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", githubTestPort),
 		Handler: router,

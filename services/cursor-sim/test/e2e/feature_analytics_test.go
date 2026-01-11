@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -40,7 +41,7 @@ func TestE2E_TeamMCP(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/mcp", nil)
@@ -107,7 +108,7 @@ func TestE2E_TeamCommands(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/commands", nil)
@@ -174,7 +175,7 @@ func TestE2E_TeamPlans(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/plans", nil)
@@ -225,7 +226,7 @@ func TestE2E_TeamAskMode(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/ask-mode", nil)
@@ -276,7 +277,7 @@ func TestE2E_ByUserMCP(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/mcp", nil)
@@ -329,7 +330,7 @@ func TestE2E_ByUserCommands(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/commands", nil)
@@ -382,7 +383,7 @@ func TestE2E_ByUserPlans(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/plans", nil)
@@ -435,7 +436,7 @@ func TestE2E_ByUserAskMode(t *testing.T) {
 	require.NoError(t, err, "Failed to generate features")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/ask-mode", nil)
@@ -481,7 +482,7 @@ func TestE2E_FeaturesEmpty_WithoutGenerator(t *testing.T) {
 	// NOTE: Intentionally NOT calling FeatureGenerator to show the bug
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Test team MCP endpoint
 	req := httptest.NewRequest("GET", "/analytics/team/mcp", nil)

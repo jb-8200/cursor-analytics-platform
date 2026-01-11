@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -48,7 +49,7 @@ func TestE2E_TeamModels(t *testing.T) {
 	require.NoError(t, err, "Failed to generate model usage")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/team/models", nil)
@@ -107,7 +108,7 @@ func TestE2E_ByUserModels(t *testing.T) {
 	require.NoError(t, err, "Failed to generate model usage")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/analytics/by-user/models", nil)
@@ -153,7 +154,7 @@ func TestE2E_ModelsEmpty_WithoutGenerator(t *testing.T) {
 	// NOTE: Intentionally NOT calling ModelGenerator to show the bug
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Test team models endpoint
 	req := httptest.NewRequest("GET", "/analytics/team/models", nil)

@@ -18,10 +18,11 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
-# Copy source code
+# Copy source code (includes OpenAPI specs and embedded assets for docs UI)
 COPY . .
 
 # Build static binary with size optimization
+# The go:embed directives will include OpenAPI specs and templates in the binary
 RUN go build \
     -ldflags="-s -w -X main.version=2.0.0" \
     -o /out/cursor-sim \

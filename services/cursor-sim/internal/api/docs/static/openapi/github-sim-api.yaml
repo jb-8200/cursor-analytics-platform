@@ -1,0 +1,1329 @@
+openapi: 3.1.0
+info:
+  title: GitHub Repository Simulation API
+  description: |
+    Simulated GitHub-style endpoints for PR lifecycle, commit history, and code review data.
+    
+    These endpoints complement the Cursor AI telemetry API to provide a complete dataset
+    for research on AI impact on software development lifecycle (SDLC).
+    
+    **Research Framework Support:**
+    - Independent Variables: PR Volume, PR Scatter, Greenfield Index, Repo Maturity
+    - Velocity Metrics: Coding Lead Time, Pickup Time, Review Lead Time, Throughput
+    - Review Costs: Review Density, Iteration Count, Rework Ratio, Scope Creep
+    - Quality Metrics: Revert Rate, Code Survival, Hotfix Follow-up
+    
+    **JOIN Keys with Cursor API:**
+    - `commit_sha` ↔ `/analytics/ai-code/commits.commitHash`
+    - `author_email` ↔ `/analytics/ai-code/commits.userEmail`
+    - `repo_name` ↔ `/analytics/ai-code/commits.repoName`
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local simulator
+
+tags:
+  - name: Repositories
+    description: Repository metadata and metrics
+  - name: Pull Requests
+    description: PR lifecycle and review data
+  - name: Commits
+    description: Commit history and file changes
+  - name: Code Analysis
+    description: Code quality and survival metrics
+  - name: Research
+    description: Pre-computed research metrics
+
+paths:
+  # ===========================================================================
+  # Repository Endpoints
+  # ===========================================================================
+  
+  /repos:
+    get:
+      tags: [Repositories]
+      summary: List repositories
+      description: Returns all repositories in the simulation with metadata.
+      operationId: listRepos
+      parameters:
+        - $ref: '#/components/parameters/org'
+      responses:
+        '200':
+          description: Repository list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepoListResponse'
+
+  /repos/{owner}/{repo}:
+    get:
+      tags: [Repositories]
+      summary: Get repository details
+      description: |
+        Returns repository metadata including maturity metrics for research controls.
+        
+        **Research Variables Provided:**
+        - Repo Maturity: `created_at`, `age_days`, `primary_language`, `total_size_bytes`
+      operationId: getRepo
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+      responses:
+        '200':
+          description: Repository details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repository'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ===========================================================================
+  # Pull Request Endpoints
+  # ===========================================================================
+
+  /repos/{owner}/{repo}/pulls:
+    get:
+      tags: [Pull Requests]
+      summary: List pull requests
+      description: |
+        Returns PRs with full lifecycle timestamps and review metrics.
+        
+        **Research Variables Provided:**
+        - PR Volume: `additions`, `deletions`, `changed_files`
+        - PR Scatter: `changed_files`, `files[].filename`
+        - Cycle Times: `created_at`, `first_commit_at`, `first_review_at`, `merged_at`
+        - Review Costs: `review_comments`, `iterations`, `reviewers`
+      operationId: listPulls
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, merged, all]
+            default: all
+        - name: base
+          in: query
+          description: Filter by base branch
+          schema:
+            type: string
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+      responses:
+        '200':
+          description: Pull request list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullRequestListResponse'
+
+  /repos/{owner}/{repo}/pulls/{pull_number}:
+    get:
+      tags: [Pull Requests]
+      summary: Get pull request details
+      description: Returns detailed PR data including all review iterations.
+      operationId: getPull
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - $ref: '#/components/parameters/pullNumber'
+      responses:
+        '200':
+          description: Pull request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /repos/{owner}/{repo}/pulls/{pull_number}/commits:
+    get:
+      tags: [Pull Requests]
+      summary: List commits in a PR
+      description: Returns all commits in the PR with AI telemetry JOIN keys.
+      operationId: listPullCommits
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - $ref: '#/components/parameters/pullNumber'
+      responses:
+        '200':
+          description: Commit list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitListResponse'
+
+  /repos/{owner}/{repo}/pulls/{pull_number}/reviews:
+    get:
+      tags: [Pull Requests]
+      summary: List reviews on a PR
+      description: |
+        Returns all review events with timestamps for iteration analysis.
+        
+        **Research Variables Provided:**
+        - Iteration Count: Count of `CHANGES_REQUESTED` → commit cycles
+        - Reviewer Count: Unique reviewers
+        - Review comments by reviewer
+      operationId: listPullReviews
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - $ref: '#/components/parameters/pullNumber'
+      responses:
+        '200':
+          description: Review list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewListResponse'
+
+  /repos/{owner}/{repo}/pulls/{pull_number}/files:
+    get:
+      tags: [Pull Requests]
+      summary: List files changed in PR
+      description: |
+        Returns file-level diff statistics.
+        
+        **Research Variables Provided:**
+        - PR Scatter: File count and paths
+        - Greenfield Index: `file_created_at` for each file
+        - Per-file additions/deletions
+      operationId: listPullFiles
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - $ref: '#/components/parameters/pullNumber'
+      responses:
+        '200':
+          description: File list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullFileListResponse'
+
+  # ===========================================================================
+  # Commit Endpoints
+  # ===========================================================================
+
+  /repos/{owner}/{repo}/commits:
+    get:
+      tags: [Commits]
+      summary: List commits
+      description: Returns commit history with linkage to PRs and AI telemetry.
+      operationId: listCommits
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - name: sha
+          in: query
+          description: Branch or commit SHA to start from
+          schema:
+            type: string
+        - name: author
+          in: query
+          description: Filter by author email
+          schema:
+            type: string
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+      responses:
+        '200':
+          description: Commit list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitListResponse'
+
+  /repos/{owner}/{repo}/commits/{sha}:
+    get:
+      tags: [Commits]
+      summary: Get commit details
+      description: |
+        Returns commit with full diff stats and AI telemetry linkage.
+        
+        **JOIN with Cursor API:**
+        Use `sha` to join with `/analytics/ai-code/commits?commitHash={sha}`
+      operationId: getCommit
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - $ref: '#/components/parameters/sha'
+      responses:
+        '200':
+          description: Commit details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commit'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ===========================================================================
+  # Code Analysis Endpoints (Research-specific)
+  # ===========================================================================
+
+  /repos/{owner}/{repo}/analysis/survival:
+    get:
+      tags: [Code Analysis]
+      summary: Code survival analysis
+      description: |
+        Returns code survival metrics for lines added in a time window.
+        
+        **Research Variable:** Code Survival Rate
+        - % of lines added in Month M still present in Month M+X
+      operationId: getCodeSurvival
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - name: cohort_start
+          in: query
+          required: true
+          description: Start of cohort window (lines added after this date)
+          schema:
+            type: string
+            format: date
+        - name: cohort_end
+          in: query
+          required: true
+          description: End of cohort window
+          schema:
+            type: string
+            format: date
+        - name: observation_date
+          in: query
+          required: true
+          description: Date to check survival
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Survival analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurvivalAnalysis'
+
+  /repos/{owner}/{repo}/analysis/reverts:
+    get:
+      tags: [Code Analysis]
+      summary: Revert analysis
+      description: |
+        Returns PRs that were reverted within X days.
+        
+        **Research Variable:** Revert Rate
+      operationId: getReverts
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - name: window_days
+          in: query
+          description: Days after merge to check for reverts
+          schema:
+            type: integer
+            default: 7
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+      responses:
+        '200':
+          description: Revert analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevertAnalysis'
+
+  /repos/{owner}/{repo}/analysis/hotfixes:
+    get:
+      tags: [Code Analysis]
+      summary: Hotfix follow-up analysis
+      description: |
+        Returns PRs followed by a fix-PR to the same files within X hours.
+        
+        **Research Variable:** Hotfix Follow-up Rate
+      operationId: getHotfixes
+      parameters:
+        - $ref: '#/components/parameters/owner'
+        - $ref: '#/components/parameters/repo'
+        - name: window_hours
+          in: query
+          description: Hours after merge to check for hotfixes
+          schema:
+            type: integer
+            default: 48
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+      responses:
+        '200':
+          description: Hotfix analysis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HotfixAnalysis'
+
+  # ===========================================================================
+  # Research Dataset Endpoints (Pre-computed)
+  # ===========================================================================
+
+  /research/dataset:
+    get:
+      tags: [Research]
+      summary: Export research dataset
+      description: |
+        Returns a pre-joined dataset with all research variables per PR/commit.
+        
+        This endpoint provides a single table optimized for statistical analysis,
+        joining Cursor AI telemetry with GitHub PR lifecycle data.
+        
+        **Columns include:**
+        - Independent: ai_lines_added, ai_lines_deleted, pr_volume, pr_scatter, greenfield_index
+        - Velocity: coding_lead_time_hours, pickup_time_hours, review_lead_time_hours
+        - Review Costs: review_density, iteration_count, rework_ratio, scope_creep
+        - Quality: is_reverted, survival_rate_30d, has_hotfix_followup
+      operationId: getResearchDataset
+      parameters:
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - name: granularity
+          in: query
+          description: Level of aggregation
+          schema:
+            type: string
+            enum: [commit, pr, developer_day, developer_week]
+            default: pr
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv, parquet]
+            default: json
+      responses:
+        '200':
+          description: Research dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchDataset'
+            text/csv:
+              schema:
+                type: string
+                format: binary
+
+  /research/metrics/velocity:
+    get:
+      tags: [Research]
+      summary: Velocity metrics summary
+      description: Aggregated velocity metrics for the research framework.
+      operationId: getVelocityMetrics
+      parameters:
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, developer, team, repo]
+            default: week
+      responses:
+        '200':
+          description: Velocity metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VelocityMetrics'
+
+  /research/metrics/review-costs:
+    get:
+      tags: [Research]
+      summary: Review cost metrics summary
+      description: Aggregated review friction metrics.
+      operationId: getReviewCostMetrics
+      parameters:
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, developer, team, repo]
+            default: week
+      responses:
+        '200':
+          description: Review cost metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCostMetrics'
+
+  /research/metrics/quality:
+    get:
+      tags: [Research]
+      summary: Quality metrics summary
+      description: Aggregated code quality and stability metrics.
+      operationId: getQualityMetrics
+      parameters:
+        - $ref: '#/components/parameters/since'
+        - $ref: '#/components/parameters/until'
+        - name: group_by
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, developer, team, repo]
+            default: week
+      responses:
+        '200':
+          description: Quality metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QualityMetrics'
+
+components:
+  parameters:
+    owner:
+      name: owner
+      in: path
+      required: true
+      description: Repository owner/organization
+      schema:
+        type: string
+        example: "acme-corp"
+    
+    repo:
+      name: repo
+      in: path
+      required: true
+      description: Repository name
+      schema:
+        type: string
+        example: "payment-service"
+    
+    pullNumber:
+      name: pull_number
+      in: path
+      required: true
+      description: PR number
+      schema:
+        type: integer
+        example: 123
+    
+    sha:
+      name: sha
+      in: path
+      required: true
+      description: Commit SHA
+      schema:
+        type: string
+        example: "a1b2c3d4e5f6"
+    
+    org:
+      name: org
+      in: query
+      description: Filter by organization
+      schema:
+        type: string
+    
+    since:
+      name: since
+      in: query
+      description: Start date (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+    
+    until:
+      name: until
+      in: query
+      description: End date (ISO 8601)
+      schema:
+        type: string
+        format: date-time
+    
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    
+    perPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        default: 30
+        maximum: 100
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    # =========================================================================
+    # Repository Schemas
+    # =========================================================================
+    
+    RepoListResponse:
+      type: object
+      properties:
+        repositories:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepositorySummary'
+        total_count:
+          type: integer
+    
+    RepositorySummary:
+      type: object
+      properties:
+        full_name:
+          type: string
+          example: "acme-corp/payment-service"
+        default_branch:
+          type: string
+          example: "main"
+        primary_language:
+          type: string
+          example: "TypeScript"
+    
+    Repository:
+      type: object
+      description: |
+        Repository with maturity metrics for research controls.
+      properties:
+        id:
+          type: string
+        full_name:
+          type: string
+          example: "acme-corp/payment-service"
+        owner:
+          type: string
+          example: "acme-corp"
+        name:
+          type: string
+          example: "payment-service"
+        default_branch:
+          type: string
+          example: "main"
+        # Research: Repo Maturity controls
+        created_at:
+          type: string
+          format: date-time
+          description: Repository creation date
+        age_days:
+          type: integer
+          description: Days since repository creation
+          example: 547
+        primary_language:
+          type: string
+          example: "TypeScript"
+        languages:
+          type: object
+          additionalProperties:
+            type: integer
+          description: Bytes per language
+          example: {"TypeScript": 245000, "JavaScript": 12000}
+        total_size_bytes:
+          type: integer
+          description: Total repository size
+          example: 257000
+        # Additional metadata
+        total_commits:
+          type: integer
+        total_prs:
+          type: integer
+        total_contributors:
+          type: integer
+        open_prs:
+          type: integer
+        
+    # =========================================================================
+    # Pull Request Schemas
+    # =========================================================================
+    
+    PullRequestListResponse:
+      type: object
+      properties:
+        pull_requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/PullRequestSummary'
+        total_count:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+    
+    PullRequestSummary:
+      type: object
+      properties:
+        number:
+          type: integer
+        title:
+          type: string
+        state:
+          type: string
+          enum: [open, closed, merged]
+        author:
+          $ref: '#/components/schemas/User'
+        created_at:
+          type: string
+          format: date-time
+        merged_at:
+          type: string
+          format: date-time
+          nullable: true
+        additions:
+          type: integer
+        deletions:
+          type: integer
+        changed_files:
+          type: integer
+    
+    PullRequest:
+      type: object
+      description: |
+        Full PR data with all research variables.
+        
+        **Research Variables:**
+        - PR Volume: additions + deletions
+        - PR Scatter: changed_files
+        - Coding Lead Time: created_at - first_commit_at
+        - Pickup Time: first_review_at - created_at
+        - Review Lead Time: merged_at - first_review_at
+        - Review Density: review_comments / (additions + deletions)
+        - Iteration Count: iterations
+        - Scope Creep: (final_additions - initial_additions) / final_additions
+      properties:
+        id:
+          type: string
+        number:
+          type: integer
+          example: 123
+        title:
+          type: string
+          example: "Add payment retry logic"
+        body:
+          type: string
+        state:
+          type: string
+          enum: [open, closed, merged]
+        author:
+          $ref: '#/components/schemas/User'
+        
+        # Branches
+        base_branch:
+          type: string
+          example: "main"
+        head_branch:
+          type: string
+          example: "feature/payment-retry"
+        is_primary_branch:
+          type: boolean
+          description: Whether merging to default branch
+        
+        # Size metrics (Research: PR Volume, PR Scatter)
+        additions:
+          type: integer
+          description: Total lines added (final state)
+          example: 245
+        deletions:
+          type: integer
+          description: Total lines deleted (final state)
+          example: 32
+        changed_files:
+          type: integer
+          description: Number of files modified (PR Scatter)
+          example: 8
+        
+        # Initial vs final (Research: Scope Creep)
+        initial_additions:
+          type: integer
+          description: Lines added in first commit
+          example: 180
+        initial_deletions:
+          type: integer
+          description: Lines deleted in first commit
+          example: 20
+        
+        # Timestamps (Research: Cycle Times)
+        first_commit_at:
+          type: string
+          format: date-time
+          description: Timestamp of first commit in PR
+        created_at:
+          type: string
+          format: date-time
+          description: PR opened timestamp
+        first_review_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: First review activity timestamp
+        merged_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Merge timestamp
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        
+        # Computed cycle times (convenience)
+        coding_lead_time_hours:
+          type: number
+          format: float
+          description: (created_at - first_commit_at) in hours
+          example: 2.5
+        pickup_time_hours:
+          type: number
+          format: float
+          description: (first_review_at - created_at) in hours
+          example: 4.2
+        review_lead_time_hours:
+          type: number
+          format: float
+          description: (merged_at - first_review_at) in hours
+          example: 6.8
+        
+        # Review metrics (Research: Review Costs)
+        review_comments:
+          type: integer
+          description: Total review comments
+          example: 12
+        iterations:
+          type: integer
+          description: Review → commit cycles
+          example: 3
+        reviewers:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          description: Unique reviewers
+        reviewer_count:
+          type: integer
+          example: 2
+        
+        # Computed review metrics (convenience)
+        review_density:
+          type: number
+          format: float
+          description: review_comments / (additions + deletions)
+          example: 0.043
+        rework_ratio:
+          type: number
+          format: float
+          description: LoC changed during review / initial LoC
+          example: 0.25
+        scope_creep:
+          type: number
+          format: float
+          description: (final - initial) / final
+          example: 0.18
+        
+        # Commits
+        commits_count:
+          type: integer
+          example: 5
+        commit_shas:
+          type: array
+          items:
+            type: string
+          description: For JOIN with Cursor AI telemetry
+          example: ["a1b2c3d4", "e5f6g7h8"]
+        
+        # AI telemetry summary (from Cursor API)
+        ai_summary:
+          $ref: '#/components/schemas/AIContributionSummary'
+        
+        # Quality indicators
+        is_reverted:
+          type: boolean
+          description: Whether this PR was later reverted
+        reverted_at:
+          type: string
+          format: date-time
+          nullable: true
+        has_hotfix_followup:
+          type: boolean
+          description: Whether a fix-PR followed within 48h
+
+    # =========================================================================
+    # Review Schemas
+    # =========================================================================
+    
+    ReviewListResponse:
+      type: object
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    
+    Review:
+      type: object
+      properties:
+        id:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        state:
+          type: string
+          enum: [APPROVED, CHANGES_REQUESTED, COMMENTED, DISMISSED]
+        body:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+        comments_count:
+          type: integer
+        
+    # =========================================================================
+    # Commit Schemas
+    # =========================================================================
+    
+    CommitListResponse:
+      type: object
+      properties:
+        commits:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommitSummary'
+        total_count:
+          type: integer
+    
+    CommitSummary:
+      type: object
+      properties:
+        sha:
+          type: string
+          example: "a1b2c3d4e5f6"
+        message:
+          type: string
+        author:
+          $ref: '#/components/schemas/User'
+        committed_at:
+          type: string
+          format: date-time
+        additions:
+          type: integer
+        deletions:
+          type: integer
+    
+    Commit:
+      type: object
+      properties:
+        sha:
+          type: string
+          description: For JOIN with Cursor /analytics/ai-code/commits
+          example: "a1b2c3d4e5f6g7h8i9j0"
+        message:
+          type: string
+          example: "Add payment retry logic with exponential backoff"
+        author:
+          $ref: '#/components/schemas/User'
+        committer:
+          $ref: '#/components/schemas/User'
+        committed_at:
+          type: string
+          format: date-time
+        
+        # Diff stats
+        additions:
+          type: integer
+          example: 85
+        deletions:
+          type: integer
+          example: 12
+        files_changed:
+          type: integer
+          example: 3
+        
+        # File details
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommitFile'
+        
+        # PR linkage
+        pull_request_number:
+          type: integer
+          nullable: true
+          description: PR this commit belongs to
+        
+        # AI telemetry (from Cursor API)
+        ai_contribution:
+          $ref: '#/components/schemas/AIContribution'
+    
+    CommitFile:
+      type: object
+      properties:
+        filename:
+          type: string
+          example: "src/payments/retry.ts"
+        status:
+          type: string
+          enum: [added, modified, deleted, renamed]
+        additions:
+          type: integer
+        deletions:
+          type: integer
+        # Research: Greenfield Index
+        file_created_at:
+          type: string
+          format: date-time
+          description: When this file was first created
+        file_age_days:
+          type: integer
+          description: Days since file creation
+        is_new_file:
+          type: boolean
+          description: Created in this commit
+
+    # =========================================================================
+    # File Schemas
+    # =========================================================================
+    
+    PullFileListResponse:
+      type: object
+      properties:
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/PullFile'
+        greenfield_index:
+          type: number
+          format: float
+          description: |
+            % of PR lines in files created <30 days ago.
+            Research control variable for new vs legacy code.
+          example: 0.42
+    
+    PullFile:
+      type: object
+      properties:
+        filename:
+          type: string
+          example: "src/payments/retry.ts"
+        status:
+          type: string
+          enum: [added, modified, deleted, renamed]
+        additions:
+          type: integer
+          example: 45
+        deletions:
+          type: integer
+          example: 8
+        changes:
+          type: integer
+          example: 53
+        # Greenfield analysis
+        file_created_at:
+          type: string
+          format: date-time
+        file_age_days:
+          type: integer
+        is_greenfield:
+          type: boolean
+          description: File is < 30 days old
+
+    # =========================================================================
+    # AI Contribution Schemas
+    # =========================================================================
+    
+    AIContribution:
+      type: object
+      description: |
+        AI telemetry for a single commit.
+        Mirrors Cursor /analytics/ai-code/commits fields.
+      properties:
+        tab_lines_added:
+          type: integer
+          description: Lines from TAB completions
+        tab_lines_deleted:
+          type: integer
+        composer_lines_added:
+          type: integer
+          description: Lines from Composer
+        composer_lines_deleted:
+          type: integer
+        non_ai_lines_added:
+          type: integer
+          description: Manual lines
+        non_ai_lines_deleted:
+          type: integer
+        ai_ratio:
+          type: number
+          format: float
+          description: (tab + composer) / total
+          example: 0.65
+    
+    AIContributionSummary:
+      type: object
+      description: Aggregated AI telemetry for a PR (sum across commits).
+      properties:
+        total_tab_lines_added:
+          type: integer
+        total_tab_lines_deleted:
+          type: integer
+        total_composer_lines_added:
+          type: integer
+        total_composer_lines_deleted:
+          type: integer
+        total_non_ai_lines_added:
+          type: integer
+        total_non_ai_lines_deleted:
+          type: integer
+        ai_ratio:
+          type: number
+          format: float
+          description: Overall AI contribution ratio for PR
+
+    # =========================================================================
+    # Analysis Schemas
+    # =========================================================================
+    
+    SurvivalAnalysis:
+      type: object
+      properties:
+        cohort_start:
+          type: string
+          format: date
+        cohort_end:
+          type: string
+          format: date
+        observation_date:
+          type: string
+          format: date
+        total_lines_added:
+          type: integer
+          description: Lines added in cohort window
+        lines_surviving:
+          type: integer
+          description: Lines still present at observation
+        survival_rate:
+          type: number
+          format: float
+          description: lines_surviving / total_lines_added
+          example: 0.78
+        by_developer:
+          type: array
+          items:
+            type: object
+            properties:
+              email:
+                type: string
+              lines_added:
+                type: integer
+              lines_surviving:
+                type: integer
+              survival_rate:
+                type: number
+    
+    RevertAnalysis:
+      type: object
+      properties:
+        window_days:
+          type: integer
+        total_prs_merged:
+          type: integer
+        total_prs_reverted:
+          type: integer
+        revert_rate:
+          type: number
+          format: float
+          example: 0.023
+        reverted_prs:
+          type: array
+          items:
+            type: object
+            properties:
+              pr_number:
+                type: integer
+              merged_at:
+                type: string
+                format: date-time
+              reverted_at:
+                type: string
+                format: date-time
+              days_to_revert:
+                type: number
+    
+    HotfixAnalysis:
+      type: object
+      properties:
+        window_hours:
+          type: integer
+        total_prs_merged:
+          type: integer
+        prs_with_hotfix:
+          type: integer
+        hotfix_rate:
+          type: number
+          format: float
+          example: 0.085
+        hotfix_prs:
+          type: array
+          items:
+            type: object
+            properties:
+              original_pr:
+                type: integer
+              hotfix_pr:
+                type: integer
+              hours_between:
+                type: number
+              files_in_common:
+                type: array
+                items:
+                  type: string
+
+    # =========================================================================
+    # Research Dataset Schemas
+    # =========================================================================
+    
+    ResearchDataset:
+      type: object
+      description: |
+        Pre-joined dataset for statistical analysis.
+        One row per PR (or per specified granularity).
+      properties:
+        granularity:
+          type: string
+          enum: [commit, pr, developer_day, developer_week]
+        columns:
+          type: array
+          items:
+            type: string
+          description: Column names in order
+          example: [
+            "pr_number", "author_email", "repo_name",
+            "ai_lines_added", "ai_lines_deleted", "non_ai_lines_added",
+            "pr_volume", "pr_scatter", "greenfield_index",
+            "coding_lead_time_hours", "pickup_time_hours", "review_lead_time_hours",
+            "review_density", "iteration_count", "rework_ratio", "scope_creep",
+            "is_reverted", "survival_rate_30d", "has_hotfix_followup"
+          ]
+        rows:
+          type: array
+          items:
+            type: array
+            items: {}
+        total_rows:
+          type: integer
+    
+    VelocityMetrics:
+      type: object
+      properties:
+        period:
+          type: string
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              group_key:
+                type: string
+              prs_merged:
+                type: integer
+              prs_closed_unmerged:
+                type: integer
+              merge_rate:
+                type: number
+              avg_coding_lead_time_hours:
+                type: number
+              avg_pickup_time_hours:
+                type: number
+              avg_review_lead_time_hours:
+                type: number
+              p50_total_cycle_time_hours:
+                type: number
+              p90_total_cycle_time_hours:
+                type: number
+    
+    ReviewCostMetrics:
+      type: object
+      properties:
+        period:
+          type: string
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              group_key:
+                type: string
+              total_review_comments:
+                type: integer
+              avg_review_density:
+                type: number
+              avg_iteration_count:
+                type: number
+              avg_rework_ratio:
+                type: number
+              avg_scope_creep:
+                type: number
+              avg_reviewer_count:
+                type: number
+    
+    QualityMetrics:
+      type: object
+      properties:
+        period:
+          type: string
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              group_key:
+                type: string
+              revert_rate:
+                type: number
+              avg_code_survival_30d:
+                type: number
+              hotfix_rate:
+                type: number
+              avg_pr_volume:
+                type: number
+                description: Code inflation indicator
+
+    # =========================================================================
+    # Common Schemas
+    # =========================================================================
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Stable user ID (user_xxx format)
+        email:
+          type: string
+          example: "developer@company.com"
+        name:
+          type: string
+          example: "Alex Chen"
+    
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string

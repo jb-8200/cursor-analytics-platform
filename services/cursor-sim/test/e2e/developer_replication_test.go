@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"math/rand"
 	"net/http/httptest"
@@ -46,7 +47,7 @@ func TestE2E_DeveloperReplication_Downsample(t *testing.T) {
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Query /teams/members endpoint
 	req := httptest.NewRequest("GET", "/teams/members", nil)
@@ -103,7 +104,7 @@ func TestE2E_DeveloperReplication_ExactMatch(t *testing.T) {
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Query /teams/members endpoint
 	req := httptest.NewRequest("GET", "/teams/members", nil)
@@ -161,7 +162,7 @@ func TestE2E_DeveloperReplication_ScaleUp(t *testing.T) {
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Query /teams/members endpoint
 	req := httptest.NewRequest("GET", "/teams/members", nil)

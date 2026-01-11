@@ -7,6 +7,7 @@ import (
 
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/cursor"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/docs"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/github"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/harvey"
 	"github.com/cursor-analytics-platform/services/cursor-sim/internal/api/microsoft"
@@ -26,6 +27,28 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string, cfg *co
 	// Health check (no auth required)
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	})
+
+	// Documentation UI (P3-F05) - with session-based authentication
+	docsHandler := docs.NewHandler()
+	mux.HandleFunc("/docs", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/docs" {
+			docsHandler.Index(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+	mux.HandleFunc("/docs/", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		if strings.HasPrefix(path, "/docs/login") {
+			docsHandler.Login(w, r)
+		} else if strings.HasPrefix(path, "/docs/logout") {
+			docsHandler.Logout(w, r)
+		} else if strings.HasPrefix(path, "/docs/openapi/") {
+			docsHandler.Static(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
 	})
 
 	// Team Management API
@@ -189,11 +212,11 @@ func NewRouter(store storage.Store, seedData interface{}, apiKey string, cfg *co
 	return api.Logger(rateLimitedHandler)
 }
 
-// authProtectedRoutes applies BasicAuth to all routes except /health.
+// authProtectedRoutes applies BasicAuth to all routes except /health and /docs (with session auth).
 func authProtectedRoutes(handler http.Handler, apiKey string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Skip auth for health endpoint
-		if r.URL.Path == "/health" {
+		// Skip auth for health endpoint and documentation UI (has its own session auth)
+		if r.URL.Path == "/health" || strings.HasPrefix(r.URL.Path, "/docs") {
 			handler.ServeHTTP(w, r)
 			return
 		}

@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -36,7 +37,7 @@ func TestE2E_TeamMembers(t *testing.T) {
 	require.NoError(t, err, "Failed to generate commits")
 
 	// Create router with loaded data
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/teams/members", nil)
@@ -82,7 +83,7 @@ func TestE2E_TeamMembers_EmptyWithoutLoad(t *testing.T) {
 	// NOTE: Intentionally NOT calling store.LoadDevelopers() to show the bug
 
 	// Create router
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/teams/members", nil)

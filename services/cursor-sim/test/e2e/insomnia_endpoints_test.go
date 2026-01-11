@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -89,7 +90,7 @@ func setupInsomniaTestServer(t *testing.T) (context.CancelFunc, *storage.MemoryS
 	require.NoError(t, err)
 
 	// Create and start HTTP server
-	router := server.NewRouter(store, seedData, testAPIKey)
+	router := server.NewRouter(store, seedData, testAPIKey, createTestConfig(), testVersion)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", insomniaTestPort),
 		Handler: router,

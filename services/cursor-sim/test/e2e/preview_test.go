@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"os"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"os/exec"
 	"path/filepath"
 	"testing"

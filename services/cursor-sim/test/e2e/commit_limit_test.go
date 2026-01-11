@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -94,7 +95,7 @@ func setupTestServerWithCommitLimit(t *testing.T, maxCommits int) context.Cancel
 		"Store should contain exactly %d commits", maxCommits)
 
 	// Create and start HTTP server
-	router := server.NewRouter(store, seedData, commitLimitTestAPIKey)
+	router := server.NewRouter(store, seedData, commitLimitTestAPIKey, createTestConfig(), testVersion)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", commitLimitTestPort),
 		Handler: router,

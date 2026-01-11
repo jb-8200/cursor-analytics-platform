@@ -1,8 +1,8 @@
 # cursor-sim v2 Specification
 
 **Version**: 2.0.0
-**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P4-F05 (Insomnia External APIs) Complete + P1-F02 (Admin API Suite) Complete ✅
-**Last Updated**: January 10, 2026 (TASK-INS-07: External Data Sources API Documentation)
+**Status**: Phase 4 Complete (CLI Enhancements Done) + Phase 3 Features + P2-F01 (GitHub Analytics) Complete + P4-F04 (External Data Sources) Complete + P4-F05 (Insomnia External APIs) Complete + P1-F02 (Admin API Suite) Complete + P3-F05 (Documentation UI) Complete ✅
+**Last Updated**: January 11, 2026 (P3-F05: OpenAPI Web Interface with Scalar Documentation UI)
 
 ## Overview
 
@@ -1599,6 +1599,49 @@ Routes are conditionally registered only when Qualtrics is enabled in seed data:
   - 70% of responses include free-text feedback
 - Generated ZIP contains CSV file with all responses
 - Export job state maintained in memory via `ExportJobManager`
+
+#### Documentation UI (P3-F05) - OpenAPI Web Interface
+
+| Method | Path | Auth | Status |
+|--------|------|------|--------|
+| GET | `/docs` | Session | ✅ Implemented |
+| GET | `/docs/login` | No | ✅ Implemented |
+| POST | `/docs/login` | No | ✅ Implemented |
+| GET | `/docs/logout` | Session | ✅ Implemented |
+| GET | `/docs/openapi/cursor-api.yaml` | No | ✅ Implemented |
+| GET | `/docs/openapi/github-sim-api.yaml` | No | ✅ Implemented |
+
+**Authentication:**
+- `/docs/login` - Hardcoded credentials (username: `dox`, password: `dox-a3`)
+- `/docs` - Session-based authentication via `docs_session` cookie
+- Session expiry: 8 hours
+- OpenAPI specs served without authentication (available to explore before login)
+
+**Usage:**
+
+```bash
+# Visit documentation interface
+curl http://localhost:8080/docs/login
+
+# Authenticate
+curl -X POST http://localhost:8080/docs/login \
+  -d "username=dox&password=dox-a3" \
+  -c cookies.txt
+
+# Access docs (with session cookie)
+curl -b cookies.txt http://localhost:8080/docs
+
+# Get OpenAPI spec
+curl http://localhost:8080/docs/openapi/cursor-api.yaml
+```
+
+**Features:**
+- Interactive API documentation powered by Scalar
+- Session-based authentication with 8-hour expiry
+- Embedded OpenAPI specs (cursor-api.yaml, github-sim-api.yaml)
+- Dark theme UI matching Cursor branding
+- Spec selector dropdown for switching between APIs
+- No external dependencies for docs UI (Scalar loaded from CDN)
 
 ---
 

@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"context"
+	"github.com/cursor-analytics-platform/services/cursor-sim/internal/config"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -38,7 +39,7 @@ func TestE2E_AllEndpoints_NoEmptyData(t *testing.T) {
 	// Define endpoints to test
 	// Focus on the 16 endpoints fixed in Phase 4 (15 empty dataset fixes + 1 team members)
 	endpoints := []EndpointTest{
-		// Health (1)
+		// Health (1, createTestConfig(), testVersion)
 		{Path: "/health", ExpectData: false, Description: "Health check"},
 
 		// Team Members (1) - FIX-01
@@ -121,7 +122,7 @@ func TestE2E_AllEndpoints_NoEmptyData(t *testing.T) {
 func TestE2E_TeamMembersEndpoint(t *testing.T) {
 	// Setup
 	seedData, store := setupFullDataGeneration(t)
-	router := server.NewRouter(store, seedData, "test-api-key")
+	router := server.NewRouter(store, seedData, "test-api-key", createTestConfig(), testVersion)
 
 	// Create request
 	req := httptest.NewRequest("GET", "/teams/members", nil)
