@@ -1,9 +1,9 @@
 # Development Session Context
 
-**Last Updated**: January 10, 2026 (Post-Documentation Updates)
-**Active Features**: P1-F02 (Admin API Suite) - COMPLETE ✅, P4-F05 (Insomnia External APIs) - PLANNED
-**Recent Work**: Retroactive documentation for P8-F01, P9-F01, P9-F02 completed (31 files, commit 8410222)
-**Primary Focus**: Insomnia collection documentation, E2E test enhancement
+**Last Updated**: January 10, 2026 (GCP Staging Deployment + Documentation Sync)
+**Active Features**: P4-F05 (Insomnia External APIs) - COMPLETE ✅, P7-F02 (GCP Cloud Run Staging) - COMPLETE ✅
+**Recent Work**: P4-F05 feature complete (8/8 tasks, 5.75h), P7-F02 staging deployment (1.95h), GCP service active
+**Primary Focus**: Completed external API integrations and cloud deployment
 
 ---
 
@@ -165,43 +165,89 @@
 
 **Status**: All tasks complete. Streamlit dashboard is fully integrated.
 
-#### P4-F05: Insomnia External APIs (0/8 tasks - 0%) 📋 PLANNED
+#### P4-F05: Insomnia External APIs (8/8 tasks - 100%) ✅ COMPLETE
 **Work Items**: `.work-items/P4-F05-insomnia-external-apis/`
 **Planning**: ✅ COMPLETE (user-story.md, design.md, task.md)
-**Commits**: b77847e
+**Commits**: f5e3dd1, 760e58a
 
-**Planning Summary**:
-- Extend Insomnia collection with Harvey, Copilot, Qualtrics APIs
-- Add 9 E2E test scenarios to existing 14 tests
-- Update SPEC.md and create usage guide
-- NO code changes required (documentation/testing only)
-- Estimated time: 8-9 hours (6-9h with parallelization)
+**Completion Summary** (January 10, 2026):
+- Extended Insomnia collection with Harvey, Copilot, Qualtrics APIs
+- Added 9 new E2E test scenarios (total 23 tests, all passing)
+- Updated SPEC.md with 200+ lines of External Data Sources section
+- Created comprehensive docs/insomnia/README.md usage guide (880+ lines)
+- Created standalone External_APIs_2026-01-10.yaml collection
+- Actual time: 5.75 hours (vs 8-9h estimated)
 
-**Phase 1 - Insomnia Collection**: PENDING (4 tasks, 3-4h)
-- TASK-INS-01: Create Harvey AI folder (1h)
-- TASK-INS-02: Create Copilot folder (1h)
-- TASK-INS-03: Create Qualtrics folder (1.5h)
-- TASK-INS-04: Add environment variables (0.5h)
+**Phase 1 - Insomnia Collection**: ✅ COMPLETE (4 tasks, 3.5h)
+- TASK-INS-01: ✅ Created Harvey AI folder with 1 endpoint
+- TASK-INS-02: ✅ Created Copilot folder with 5 endpoints
+- TASK-INS-03: ✅ Created Qualtrics folder with 3 endpoints
+- TASK-INS-04: ✅ Added 6 environment variables (expanded to 10 in standalone)
 
-**Phase 2 - E2E Enhancement**: PENDING (2 tasks, 2-3h)
-- TASK-INS-05: Verify existing E2E coverage (1h)
-- TASK-INS-06: Add 9 missing test scenarios (2h)
+**Phase 2 - E2E Enhancement**: ✅ COMPLETE (2 tasks, 1h)
+- TASK-INS-05: ✅ Verified 14 existing E2E tests for external APIs
+- TASK-INS-06: ✅ Added 9 new test scenarios (Harvey filtering, Copilot formats, Qualtrics async)
 
-**Phase 3 - Documentation**: PENDING (2 tasks, 1-2h)
-- TASK-INS-07: Update SPEC.md with External Data Sources section (1h)
-- TASK-INS-08: Create docs/insomnia/README.md usage guide (1h)
+**Phase 3 - Documentation**: ✅ COMPLETE (2 tasks, 1.25h)
+- TASK-INS-07: ✅ Updated SPEC.md with External Data Sources section (API contracts documented)
+- TASK-INS-08: ✅ Created docs/insomnia/README.md usage guide (4 workflow examples, troubleshooting)
 
-**Key Findings**:
-- 14 E2E tests already exist for external APIs (P4-F04)
-- All 3 APIs fully functional (Harvey, Copilot, Qualtrics)
-- No admin endpoints needed (seed config already supports configuration)
-- Risk: LOW (declarative YAML + test additions only)
+**Test Results**:
+- ✅ All 23 E2E tests passing in 3.347 seconds
+- ✅ Harvey: 4 tests (usage, pagination, filtering, disabled state)
+- ✅ Copilot: 4 tests (JSON/CSV, periods, disabled state)
+- ✅ Qualtrics: 3 tests (workflow, progress, disabled state)
+- ✅ New scenarios: 9 tests (filtering, formats, async handling)
+
+**Deliverables Created**:
+- docs/insomnia/External_APIs_2026-01-10.yaml (440 lines)
+- docs/insomnia/Admin_APIs_2026-01-10.yaml (449 lines, from P1-F02)
+- docs/insomnia/README.md (880+ lines, comprehensive guide)
+- services/cursor-sim/SPEC.md (updated, +211 lines for external APIs)
+- Enhanced Insomnia_2026-01-09.yaml with 3 new folders, 9 endpoints
+
+---
+
+#### P7-F02: GCP Cloud Run Deployment (7/7 tasks - 100%) ✅ COMPLETE (Staging)
+**Work Items**: `.work-items/P7-F02-gcp-cloud-run-deploy/`
+**Status**: ✅ Staging deployment complete, production pending
+**Completion Date**: January 10, 2026
+**Actual Time**: 1.95 hours (vs 4.5h estimated)
+
+**Deployment Details**:
+- **Service URL**: https://cursor-sim-7m3ityidxa-uc.a.run.app
+- **Environment**: Staging (scale-to-zero enabled)
+- **Configuration**: 0.25 CPU, 512Mi memory, 0-1 instances
+- **Data Generation**: 90 days, medium velocity, 50 developers
+- **Image Tag**: v2.0.1-20260110
+- **Region**: us-central1 (Artifact Registry + Cloud Run)
+
+**Task Completion**:
+- GCP-01: ✅ Enable GCP APIs and create Artifact Registry (0.2h actual)
+- GCP-02: ✅ Build and push Docker image to Artifact Registry (0.3h actual)
+- GCP-03: ✅ Deploy to Cloud Run (staging) (0.5h actual)
+- GCP-04: ✅ Verify deployment and test endpoints (0.25h actual)
+- GCP-05: ✅ Create deployment automation script `tools/deploy-cursor-sim.sh` (0.35h actual)
+- GCP-06: ✅ Update documentation and deployment guide (0.2h actual)
+- GCP-07: ✅ Verify staging deployment and commit (0.2h actual)
+
+**Verification Results**:
+- ✅ Health endpoint: `/health` returns `{"status":"ok"}`
+- ✅ Teams endpoint: `/teams/members` returns 50+ members with Basic Auth
+- ✅ AI Code tracking endpoints: Returning data for all external APIs
+- ✅ Authentication: Basic Auth (cursor-sim-dev-key) enforced
+- ✅ Response format: All APIs match cursor-sim SPEC.md contracts
+
+**Key Deliverables**:
+- `tools/deploy-cursor-sim.sh` - Fully automated deployment script (supports staging + production)
+- `docs/deployment-summary.md` - Staging deployment details and service information
+- Updated README.md with Cloud Run service links and test commands
+- Docker image in Artifact Registry (us-central1-docker.pkg.dev/cursor-sim/cursor-sim/cursor-sim:v2.0.1-20260110)
 
 **Next Steps**:
-- Start with TASK-INS-01, TASK-INS-02, TASK-INS-03 in parallel
-- Then TASK-INS-04 (environment variables)
-- Parallel: TASK-INS-05 and TASK-INS-06 (E2E tests)
-- Final: TASK-INS-07 and TASK-INS-08 (documentation)
+- Production deployment: `./tools/deploy-cursor-sim.sh production` (optional, pending user confirmation)
+- Configure analytics-core (P5) to use staging Cloud Run URL for E2E testing
+- Set up monitoring and alerting for Cloud Run service
 
 ---
 
@@ -265,17 +311,32 @@ All updates emphasize:
 
 ---
 
-## Recent Commits (January 9-10, 2026)
+## Recent Commits (January 10, 2026)
 
+**Session Summary** (Most recent first):
 ```bash
-cb1521a feat(cursor-sim): complete TASK-DS-16 - External Data E2E Tests
-c88f996 chore: remove settings.local.json + TASK-DS-15 Qualtrics Router
-d871ef0 feat(cursor-sim): complete TASK-DS-14 - Qualtrics API Handlers
-7e6e332 docs(cursor-sim): complete TASK-GH-15 - Documentation
-ae34d6f feat(cursor-sim): complete TASK-GH-14 - GitHub Analytics E2E Tests
-c14ef89 feat(cursor-sim): complete TASK-DS-10 - Copilot Router Integration
-59a89d6 feat(cursor-sim): complete TASK-DS-13 - Qualtrics Export State Machine
+760e58a feat(insomnia): add External APIs standalone collection
+f5e3dd1 feat(cursor-sim): complete P4-F05 Insomnia collections for external APIs
+9c39a41 rules(api-change-impact): add enforcement constraints for cursor-sim API changes
+55d063b docs: final updates to session context and e2e testing
+15a7e30 docs(claude): add streamlit-dashboard service and data contract hierarchy
+f636a1f docs(design): add data pipeline architecture and lessons learned
+ec90045 docs(architecture): add data contract hierarchy and DuckDB schema naming
 ```
+
+**Key Deliverables**:
+- P4-F05: 8/8 tasks complete (5.75h actual)
+  - 3 new Insomnia API folders (Harvey, Copilot, Qualtrics)
+  - 9 new E2E test scenarios (23 tests total, all passing)
+  - Updated SPEC.md (+211 lines for external APIs)
+  - Comprehensive docs/insomnia/README.md (880+ lines)
+  - Standalone External_APIs_2026-01-10.yaml collection
+
+- P7-F02: 7/7 tasks complete - Staging deployment (1.95h actual)
+  - GCP Cloud Run service deployed: https://cursor-sim-7m3ityidxa-uc.a.run.app
+  - Automated deployment script: tools/deploy-cursor-sim.sh
+  - All endpoints verified and responding
+  - Ready for production deployment
 
 ---
 
@@ -295,22 +356,49 @@ c14ef89 feat(cursor-sim): complete TASK-DS-10 - Copilot Router Integration
 
 ## Next Steps (Resume Checklist)
 
-### Immediate Tasks
+### Completed Phases (All Features 100%)
 
-| Phase | Next Task | Agent |
-|-------|-----------|-------|
-| **P2** | ✅ COMPLETE | - |
-| **P4-F04** | ✅ COMPLETE | - |
-| **P8** | ✅ COMPLETE | - |
+| Phase | Status | Recent Features |
+|-------|--------|-----------------|
+| **P0** | ✅ COMPLETE | SDD methodology, rules, skills, agents |
+| **P1-P6** | ✅ COMPLETE | cursor-sim, analytics-core, viz-spa |
+| **P7** | ✅ STAGING | GCP Cloud Run staging deployed |
+| **P8-P9** | ✅ COMPLETE | Data tier ETL, Streamlit dashboard |
+| **P4-F05** | ✅ COMPLETE | Insomnia External APIs (23 tests passing) |
 
-### Subagent Orchestration
+### Optional Next Tasks
 
-Available agents:
+**Priority 1 - Production Deployment** (1-2h, pending user confirmation):
+- Deploy cursor-sim to GCP Cloud Run production environment
+- Command: `./tools/deploy-cursor-sim.sh production`
+- Configuration: 0.5 CPU, 1Gi memory, 1-3 instances, 180 days data
+- Provides stable URL for analytics platform integration
+
+**Priority 2 - P5 Integration Testing** (2-3h):
+- Configure cursor-analytics-core to use Cloud Run URL
+- Run E2E tests between P5 (GraphQL) and P7 (Cloud Run deployment)
+- Verify data fetching, pagination, authentication
+
+**Priority 3 - Monitoring & Alerting** (2-3h):
+- Set up Cloud Run metrics (latency, errors, cost)
+- Configure Cloud Monitoring alerts for production
+- Document runbooks for common issues
+
+**Priority 4 - CI/CD Pipeline** (3-4h):
+- GitHub Actions workflow for automated deployments
+- Triggered on push to main or manual dispatch
+- Automated E2E testing on deployment
+
+### Available Agents
+
 - `planning-dev` (Opus): Research, design, task breakdown
-- `general-purpose`: For cursor-sim backend (cursor-sim-api-dev not yet registered)
+- `cursor-sim-api-dev` (Sonnet): cursor-sim backend specialist
 - `cursor-sim-cli-dev` (Sonnet): CLI only
+- `analytics-core-dev` (Sonnet): GraphQL/TypeScript
+- `viz-spa-dev` (Sonnet): React/Vite dashboard
 - `data-tier-dev` (Sonnet): Python ETL + dbt
-- `streamlit-dev` (Sonnet): Dashboard pages
+- `streamlit-dev` (Sonnet): Streamlit dashboard
+- `cursor-sim-infra-dev` (Sonnet): GCP deployment
 - `quick-fix` (Haiku): Simple fixes
 
 ---
